@@ -1,0 +1,7 @@
+---
+title: "Teaching materials"
+---
+
+On this page you will find my presentations that I delivered as a part of
+
+training in Statistics and Data Science in R Course.
