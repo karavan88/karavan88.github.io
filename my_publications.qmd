@@ -1,5 +1,6 @@
 ---
 title: "My Publications"
+toc: true
 ---
 
 ### Research Reports

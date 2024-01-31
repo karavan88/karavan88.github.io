@@ -1,3 +1,18 @@
 ---
 title: "Web Apps"
+toc: true
 ---
+
+### The UN Global Study on Homicide 2019 Web App for Data
+
+Explore global and country trends in homicide and crime with this interactive web application, a pivotal part of the [United Nations Global Study on Homicide 2019](https://www.unodc.org/unodc/en/data-and-analysis/global-study-on-homicide-2019.html). Developed during my tenure as a Data Science Consultant, this app is a testament to my expertise in transforming complex data into insightful, interactive experiences.
+
+**Technical Tools**: Built using [Shiny]{style="color: green;"}, this app integrates intricate [JavaScript]{style="color: green;"} based [leaflet]{style="color: green;"} choroplet maps and engaging time-series trends crafted in [Plotly]{style="color: green;"}, offering a seamless and dynamic user experience.
+
+**Interactive Data Exploration**: Navigate through a wealth of homicide data across different scales - from country-specific details to global overviews. The app's ability to produce interactive graphs and dynamic tables for online exploration and data export showcases its versatility and user-friendly design.
+
+**Statistical Sophistication**: A notable feature is the use of the [ImputeTS]{style="color: green;"} package in [R]{style="color: green;"}, employing exponential moving average techniques for robust time-series analysis of homicide trends.
+
+Press on the screenshot below to access the web application on the external source.
+
+[![](homicide_data_shiny_app.png)](https://karavan88.shinyapps.io/homicide_data_shiny_app/){.center width="80%"}
