@@ -24,6 +24,6 @@ Hello! I'm a Data Scientist working with the Data & Analytics division at the Un
 
 Beyond my role at UNICEF, I carry out research focused on sustainable socio-economic development. With background economics and sociology, I apply innovative analytical approaches to tackle complex societal challenges, combining interdisciplinary knowledge for impactful solutions.
 
-I strongly believe that working with data should go beyond numbers and data points; it's about understanding the stories they tell and the lives they touch. Whether it's through advanced machine learning methods or insightful econometric analyses, my aim is to contribute meaningfully in harnessing data to inform more equitable policy decisions, social programs, and sector planning.
+I strongly believe that working with data should go beyond numbers and data points; it's about understanding the stories they tell and the lives they touch. Whether it's through advanced machine learning methods or insightful econometric analyses, my aim is to contribute meaningfully in harnessing data to inform decision-making.
 
 Welcome to my space.

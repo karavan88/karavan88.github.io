@@ -1,7 +1,7 @@
 ---
-title: "karavan88 on Data for Social Impact"
+title: "@karavan88 tells stories from the data"
 ---
 
-### Welcome to my personal data science hub
+### Welcome to my personal page
 
 Here you can find my projects, publications, and thoughts on using statistics and data science with applications in R and Python for social good.
