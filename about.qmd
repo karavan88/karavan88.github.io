@@ -22,7 +22,7 @@ toc: false
 
 Hello! I'm a Data Scientist working with the Data & Analytics division at the United Nations Children's Fund (UNICEF). With expertise in predictive analytics, causal inference, and survey methodology, I harness these skills to generate data-driven insights, helping shape initiatives that enhance child welfare in developing countries.
 
-Beyond my role at UNICEF, I carry out research focused on sustainable socio-economic development. With background economics and sociology, I apply innovative analytical approaches to tackle complex societal challenges, combining interdisciplinary knowledge for impactful solutions.
+Beyond my role at UNICEF, I carry out research focused on sustainable socio-economic development. With background in economics and sociology, I apply innovative analytical approaches to tackle complex societal challenges, combining interdisciplinary knowledge for impactful solutions.
 
 I strongly believe that working with data should go beyond numbers and data points; it's about understanding the stories they tell and the lives they touch. Whether it's through advanced machine learning methods or insightful econometric analyses, my aim is to contribute meaningfully in harnessing data to inform decision-making.
 
