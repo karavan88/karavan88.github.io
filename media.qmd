@@ -38,3 +38,10 @@ UNICEF unveiled ‘Pandemic Classroom’, a model classroom made up of 168 empty
 
 <a href="https://www.washingtonpost.com/education/2020/08/27/least-463-million-students-around-world-have-no-access-digital-or-broadcast-lessons-unicef/"> <img src="https://www.washingtonpost.com/wp-apps/imrs.php?src=https://arc-anglerfish-washpost-prod-washpost.s3.amazonaws.com/public/BNP7QEHGKAI6VP2EBUY4QWBYUU.jpg&amp;w=1200" alt="Washington Post Article Image" style="width:200px; float:left; margin-right:10px;"/> </a> [**At least 463 million students around the world have no access to digital or broadcast lessons, UNICEF report says**](https://www.washingtonpost.com/education/2020/08/27/least-463-million-students-around-world-have-no-access-digital-or-broadcast-lessons-unicef/)\
 At least 463 million students around the world have no access to remote lessons provided by digital or broadcast means because families don’t have the ability to receive them or governments are not providing them, a new UNICEF report released Wednesday says.
+
+------------------------------------------------------------------------
+
+### Tableau Resources Blog, June 2020
+
+<a href="https://www.tableau.com/blog/how-unicef-using-data-ensure-global-covid-19-school-closures-dont-set-kids-back/"> <img src="https://cdnl.tblsft.com/sites/default/files/blog/image2_7.jpg" alt="Tableau Blog Image" style="width:200px; float:left; margin-right:10px;"/> </a> [**How UNICEF is using data to ensure global COVID-19 school closures don’t set kids back**](https://www.tableau.com/blog/how-unicef-using-data-ensure-global-covid-19-school-closures-dont-set-kids-back)\
+COVID-19 is challenging nearly every community and every system in place across the world. For UNICEF, the UN’s organization focused on the rights and wellbeing of children everywhere, the pandemic poses a unique threat to children and families. On top of the economic instability that COVID-19 has brought to millions of families across the world, many of the systems in place that care for children and support their well-being have been impacted.
