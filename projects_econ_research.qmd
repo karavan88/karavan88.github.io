@@ -1,0 +1,5 @@
+---
+title: "Econ Research"
+---
+
+This page contains my academic research in economics. Main areas of interests include education economics, labor market, and social inequality. In opposition to other pages on this website, the primary focus here is not on the code but the narrative produced by the data. 

@@ -18,6 +18,8 @@ website:
           href: projects_predictive_modeling.qmd
         - text: Data Viz
           href: projects_data_viz.qmd
+        - text: Econ Research
+          href: projects_econ_research.qmd
         - text: Teaching
           href: projects_teaching.qmd
       - text: My Publications
