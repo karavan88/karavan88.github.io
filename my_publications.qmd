@@ -21,7 +21,7 @@ toc: true
 
 1.  [How Far Are NEET Youth Falling Behind in Their Non-Cognitive Skills? An Econometric Analysis of Disparities](https://doi.org/10.3390/economies12010025).\
     *Avanesian G., Borovskaya M., Masych M., Dikaya L., Ryzhova V., Egorova V.\
-     *Economies. 2024; 12(1):25.
+    *Economies. 2024; 12(1):25.
 
 2.  [How many students could continue learning during COVID-19-caused school closures? Introducing a new reachability indicator for measuring equity of remote learning](https://www.sciencedirect.com/science/article/pii/S0738059321000742)\
     *Avanesian, G., Mizunoya, S., Amaro, D.\

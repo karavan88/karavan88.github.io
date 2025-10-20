@@ -47,3 +47,5 @@ rsconnect/
 .DS_Store
 
 /.quarto/
+
+.projects_predictive_modeling.qmd

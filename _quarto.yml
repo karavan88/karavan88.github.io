@@ -6,7 +6,7 @@ website:
   title: "Garen Avanesian"
   navbar:
     left:
-      - text: Home
+      - text: About
         href: index.qmd
       - text: About
         href: about.qmd

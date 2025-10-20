@@ -15,4 +15,4 @@ Explore global and country trends in homicide and crime with this interactive we
 
 Press on the screenshot below to access the web application on the external source.
 
-[![](homicide_data_shiny_app.png)](https://karavan88.shinyapps.io/homicide_data_shiny_app/){.center width="80%"}
+[![](homicide_data_shiny_app.png)](https://karavan88.shinyapps.io/homicide_data_shiny_app/)
