@@ -10,7 +10,7 @@ about:
       href: mailto:karavan0788@gmail.com
     - text: LinkedIn
       icon: linkedin
-      href: https://www.linkedin.com/in/karen-avanesyan/
+      href: https://www.linkedin.com/in/karavan88/
     - text: GitHub
       icon: github
       href: https://github.com/karavan88
