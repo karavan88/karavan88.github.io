@@ -1,0 +1,51 @@
+---
+title: "Talks & Presentations"
+format:
+  html:
+    theme: cyborg
+    css: 
+      - styles.css
+      - custom.css
+    toc: false
+editor: visual
+---
+
+
+
+## Academic Presentations
+
+### Некогнитивные компоненты человеческого капитала
+*Теория, измерение и экономическое значение*
+
+**Author:** Аванесян Карен Алексеевич  
+**Institution:** Южный Федеральный Университет  
+**Year:** 2025  
+**Language:** Russian
+
+A comprehensive academic presentation exploring the theoretical foundations, measurement approaches, and economic significance of non-cognitive skills in human capital theory. The presentation covers the evolution from traditional cognitive-focused models to contemporary frameworks incorporating personality traits, behavioral patterns, and socio-emotional competencies.
+
+**Key topics covered:**
+- Conceptualization challenges and terminological debates
+- The Big Five personality model (OCEAN) and alternative frameworks
+- Empirical evidence from international and Russian labor market studies
+- Policy implications for educational systems and skill development programs
+- Future research directions in the field
+
+**Links:** [View Presentation](conference_presentation.html){target="_blank"} | [Source Code](conference_presentation.qmd){target="_blank"}
+
+---
+
+## Conference Talks
+
+*More presentations coming soon!*
+
+Stay tuned for updates on upcoming conference presentations and talks on data science, education analytics, and child welfare research.
+
+---
+
+## Invited Lectures
+
+*Guest lectures and workshops*
+
+Information about invited lectures at universities and organizations will be posted here.
+

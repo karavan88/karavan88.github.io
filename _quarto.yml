@@ -8,16 +8,14 @@ website:
     left:
       - text: Home
         href: index.qmd
-      - text: Projects
-        menu:
-        - text: Web Apps
-          href: projects_web_apps.qmd
-        - text: Econ Research
-          href: projects_econ_research.qmd
-        - text: Teaching
-          href: projects_teaching.qmd
-      - text: My Publications
+      - text: Research
+        href: research.qmd 
+      - text: Talks
+        href: talks.qmd
+      - text: Publications
         href: my_publications.qmd
+      - text: CV
+        href: cv.qmd
       - text: Media
         href: media.qmd
     right:
