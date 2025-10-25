@@ -9,9 +9,9 @@ website:
       - text: Home
         href: index.qmd
       - text: Research
-        href: 1_research.qmd 
+        href: research.qmd 
       - text: Talks
-        href: 2_talks.qmd
+        href: talks.qmd
       - text: Publications
         href: my_publications.qmd
       - text: Stat Tutorials
