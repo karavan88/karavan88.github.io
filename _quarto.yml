@@ -9,11 +9,13 @@ website:
       - text: Home
         href: index.qmd
       - text: Research
-        href: research.qmd 
+        href: 1_research.qmd 
       - text: Talks
-        href: talks.qmd
+        href: 2_talks.qmd
       - text: Publications
         href: my_publications.qmd
+      - text: Stat Tutorials
+        href: tutorials.qmd  
       - text: CV
         href: cv.qmd
       - text: Media
@@ -31,7 +33,8 @@ format:
     css: 
       - styles.css
       - custom.css
-    
+    include-in-header: |
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     toc: false
 
 editor: visual

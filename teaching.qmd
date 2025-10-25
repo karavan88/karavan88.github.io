@@ -1,5 +1,0 @@
----
-title: "Teaching"
----
-
-On this page you can find presentations for "Statistics and Data Analysis in R" course that I was teaching as a trainer and visiting lecturer.

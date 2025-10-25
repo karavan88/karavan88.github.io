@@ -19,46 +19,70 @@ toc: true
 
 ### Papers in Peer-Reviewed Journals
 
-1.  [How Far Are NEET Youth Falling Behind in Their Non-Cognitive Skills? An Econometric Analysis of Disparities](https://doi.org/10.3390/economies12010025).\
+1.  [The effect of non-cognitive skills on academic performance: does it vary by socio-economic status?](https://doi.org/10.1016/j.ijer.2025.102680)\
+    *Avanesian, G., Rozhkova, K.*\
+    International Journal of Educational Research, 2025.
+
+2.  [Do Non-Cognitive Skills Produce Heterogeneous Returns Across Different Wage Levels Amongst Youth Entering the Workforce? A Quantile Mixed Model Approach](https://doi.org/10.3390/economies13050114)\
+    *Avanesian, G.*\
+    Economies, 2025.
+
+3.  [Dissecting the digital divide: A household fixed effects approach to estimating gender gaps in digital skills of youth in low- and middle-income economies](https://doi.org/10.1016/j.heliyon.2024.e33127)\
+    *Avanesian, G., Zaw, H.T., Kelly P., Mizunoya, S.*\
+    Heliyon, 2024
+
+4.  [How Far Are NEET Youth Falling Behind in Their Non-Cognitive Skills? An Econometric Analysis of Disparities](https://doi.org/10.3390/economies12010025).\
     *Avanesian G., Borovskaya M., Masych M., Dikaya L., Ryzhova V., Egorova V.\
-    *Economies. 2024; 12(1):25.
+    *Economies, 2024
 
-2.  [How many students could continue learning during COVID-19-caused school closures? Introducing a new reachability indicator for measuring equity of remote learning](https://www.sciencedirect.com/science/article/pii/S0738059321000742)\
+5.  [How many students could continue learning during COVID-19-caused school closures? Introducing a new reachability indicator for measuring equity of remote learning](https://www.sciencedirect.com/science/article/pii/S0738059321000742)\
     *Avanesian, G., Mizunoya, S., Amaro, D.\
-    *International Journal of Educational Development, 2021, 84
+    *International Journal of Educational Development, 2021
 
-3.  [UNICEF remote learning readiness index: A composite indicator to assess resilience of education sector against crises and emergencies](https://content.iospress.com/articles/statistical-journal-of-the-iaos/sji220051)\
+6.  [UNICEF remote learning readiness index: A composite indicator to assess resilience of education sector against crises and emergencies](https://content.iospress.com/articles/statistical-journal-of-the-iaos/sji220051)\
     *Avanesian, G., Mizunoya, S., Delamonica, E.\
     *Statistical Journal of the International Association of Official Statistics
 
-4.  [How Personality Traits Are Related to the Attitudes Toward Forced Remote Learning During COVID-19: Predictive Analysis Using Generalized Additive Modeling](https://www.frontiersin.org/articles/10.3389/feduc.2021.629213/full)\
+7.  [How Personality Traits Are Related to the Attitudes Toward Forced Remote Learning During COVID-19: Predictive Analysis Using Generalized Additive Modeling](https://www.frontiersin.org/articles/10.3389/feduc.2021.629213/full)\
     *Dikaya, L.A., Avanesian, G., Dikiy, I.S., Kirik, V.A., Egorova, V.A.\
     *Frontiers in Education, 2021, 6
 
-5.  [Economic Inequality In The Access To Remote Learning Assets Amongst Youth In BRICS Countries: What Can We Learn From Pre-Covid-19 Data](https://ej.hse.ru/2021-25-3/530048375.html)\
+8.  [Economic Inequality In The Access To Remote Learning Assets Amongst Youth In BRICS Countries: What Can We Learn From Pre-Covid-19 Data](https://ej.hse.ru/2021-25-3/530048375.html)\
     *Avanesian, G., Borovskaya, M., Mishra, S., Masych, M., Fedosova, T., Egorova, V.\
     *HSE Economic Journal, 2021, 25(3)
 
-6.  [Bullying in the Russian Secondary School: Predictive Analysis of Victimization](#0)\
+9.  [Bullying in the Russian Secondary School: Predictive Analysis of Victimization](#0)\
     *Avanesian, G., Dikaya, L., Bermous, A., Kirik, V., Egorova, V., Abkadyrova, I.\
     *Frontiers in Psychology, 2021, 12
 
-7.  [Can We Improve Learning Outcomes of Schoolchildren from the Poorest Families by Investing into Their Non-Cognitive Skills? Causal Analysis Using Propensity Score Matching](https://vo.hse.ru/2022--1/575958548.html)\
+10. [Can We Improve Learning Outcomes of Schoolchildren from the Poorest Families by Investing into Their Non-Cognitive Skills? Causal Analysis Using Propensity Score Matching](https://vo.hse.ru/2022--1/575958548.html)\
     *Avanesian, G., Borovskaya, M., Ryzhova V., Kirik, V., Egorova, V., Bermous, A.\
-    *Educational Studies Moscow, 2022, 1
+    *Educational Studies Moscow, 2022
 
-8.  [Education Policies During the COVID-19 Pandemic: Scope, Efficiency and Gaps](https://www.elgaronline.com/edcollchap/book/9781800375062/book-part-9781800375062-11.xml)\
+11. [Education Policies During the COVID-19 Pandemic: Scope, Efficiency and Gaps](https://www.elgaronline.com/edcollchap/book/9781800375062/book-part-9781800375062-11.xml)\
     *Avanesian, G., Mizunoya, S., Mishra, S., Wang, Y.* in Postligione, G., Johnstone, C., & Teter, W. *Elgar Handbook of Educational Policy.* Elgar Publishing.
+
+12. [Why are children with disabilities not continuing their education in the system of professional training?](https://doi.org/10.17323/727-0634-2022-20-4-625-644)\
+    *Avanesian, G., Astoyants, M., Tarasenko, L.*, *Ryzhova V., Dikaya, L., , Borovskaya, M..\
+    *Social Policy Studies Journal, 2022
+
+13. [Socio-economic factors behind inequality in the access to education amongst people with disabilities: An econometric analysis](https://doi.org/10.18522/2073-6606-2022-20-4-87-98)\
+    *Avanesian, G., Borovskaya, M., Astoyants, M., Tarasenko, L.*\
+    Terra Economicus, 2022
 
 ------------------------------------------------------------------------
 
-### Facts & Figures
+### Education Facts & Figures
 
 Below listed visualization-based country-specific data reports that are used by governments and other national stakeholders for the purposes of education sector analysis and planning.
 
-1.  [MICS-EAGLE Turkmenistan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2022/02/Turkmenistan-MICS-EAGLE-Factsheet-2021-EN.pdf), UNICEF, 2021
+1.  [MICS-EAGLE Turkmenistan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2022/02/Turkmenistan-MICS-EAGLE-Factsheet-2021-EN.pdf)
 
-2.  [MICS-EAGLE Kyrgyzstan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2021/08/Kyrgyzstan-Education-Fact-Sheets.pdf), UNICEF, 2021
+2.  [MICS-EAGLE Kyrgyzstan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2021/08/Kyrgyzstan-Education-Fact-Sheets.pdf)
+
+3.  [MICS-EAGLE Belarus Education Fact Sheets - 2019](https://data.unicef.org/wp-content/uploads/2022/06/MICS-EAGLE-Factsheet-Belarus.pdf?client_id=393077493.1758722051&session_id=285696147)
+
+4.  [MICS-EAGLE Fiji Education Fact Sheets - 2019](https://data.unicef.org/wp-content/uploads/2025/05/FINAL_Fiji_Factsheet_9May2025.pdf?client_id=393077493.1758722051&session_id=285696147)
 
 ------------------------------------------------------------------------
 
