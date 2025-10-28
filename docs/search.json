@@ -37,9 +37,9 @@
   {
     "objectID": "research.html",
     "href": "research.html",
-    "title": "Econ Research",
+    "title": "Research",
     "section": "",
-    "text": "This page contains my academic research in economics. Main areas of interests include education economics, labor market, and social inequality. In opposition to other pages on this website, the primary focus here is not on the code but the narrative produced by the data."
+    "text": "My research explores the intersection of education, labor markets, and human capital formation, with a particular focus on how cognitive and non-cognitive (socio-emotional) skills shape youth outcomes during the school-to-work transition. I am especially interested in understanding the mechanisms through which skills translate into learning progress, employment opportunities, and job satisfaction, and how these processes differ across socio-economic and regional contexts.\nUsing large-scale datasets such as PISA, RLMS-HSE, MICS, and DHS my work combines econometric modeling approaches to analyze inequalities in learning and labor market outcomes. This agenda bridges the fields of education economics, development studies, and social statistics, seeking to inform evidence-based policymaking in line with the SDG 4 and SDG 8 frameworks."
   },
   {
     "objectID": "teaching.html",
@@ -149,9 +149,9 @@
   {
     "objectID": "tutorials.html",
     "href": "tutorials.html",
-    "title": "",
+    "title": "Multilevel Modeling of Learning Gains in PISA: A Step-by-Step lme4 Tutorial",
     "section": "",
-    "text": "Multilevel Modeling of Learning Gains in PISA: A Step-by-Step lme4 Tutorial"
+    "text": "Multilevel Modeling of Learning Gains in PISA: A Step-by-Step lme4 Tutorial\n\nHow can we estimate learning gains from education production functions based on cross-sectoral PISA dataset? Multilevel (mixed-effects) models with R/lme4 offer effective solution!"
   },
   {
     "objectID": "outdated/projects_web_apps.html",
@@ -173,5 +173,40 @@
     "title": "Garen Avanesian",
     "section": "",
     "text": "Alright, buckle up! We’re diving into the riveting world of statistical conundrums with a dash of humor. Today we are to resolve the following prediction problem: does being a boy or a girl play a role in becoming a digital ninja within the same family? Now, in the grand tapestry of social sciences, we’re aware that a smorgasbord of family dynamics — think parental jobs, education levels, whether you’re a city slicker or a country dweller, and balance on your bank account — plays a crucial role in skill acquisition. In other words, boys and girls sharing the same family characteristics should not show significant gaps in digital competency. Sounds logical, right? Because gender, we argue, shouldn’t tilt the scale of opportunity to gain skills critical for conquering the employment world.\nYet, here comes the twist: what if there are sneaky, unseen family dynamics at play, secretly shaping the digital inequalities along gender lines? Imagine invisible forces like opportunity costs and perceived returns on girls’ education, old-school views on girls’ tech engagement, or even concerns over online safety — all possibly skewing the digital skillset balance.\nSo, how do we shine a statistical spotlight on this family affair to see if gender bias is sneaking around, tripping up girls in the digital domain? Enter stage left: mixed-effect models, our statistical superheroes capable of making sense of complex data with the agility of a cat. They’re particularly slick at drawing powerful conclusions from the cozy sample size of siblings sharing bunk beds and, presumably, digital devices. Let’s embark on this statistical journey to find out how mixed-effect models in lme4 package of R can be utilized to predict the probability difference in digital skills with respect to gender."
+  },
+  {
+    "objectID": "research.html#overview",
+    "href": "research.html#overview",
+    "title": "Research",
+    "section": "",
+    "text": "My research explores the intersection of education, labor markets, and human capital formation, with a particular focus on how cognitive and non-cognitive (socio-emotional) skills shape youth outcomes during the school-to-work transition. I am especially interested in understanding the mechanisms through which skills translate into learning progress, employment opportunities, and job satisfaction, and how these processes differ across socio-economic and regional contexts.\nUsing large-scale datasets such as PISA, RLMS-HSE, MICS, and DHS my work combines econometric modeling approaches to analyze inequalities in learning and labor market outcomes. This agenda bridges the fields of education economics, development studies, and social statistics, seeking to inform evidence-based policymaking in line with the SDG 4 and SDG 8 frameworks."
+  },
+  {
+    "objectID": "research.html#current-research-themes",
+    "href": "research.html#current-research-themes",
+    "title": "Research",
+    "section": "Current Research Themes",
+    "text": "Current Research Themes\n\n🎓 Human Capital and Skill Formation\nI study how foundational and non-cognitive skills contribute to educational progress and long-term employment outcomes. My research employs education production functions to estimate learning gains and the productivity of schooling systems, using cross-national data from PISA and related assessments.\n\n\n💼 School-to-Work Transitions\nDrawing on longitudinal data, I examine the determinants of successful transitions from school to stable employment. My recent work focuses on the role of non-cognitive skills in reducing the risk of youth unemployment and NEET status, as well as their heterogeneous returns to wages and job satisfaction.\n\n\n⚖️ Inequality and Social Stratification\nA central aspect of my research investigates how family background, social capital, and regional disparities shape opportunities for young people. I use multilevel models, inverse probability weighting (IPW), and propensity score matching (PSM) to quantify structural inequalities and selection effects in education and employment outcomes."
+  },
+  {
+    "objectID": "research.html#methodological-focus",
+    "href": "research.html#methodological-focus",
+    "title": "Research",
+    "section": "Methodological Focus",
+    "text": "Methodological Focus\nI apply a combination of micro-econometric and data-analytic methods, including:\n\nMultilevel (mixed-effects) models using lme4\nQuantile regression and quantile mixed models (lqmm)\nGeneralized additive models (mgcv)\nInverse probability weighting (IPW) and causal inference tools\nCounterfactual and benchmarking techniques for SDG monitoring\n\nThese tools allow me to model both individual-level variation and system-level performance, producing insights relevant for comparative education and labor market policy analysis."
+  },
+  {
+    "objectID": "research.html#ongoing-and-related-projects",
+    "href": "research.html#ongoing-and-related-projects",
+    "title": "Research",
+    "section": "Ongoing and Related Projects",
+    "text": "Ongoing and Related Projects\n\nEducation Production Functions from PISA Data\nEstimating learning gains and system productivity through multilevel modeling of international assessment data.\nNon-Cognitive Skills and Youth Employment in Russia\nAssessing how personality traits predict youth employment outcomes and wage differentials.\nSDG Progress Benchmarking (UNICEF)\nDeveloping data pipelines and visual analytics tools for global and regional SDG monitoring."
+  },
+  {
+    "objectID": "research.html#research-vision",
+    "href": "research.html#research-vision",
+    "title": "Research",
+    "section": "Research Vision",
+    "text": "Research Vision\nMy overarching goal is to integrate quantitative modeling with policy relevance — advancing our understanding of how education systems can nurture the full spectrum of human capabilities and promote equitable transitions into meaningful work.\nUltimately, my work aims to inform data-driven education and labor policies that foster opportunity, inclusion, and well-being for young people worldwide."
   }
 ]

@@ -144,13 +144,13 @@ editor: visual
 </style>
 ```
 
-::: pdf-download-container
-<a href="avanesian_resume.pdf" class="pdf-download-btn" download>
-  <i class="fas fa-file-pdf"></i>
-  Download PDF Version
-</a>
-<div class="pdf-download-text">Click to download a printer-friendly version of this CV</div>
+:::: pdf-download-container
+<a href="avanesian_resume.pdf" class="pdf-download-btn" download> <i class="fas fa-file-pdf"></i> Download PDF Version </a>
+
+::: pdf-download-text
+Click to download a printer-friendly version of this CV
 :::
+::::
 
 ## Experience
 
@@ -290,17 +290,33 @@ Was working as a conference clerk and consultant to maintain conference particip
 
 ## Education
 
-<div class="education-item">
-  <div class="degree">PhD in Economic Sociology and Demography</div>
-  <div class="institution">Southern Federal University/South-Russian Polytech University</div>
-  <div class="location-year">Rostov-on-Don, Russia • 2009 — 2012</div>
-</div>
+:::::: education-item
+::: degree
+PhD in Economic Sociology and Demography
+:::
 
-<div class="education-item">
-  <div class="degree">Master's Degree with Honors in Sociology</div>
-  <div class="institution">Southern Federal University</div>
-  <div class="location-year">Rostov-on-Don, Russia • 2004 — 2009</div>
-</div>
+::: institution
+Southern Federal University/South-Russian Polytech University
+:::
+
+::: location-year
+Rostov-on-Don, Russia • 2009 — 2012
+:::
+::::::
+
+:::::: education-item
+::: degree
+Master's Degree with Honors in Sociology
+:::
+
+::: institution
+Southern Federal University
+:::
+
+::: location-year
+Rostov-on-Don, Russia • 2004 — 2009
+:::
+::::::
 
 ## Skills
 
