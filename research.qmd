@@ -49,6 +49,9 @@ These tools allow me to model both **individual-level variation** and **system-l
 -   [**Non-Cognitive Skills and Youth Employment in Russia**](https://karavan88.github.io/posts/ncs-youth-employment/)\
     Assessing how personality traits predict youth employment outcomes and wage differentials.
 
+-   [**Non-Cognitive Skills and Higher Education Completion**](ncs-higher-ed.html)\
+    Do adolescent personality traits predict tertiary education attainment? Longitudinal evidence from RLMS-HSE (2016–2024).
+
 -   [**SDG Progress Benchmarking (UNICEF)**](https://karavan88.github.io/projects/sdg-benchmarking/)\
     Developing data pipelines and visual analytics tools for global and regional SDG monitoring.
 
