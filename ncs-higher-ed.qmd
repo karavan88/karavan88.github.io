@@ -1,0 +1,488 @@
+---
+title: "Non-Cognitive Skills and Higher Education Completion: Results"
+subtitle: "Longitudinal Evidence from RLMS-HSE (2016–2024)"
+toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom)
+library(margins)
+library(knitr)
+library(kableExtra)
+
+PROJ <- "/Users/karavan88/Documents/GitHub/RLMS-Analysis"
+OUT  <- file.path(PROJ, "papers", "NCS_HigherEd", "output")
+
+person <- readRDS(file.path(OUT, "sample.rds"))
+panel  <- readRDS(file.path(OUT, "panel.rds"))
+person_ipw <- readRDS(file.path(OUT, "person_with_ipw.rds"))
+
+analytic <- person |> filter(attrited == 0)
+dat <- person_ipw |>
+  filter(attrited == 0, !is.na(tertiary)) |>
+  mutate(across(where(is.factor), droplevels))
+
+NCS_TRAITS <- c("O", "C", "E", "A", "ES")
+BASELINE_WAVES <- c(25, 26, 27)
+OUTCOME_AGE_MIN <- 22
+```
+
+## 1. Sample
+
+**Design.** We pool baseline observations from waves 25–27 (2016–2018) of the RLMS-HSE. For each person, we take their first eligible observation at age 14–20 with valid Big Five scores and no tertiary education completed yet. We then follow them through all subsequent waves up to wave 33 (2024). The outcome is binary: whether the respondent's highest completed education level is tertiary at their latest follow-up observation where age ≥ 22. The baseline age range (14–20) follows Heckman, Stixrud & Urzua (2006), who used ages 14–23 in the NLSY.
+
+```{r sample-numbers}
+n_baseline  <- nrow(person)
+n_any_fu    <- sum(person$has_any_followup)
+n_analytic  <- sum(person$reached_22)
+n_not22     <- sum(person$attrited)
+n_tertiary  <- sum(analytic$tertiary)
+n_in_uni    <- sum(analytic$bl_in_uni, na.rm = TRUE)
+
+tibble(
+  Group = c("Baseline cohort (w25–27, age 14–20, valid NCS)",
+            "Has any follow-up",
+            "Reached age ≥ 22 in follow-up (analytic sample)",
+            "Not reached age 22 (dropped)",
+            "Completed tertiary (among analytic)",
+            "Enrolled in university at baseline (among analytic)"),
+  N = c(n_baseline, n_any_fu, n_analytic, n_not22, n_tertiary, n_in_uni),
+  `%` = c(100, round(100*n_any_fu/n_baseline,1),
+          round(100*n_analytic/n_baseline,1),
+          round(100*n_not22/n_baseline,1),
+          round(100*n_tertiary/n_analytic,1),
+          round(100*n_in_uni/n_analytic,1))
+) |>
+  kable(caption = "Cohort numbers") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+```{r baseline-waves}
+person |>
+  count(bl_wave, bl_year, name = "Baseline") |>
+  left_join(analytic |> count(bl_wave, name = "Analytic"), by = "bl_wave") |>
+  kable(col.names = c("Wave", "Year", "Baseline N", "Analytic N"),
+        caption = "Contribution by baseline wave") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### Education trajectory across waves
+
+```{r edu-trajectory}
+edu <- read.csv(file.path(OUT, "desc_education_path.csv"))
+kable(edu, digits = 1,
+      col.names = c("Wave", "Year", "N", "% No School", "% Secondary",
+                     "% Vocational", "% Tertiary", "% In Education", "% In University"),
+      caption = "Education distribution by wave (full panel)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+## 2. Baseline Characteristics
+
+```{r descriptives}
+make_balance <- function(data, group_var = NULL) {
+  if (!is.null(group_var)) data <- data |> group_by(.data[[group_var]])
+  data |>
+    summarise(
+      n          = n(),
+      age_mean   = round(mean(bl_age), 2),
+      age_sd     = round(sd(bl_age), 2),
+      pct_female = round(100 * mean(bl_sex == "Female", na.rm = TRUE), 1),
+      pct_urban  = round(100 * mean(bl_area %in% c("City", "Regional Center"),
+                                    na.rm = TRUE), 1),
+      pct_rural  = round(100 * mean(bl_area == "Rural", na.rm = TRUE), 1),
+      pct_in_uni = round(100 * mean(bl_in_uni == 1, na.rm = TRUE), 1),
+      O_mean     = round(mean(O_bl), 2),
+      C_mean     = round(mean(C_bl), 2),
+      E_mean     = round(mean(E_bl), 2),
+      A_mean     = round(mean(A_bl), 2),
+      ES_mean    = round(mean(ES_bl), 2),
+      .groups    = "drop"
+    )
+}
+
+desc_all  <- make_balance(analytic) |> mutate(Group = "All")
+desc_tert <- make_balance(analytic, "tertiary") |>
+  mutate(Group = ifelse(tertiary == 1, "Tertiary", "No Tertiary"))
+
+bind_rows(desc_all, desc_tert) |>
+  select(Group, n, age_mean, age_sd, pct_female, pct_urban, pct_rural,
+         pct_in_uni, O_mean, C_mean, E_mean, A_mean, ES_mean) |>
+  kable(col.names = c("Group", "N", "Age M", "Age SD", "% Female",
+                       "% Urban", "% Rural", "% In Uni", "O", "C", "E", "A", "ES"),
+        caption = "Baseline characteristics by tertiary completion") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+## 3. NCS Differences by Outcome
+
+```{r ncs-ttests}
+ncs_tests <- lapply(NCS_TRAITS, function(trait) {
+  bl_col <- paste0(trait, "_bl")
+  x1 <- analytic |> filter(tertiary == 1) |> pull(!!sym(bl_col))
+  x0 <- analytic |> filter(tertiary == 0) |> pull(!!sym(bl_col))
+  tt <- t.test(x1, x0)
+  tibble(
+    Trait     = trait,
+    `Mean (Tertiary)` = round(mean(x1), 3),
+    `Mean (No Tert.)` = round(mean(x0), 3),
+    Diff      = round(mean(x1) - mean(x0), 3),
+    `t`       = round(tt$statistic, 3),
+    `p`       = round(tt$p.value, 4),
+    `Cohen's d` = round((mean(x1) - mean(x0)) / sqrt((var(x1) + var(x0)) / 2), 3)
+  )
+}) |> bind_rows()
+
+kable(ncs_tests,
+      caption = "Baseline NCS traits by tertiary completion (t-tests)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+```{r ncs-density, fig.width=10, fig.height=4}
+analytic |>
+  select(idind, tertiary, O_bl, C_bl, E_bl, A_bl, ES_bl) |>
+  pivot_longer(cols = ends_with("_bl"), names_to = "trait", values_to = "score") |>
+  mutate(trait   = gsub("_bl$", "", trait),
+         outcome = ifelse(tertiary == 1, "Tertiary", "No Tertiary")) |>
+  ggplot(aes(x = score, fill = outcome)) +
+  geom_density(alpha = 0.5) +
+  facet_wrap(~ trait, scales = "free_y", nrow = 1) +
+  scale_fill_manual(values = c("No Tertiary" = "#999999", "Tertiary" = "#E69F00")) +
+  labs(x = "Baseline NCS score (standardized)", y = "Density", fill = "Outcome") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+```
+
+## 4. Attrition
+
+```{r attrition-balance}
+person |>
+  mutate(Group = ifelse(attrited == 1, "Not reached 22", "Reached 22")) |>
+  group_by(Group) |>
+  summarise(
+    N = n(),
+    `Age M` = round(mean(bl_age), 2),
+    `% Female` = round(100 * mean(bl_sex == "Female", na.rm = TRUE), 1),
+    `% Urban` = round(100 * mean(bl_area %in% c("City", "Regional Center"),
+                                 na.rm = TRUE), 1),
+    `% In Uni` = round(100 * mean(bl_in_uni == 1, na.rm = TRUE), 1),
+    O = round(mean(O_bl), 3), C = round(mean(C_bl), 3),
+    E = round(mean(E_bl), 3), A = round(mean(A_bl), 3),
+    ES = round(mean(ES_bl), 3),
+    .groups = "drop"
+  ) |>
+  kable(caption = "Balance: reached age 22 vs. not") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+```{r attrition-logit}
+m_attr <- glm(
+  attrited ~ O_bl + C_bl + E_bl + A_bl + ES_bl +
+    bl_age + bl_sex + factor(bl_wave) + factor(bl_region) + bl_in_uni,
+  data = person, family = binomial)
+
+tidy(m_attr) |>
+  filter(!grepl("region", term)) |>
+  mutate(across(where(is.numeric), ~ round(., 4))) |>
+  kable(col.names = c("Term", "β", "SE", "z", "p"),
+        caption = "Logit: P(Not reached age 22 | Baseline) — region FE included, omitted from table") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+## 5. Main Results
+
+### M1: NCS traits only
+
+```{r m1}
+m1 <- glm(tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl,
+           data = dat, family = binomial)
+
+tidy(m1, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "M1: Logit — NCS traits only") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### M2: NCS + demographics + region FE
+
+```{r m2}
+m2 <- glm(tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +
+             bl_age + bl_sex + factor(bl_wave) + factor(bl_region),
+           data = dat, family = binomial)
+
+tidy(m2, exponentiate = TRUE, conf.int = TRUE) |>
+  filter(!grepl("region", term)) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "M2: Logit — NCS + demographics + region FE (region coefficients omitted)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### M3: M2 + baseline university enrollment
+
+```{r m3}
+m3 <- glm(tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +
+             bl_age + bl_sex + factor(bl_wave) + factor(bl_region) + bl_in_uni,
+           data = dat, family = binomial)
+
+tidy(m3, exponentiate = TRUE, conf.int = TRUE) |>
+  filter(!grepl("region", term)) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "M3: Logit — NCS + demographics + region FE + uni enrollment (region omitted)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### M4: M3 with inverse probability weights for attrition
+
+```{r m4}
+m4 <- glm(tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +
+             bl_age + bl_sex + factor(bl_wave) + factor(bl_region) + bl_in_uni,
+           data = dat, family = binomial,
+           weights = ipw_trimmed)
+
+tidy(m4, exponentiate = TRUE, conf.int = TRUE) |>
+  filter(!grepl("region", term)) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "M4: Logit — M3 + IPW (region omitted)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### NCS odds ratios across models
+
+```{r ncs-comparison}
+bind_rows(
+  tidy(m1, exponentiate = TRUE) |> mutate(model = "M1"),
+  tidy(m2, exponentiate = TRUE) |> mutate(model = "M2"),
+  tidy(m3, exponentiate = TRUE) |> mutate(model = "M3"),
+  tidy(m4, exponentiate = TRUE) |> mutate(model = "M4")
+) |>
+  filter(term %in% c("O_bl", "C_bl", "E_bl", "A_bl", "ES_bl")) |>
+  select(model, term, estimate, p.value) |>
+  mutate(estimate = round(estimate, 3), p.value = round(p.value, 4)) |>
+  pivot_wider(names_from = model, values_from = c(estimate, p.value)) |>
+  kable(col.names = c("Trait", "OR M1", "OR M2", "OR M3", "OR M4",
+                       "p M1", "p M2", "p M3", "p M4"),
+        caption = "NCS odds ratios across specifications") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### Model fit
+
+```{r model-fit}
+fit_stats <- function(m, label) {
+  ll  <- as.numeric(logLik(m))
+  ll0 <- as.numeric(logLik(update(m, ~ 1)))
+  tibble(Model = label, N = nobs(m), Events = sum(m$y),
+         AIC = round(AIC(m), 1), `McFadden R²` = round(1 - ll/ll0, 4))
+}
+
+bind_rows(fit_stats(m1, "M1"), fit_stats(m2, "M2"),
+          fit_stats(m3, "M3"), fit_stats(m4, "M4")) |>
+  kable(caption = "Model fit") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### Average marginal effects (M3)
+
+```{r ame}
+ame <- margins(m3)
+summary(ame) |>
+  as.data.frame() |>
+  mutate(across(where(is.numeric), ~ round(., 4))) |>
+  kable(col.names = c("Variable", "AME", "SE", "z", "p", "Lower", "Upper"),
+        caption = "Average marginal effects (M3)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+## 6. Robustness
+
+```{r robustness-setup}
+df_raw <- readRDS(file.path(PROJ, "03_outputs", "rlms_analysis_ready.rds"))
+CONTROLS <- "bl_age + bl_sex + factor(bl_wave) + factor(bl_region) + bl_in_uni"
+```
+
+### R1: Probit
+
+```{r r1}
+r1 <- glm(as.formula(paste("tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +", CONTROLS)),
+           data = dat, family = binomial(link = "probit"))
+
+tidy(r1) |>
+  mutate(across(where(is.numeric), ~ round(., 4))) |>
+  kable(col.names = c("Term", "β", "SE", "z", "p"),
+        caption = "R1: Probit") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R2: Broader baseline age window (14–22)
+
+```{r r2}
+baseline_broad <- df_raw |>
+  filter(id_w %in% BASELINE_WAVES, age >= 14, age <= 22,
+         if_all(all_of(NCS_TRAITS), ~ !is.na(.x)),
+         is.na(edu_lvl) | edu_lvl != "4. Tertiary") |>
+  group_by(idind) |> arrange(id_w, .by_group = TRUE) |>
+  slice(1) |> ungroup()
+
+followup_broad <- df_raw |>
+  inner_join(baseline_broad |> select(idind, bl_wave = id_w), by = "idind") |>
+  filter(id_w > bl_wave, age >= OUTCOME_AGE_MIN) |>
+  group_by(idind) |> arrange(id_w, .by_group = TRUE) |>
+  slice_tail(n = 1) |> ungroup() |>
+  transmute(idind, tertiary = as.integer(edu_lvl == "4. Tertiary"))
+
+dat_broad <- baseline_broad |>
+  transmute(idind, bl_age = age, bl_sex = sex, bl_area = area,
+            bl_wave = id_w, bl_region = region,
+            bl_in_uni = as.integer(!is.na(in_uni) & in_uni == 1),
+            O_bl = O, C_bl = C, E_bl = E, A_bl = A, ES_bl = ES) |>
+  inner_join(followup_broad, by = "idind") |>
+  mutate(across(where(is.factor), droplevels))
+
+r2 <- glm(as.formula(paste("tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +", CONTROLS)),
+           data = dat_broad, family = binomial)
+
+cat(sprintf("N = %d\n", nrow(dat_broad)))
+tidy(r2, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R2: Broader age 14–22") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R3: Outcome = enrolled in university at latest observation
+
+```{r r3}
+r3 <- glm(as.formula(paste("last_in_uni ~ O_bl + C_bl + E_bl + A_bl + ES_bl +", CONTROLS)),
+           data = dat, family = binomial)
+
+tidy(r3, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R3: Outcome = enrolled in uni at latest obs") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R4: Restrict to age ≥ 24 at latest obs
+
+```{r r4}
+dat_24 <- dat |> filter(last_age >= 24)
+
+r4 <- glm(as.formula(paste("tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +", CONTROLS)),
+           data = dat_24, family = binomial)
+
+cat(sprintf("N = %d\n", nrow(dat_24)))
+tidy(r4, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R4: Last age ≥ 24") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R5: Each NCS trait entered separately
+
+```{r r5}
+r5_results <- lapply(NCS_TRAITS, function(trait) {
+  fml <- as.formula(paste0("tertiary ~ ", trait, "_bl + ", CONTROLS))
+  m <- glm(fml, data = dat, family = binomial)
+  tidy(m, exponentiate = TRUE, conf.int = TRUE) |>
+    filter(term == paste0(trait, "_bl")) |>
+    mutate(trait = trait)
+}) |> bind_rows()
+
+r5_results |>
+  select(trait, estimate, std.error, statistic, p.value, conf.low, conf.high) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Trait", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R5: Each trait entered separately") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R6: Area type instead of region FE
+
+```{r r6}
+CONTROLS_AREA <- "bl_age + bl_sex + factor(bl_wave) + bl_area + bl_in_uni"
+r6 <- glm(as.formula(paste("tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +",
+                            CONTROLS_AREA)),
+           data = dat, family = binomial)
+
+tidy(r6, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R6: Area type (rural/urban) instead of region FE") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### R7: Broader baseline age (14–21)
+
+```{r r7}
+baseline_21 <- df_raw |>
+  filter(id_w %in% BASELINE_WAVES, age >= 14, age <= 21,
+         if_all(all_of(NCS_TRAITS), ~ !is.na(.x)),
+         is.na(edu_lvl) | edu_lvl != "4. Tertiary") |>
+  group_by(idind) |> arrange(id_w, .by_group = TRUE) |>
+  slice(1) |> ungroup()
+
+followup_21 <- df_raw |>
+  inner_join(baseline_21 |> select(idind, bl_wave = id_w), by = "idind") |>
+  filter(id_w > bl_wave, age >= OUTCOME_AGE_MIN) |>
+  group_by(idind) |> arrange(id_w, .by_group = TRUE) |>
+  slice_tail(n = 1) |> ungroup() |>
+  transmute(idind, tertiary = as.integer(edu_lvl == "4. Tertiary"))
+
+dat_21 <- baseline_21 |>
+  transmute(idind, bl_age = age, bl_sex = sex, bl_area = area,
+            bl_wave = id_w, bl_region = region,
+            bl_in_uni = as.integer(!is.na(in_uni) & in_uni == 1),
+            O_bl = O, C_bl = C, E_bl = E, A_bl = A, ES_bl = ES) |>
+  inner_join(followup_21, by = "idind") |>
+  mutate(across(where(is.factor), droplevels))
+
+r7 <- glm(as.formula(paste("tertiary ~ O_bl + C_bl + E_bl + A_bl + ES_bl +", CONTROLS)),
+           data = dat_21, family = binomial)
+
+cat(sprintf("N = %d\n", nrow(dat_21)))
+tidy(r7, exponentiate = TRUE, conf.int = TRUE) |>
+  mutate(across(where(is.numeric), ~ round(., 3))) |>
+  kable(col.names = c("Term", "OR", "SE", "z", "p", "OR lo", "OR hi"),
+        caption = "R7: Baseline age 14–21 (N = 949)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = FALSE)
+```
+
+### NCS summary across all robustness checks
+
+```{r robustness-summary}
+robust <- read.csv(file.path(OUT, "robustness_ncs_summary.csv"))
+
+robust |>
+  mutate(cell = sprintf("%.3f %s", beta, ifelse(p < 0.05, "*", ""))) |>
+  select(check, term, cell) |>
+  pivot_wider(names_from = check, values_from = cell) |>
+  kable(caption = "NCS coefficients across robustness checks (β, * = p<0.05)") |>
+  kable_styling(bootstrap_options = c("striped", "condensed"),
+                full_width = FALSE, font_size = 12)
+```
+
+## 7. Summary
+
+1. **Sample**: 1,821 baseline respondents aged 14–20 from waves 25–27 (2016–2018), of whom 773 are observed at age ≥ 22 in follow-up. 262 (33.9%) completed tertiary education. 21.3% were already enrolled in university at baseline.
+
+2. **Agreeableness is the most robust NCS predictor** — negatively associated with tertiary completion across all four specifications: M1 OR = 0.85 (p = 0.056), M2 OR = 0.78 (p = 0.012), M3 OR = 0.72 (p = 0.002), M4 OR = 0.77 (p = 0.001). AME = −5.1 pp. The effect *strengthens* with controls and IPW correction, and holds across all robustness checks.
+
+3. **Openness is positively associated** with tertiary completion across all specifications: M1 OR = 1.34 (p = 0.002), M2 OR = 1.32 (p = 0.012), M3 OR = 1.30 (p = 0.029), M4 OR = 1.30 (p = 0.004). AME = +3.9 pp. Cohen's d = 0.28 in the raw comparison. The effect is robust to region FE and baseline enrollment controls.
+
+4. **Conscientiousness** shows a positive raw difference (d = 0.17, t-test p = 0.024). With region FE it becomes significant in M2 (OR = 1.29, p = 0.014), attenuates in M3 after controlling for university enrollment (OR = 1.22, p = 0.076), and strengthens again under IPW correction in M4 (OR = 1.32, p < 0.001).
+
+5. **Baseline university enrollment** is the single strongest predictor: AME = +41.0 pp (p < 0.001). Controlling for it is critical given the 14–20 age range — it absorbs the age effect and sharpens the NCS estimates.
+
+6. **McFadden R² jumps from 0.15 (M2) to 0.27 (M3)** when adding baseline enrollment — confirming that current educational trajectory is the dominant predictor, while NCS add incremental predictive power beyond enrollment status. Region FE alone substantially improve model fit (R² = 0.02 in M1 → 0.15 in M2).
+
+7. **Attrition**: no NCS trait significantly predicts whether a person is observed at age ≥ 22 after controlling for region FE. The IPW correction in M4 nevertheless strengthens the Conscientiousness and Agreeableness estimates.
