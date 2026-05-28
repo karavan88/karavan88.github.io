@@ -52,6 +52,9 @@ These tools allow me to model both **individual-level variation** and **system-l
 -   [**Non-Cognitive Skills and Higher Education Completion**](ncs-higher-ed.html)\
     Do adolescent personality traits predict tertiary education attainment? Longitudinal evidence from RLMS-HSE (2016–2024).
 
+-   [**Intra-family Variability in Non-Cognitive Skills**](within-family-ncs.html)\
+    Variance decomposition and within-family fixed-effects analysis of Big Five traits among Russian siblings, parents, and children. With K. Rozhkova.
+
 -   [**SDG Progress Benchmarking (UNICEF)**](https://karavan88.github.io/projects/sdg-benchmarking/)\
     Developing data pipelines and visual analytics tools for global and regional SDG monitoring.
 

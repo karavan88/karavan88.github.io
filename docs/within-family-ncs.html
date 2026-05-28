@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Garen Avanesian">
+<meta name="author" content="Ksenia Rozhkova">
+<meta name="dcterms.date" content="2026-05-28">
+
+<title>Intra-family variability in non-cognitive skills during adolescence and youth: insights from household-level random intercepts – Garen Avanesian</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="custom.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Garen Avanesian</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./research.html"> 
+<span class="menu-text">Research</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./talks.html"> 
+<span class="menu-text">Talks</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./my_publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./tutorials.html"> 
+<span class="menu-text">Stat Tutorials</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./cv.html"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./media.html"> 
+<span class="menu-text">Media</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/karavan88"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/karavan88/"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract">Abstract</a></li>
+  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement"><span class="header-section-number">1</span> Problem Statement</a></li>
+  <li><a href="#short-literature-review" id="toc-short-literature-review" class="nav-link" data-scroll-target="#short-literature-review"><span class="header-section-number">2</span> Short Literature Review</a></li>
+  <li><a href="#research-questions" id="toc-research-questions" class="nav-link" data-scroll-target="#research-questions"><span class="header-section-number">3</span> Research Questions</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data"><span class="header-section-number">4</span> Data</a></li>
+  <li><a href="#econometric-strategy" id="toc-econometric-strategy" class="nav-link" data-scroll-target="#econometric-strategy"><span class="header-section-number">5</span> Econometric Strategy</a>
+  <ul class="collapse">
+  <li><a href="#notation" id="toc-notation" class="nav-link" data-scroll-target="#notation"><span class="header-section-number">5.1</span> Notation</a></li>
+  <li><a href="#m0-and-m1-variance-partition-rq1" id="toc-m0-and-m1-variance-partition-rq1" class="nav-link" data-scroll-target="#m0-and-m1-variance-partition-rq1"><span class="header-section-number">5.2</span> M0 and M1 — Variance partition (RQ1)</a></li>
+  <li><a href="#pair-specific-correlations-rq2" id="toc-pair-specific-correlations-rq2" class="nav-link" data-scroll-target="#pair-specific-correlations-rq2"><span class="header-section-number">5.3</span> Pair-specific correlations (RQ2)</a></li>
+  <li><a href="#within-family-individual-observables-rq3" id="toc-within-family-individual-observables-rq3" class="nav-link" data-scroll-target="#within-family-individual-observables-rq3"><span class="header-section-number">5.4</span> Within-family individual observables (RQ3)</a></li>
+  <li><a href="#m5-family-observables-rq4" id="toc-m5-family-observables-rq4" class="nav-link" data-scroll-target="#m5-family-observables-rq4"><span class="header-section-number">5.5</span> M5 — Family observables (RQ4)</a></li>
+  <li><a href="#what-this-design-can-identify" id="toc-what-this-design-can-identify" class="nav-link" data-scroll-target="#what-this-design-can-identify"><span class="header-section-number">5.6</span> What this design CAN identify</a></li>
+  <li><a href="#what-this-design-cannot-identify" id="toc-what-this-design-cannot-identify" class="nav-link" data-scroll-target="#what-this-design-cannot-identify"><span class="header-section-number">5.7</span> What this design CANNOT identify</a></li>
+  <li><a href="#reporting-and-inference" id="toc-reporting-and-inference" class="nav-link" data-scroll-target="#reporting-and-inference"><span class="header-section-number">5.8</span> Reporting and inference</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results"><span class="header-section-number">6</span> Results</a>
+  <ul class="collapse">
+  <li><a href="#sample" id="toc-sample" class="nav-link" data-scroll-target="#sample"><span class="header-section-number">6.1</span> Sample</a></li>
+  <li><a href="#rq1-variance-decomposition" id="toc-rq1-variance-decomposition" class="nav-link" data-scroll-target="#rq1-variance-decomposition"><span class="header-section-number">6.2</span> RQ1 — Variance decomposition</a></li>
+  <li><a href="#rq2-sibling-versus-parentchild-resemblance" id="toc-rq2-sibling-versus-parentchild-resemblance" class="nav-link" data-scroll-target="#rq2-sibling-versus-parentchild-resemblance"><span class="header-section-number">6.3</span> RQ2 — Sibling versus parent–child resemblance</a></li>
+  <li><a href="#rq3-individual-observables-within-families-fixed-effects" id="toc-rq3-individual-observables-within-families-fixed-effects" class="nav-link" data-scroll-target="#rq3-individual-observables-within-families-fixed-effects"><span class="header-section-number">6.4</span> RQ3 — Individual observables within families (fixed-effects)</a></li>
+  <li><a href="#rq4-observable-family-characteristics-random-intercept-by-household" id="toc-rq4-observable-family-characteristics-random-intercept-by-household" class="nav-link" data-scroll-target="#rq4-observable-family-characteristics-random-intercept-by-household"><span class="header-section-number">6.5</span> RQ4 — Observable family characteristics (random intercept by household)</a></li>
+  <li><a href="#robustness-checks-for-rq4" id="toc-robustness-checks-for-rq4" class="nav-link" data-scroll-target="#robustness-checks-for-rq4"><span class="header-section-number">6.6</span> Robustness checks for RQ4</a></li>
+  </ul></li>
+  <li><a href="#expected-contributions" id="toc-expected-contributions" class="nav-link" data-scroll-target="#expected-contributions"><span class="header-section-number">7</span> Expected Contributions</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations"><span class="header-section-number">8</span> Limitations</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Intra-family variability in non-cognitive skills during adolescence and youth: insights from household-level random intercepts</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Garen Avanesian </p>
+             <p>Ksenia Rozhkova </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 28, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="abstract" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="abstract">Abstract</h2>
+<p>Behavioral-genetics studies of personality place the shared-family-environment share of Big Five variance at 5–15% (Plomin and Daniels 1987; Vukasovic and Bratko 2015), and the Sulloway (1996) birth-order hypothesis has been largely retracted on Western evidence (Damian and Roberts 2015; Rohrer, Egloff, and Schmukle 2015). Both claims rest almost entirely on WEIRD samples. We revisit them in Russia using a five-wave panel from the RLMS-HSE (2016, 2019, 2020, 2023, 2024) merged with the survey’s relatives file, which links each respondent to siblings, parents, and children. The variance-decomposition sample is 4,420 under-25s embedded in families with at least two BFI-scored members, with 636 sibling pairs and 4,676 parent–child dyads available for pairwise comparisons. Four research questions: (RQ1) what share of Big Five variance lies between families; (RQ2) is family resemblance carried by siblings or by parents and children; (RQ3) how much of <em>within-family</em> variance do observable individual characteristics — age, sex, education (lagged completed level), disability, firstborn, religiosity, relationship with parents — explain; and (RQ4) how much of <em>between-family</em> variance do observable family characteristics — urban, parental SES, household income, family size, sibling-sex composition — explain. Headline findings: between-family variance is 11–28% of total Big Five variance — 2–3× the WEIRD shared-environment ceiling. Siblings are twice as similar to one another as parents and children are on conscientiousness (<span class="math inline">\(\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15\)</span>). Within-family individual observables explain 2–11% of within-family variance, with sex, religiosity, and close-mother indicators carrying the signal; the firstborn coefficient is statistically zero on all five traits. Family observables explain 38% of family clustering in extraversion (driven by urban baseline) and 13% in openness, but little on conscientiousness, agreeableness, or emotional stability. An entropy-balanced robustness check confirms that the decomposition is not driven by selection into the multi-NCS-family sample.</p>
+<hr>
+</section>
+<section id="problem-statement" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">1</span> Problem Statement</h2>
+<p>Non-cognitive skills predict earnings, schooling, and labor-market attachment at magnitudes comparable to cognitive ability (Heckman, Stixrud, and Urzua 2006; Almlund, Duckworth, Heckman, and Kautz 2011). Where these traits <em>come from</em> is a first-order economic question: a trait shaped by family environment is a candidate target for early-childhood policy and parenting interventions; a trait that is essentially individual is not.</p>
+<p>The behavioral-genetics literature has converged on the second view. Plomin and Daniels (1987) summarized two decades of twin and adoption studies under the slogan “nothing important happens between families”: the shared-environment component of Big Five variance is 5–15%, often statistically indistinguishable from zero (Loehlin 1992; Bouchard 1994). Vukasovic and Bratko (2015) confirm this in a meta-analysis of 134 samples. The popular Sulloway (1996) claim that birth order shapes personality has met a similar fate: Damian and Roberts (2015) report effect sizes of <span class="math inline">\(d \approx 0.02\)</span> and Rohrer, Egloff, and Schmukle (2015) — using within-family designs in three large datasets — find essentially no birth-order effect on any of the Big Five.</p>
+<p>Two features of this evidence base limit how far it travels. <strong>First</strong>, the samples are overwhelmingly WEIRD — Western, Educated, Industrialized, Rich, Democratic (Henrich, Heine, and Norenzayan 2010). The underlying datasets — MIDUS, NEAD, the Twins Early Development Study, SOEP, MIDUS — come from low-co-residence, individualist, small-family societies. Russia is not one of these: multigenerational households are routine, adult children stay in the parental home longer (Kazenin 2021), and sibling ties carry financial and care-giving weight into adulthood. If family environment matters for personality anywhere, it should matter more here than where the WEIRD evidence was collected. <strong>Second</strong>, twin and adoption designs pool sibling and parent–child resemblance into a single shared-environment parameter. The behavioral-genetics literature cannot, by construction, say whether the family signal comes from siblings raised together or from parents transmitting traits down a generation. Each channel implies a different policy lever.</p>
+<p>The RLMS-HSE relatives file makes a direct decomposition feasible. We identify 3,798 Russians aged under 25 with Big Five scores. Of these, 636 form sibling pairs in which both members have BFI data, and 4,676 are children whose parent has BFI data. Pooled-sample variance decompositions already place the between-family share at 13–31% across the five traits — 2–3× the WEIRD benchmark — without conditioning on age or any controls. The paper estimates these shares cleanly for the under-25 cohort, compares sibling and parent–child resemblance side by side, and applies within-family fixed effects to test birth-order claims that have been largely rejected on Western data.</p>
+</section>
+<section id="short-literature-review" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="short-literature-review"><span class="header-section-number">2</span> Short Literature Review</h2>
+<p>Four strands of work bear on this question.</p>
+<p><strong>Behavioral genetics of the Big Five.</strong> Loehlin (1992) and Bouchard (1994) report twin correlations of about 0.46 (monozygotic) and 0.21 (dizygotic) for the Big Five, with adoptive-sibling correlations near zero — the textbook decomposition pointing to roughly 40% heritability, 50% non-shared environment, and 10% shared environment. Vukasovic and Bratko (2015) update across 134 samples and find shared-environment shares never above 0.15. <em>Yet</em> this literature mixes sibling and parent–child resemblance into one number, and almost all data are Anglo-Western.</p>
+<p><strong>Non-cognitive skills in economics.</strong> Heckman, Stixrud, and Urzua (2006) establish that non-cognitive skills carry returns comparable to cognitive ability. Cunha and Heckman (2008) develop the “technology of skill formation” in which parental investment and shared environment shape skills, but their empirical work is on cognitive outcomes. Anger and Schnitzlein (2017) estimate sibling correlations of 0.20–0.40 for non-cognitive skills in the German SOEP — much larger than the behavioral-genetics shared-environment ceiling — and conclude that family environment matters more than twin designs suggest. Russia, where family structure differs from Germany’s, has no comparable estimate.</p>
+<p><strong>Birth-order effects.</strong> Sulloway (1996) argued that firstborns are more conscientious and less open than later-borns. The claim was hugely influential in the popular press but has not held up. Damian and Roberts (2015) meta-analyze 25 studies and find median effect sizes near <span class="math inline">\(d = 0.02\)</span>. Rohrer, Egloff, and Schmukle (2015) use within-family designs in the SOEP, NCDS, and LISS — over 20,000 sibling observations — and find essentially no Big Five birth-order effect. Black, Grönqvist, and Öckert (2018) report the same null on Swedish administrative data. <em>However</em>, birth-order effects on <em>cognitive</em> outcomes and educational attainment are robust (Black, Devereux, and Salvanes 2005; Bertoni and Brunello 2016), suggesting the family-resource story works differently for skills and personality. The Russian setting has not been part of any of this literature.</p>
+<p><strong>Sibling-only and non-twin designs.</strong> Daniel (1985), Olneck and Bills (1980), and the NEAD framework (Reiss, Neiderhiser, Hetherington, and Plomin 2000) show that sibling correlations can identify family components without twin or adoption data, at the cost of conflating heritability with shared environment. For the present question — measuring the <em>size</em> of family resemblance, not decomposing it into genes and environment — this trade-off is acceptable. Björklund and Salvanes (2011) survey the use of sibling correlations in intergenerational mobility research, but no application has covered Russian personality data.</p>
+<p><strong>The gap.</strong> No paper, to our knowledge, estimates within-family Big Five resemblance on Russian data, compares sibling-pair and parent–child correlations directly, or tests the Sulloway hypothesis on a non-WEIRD sample with within-family identification. This paper fills the gap.</p>
+</section>
+<section id="research-questions" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="research-questions"><span class="header-section-number">3</span> Research Questions</h2>
+<p><strong>RQ1 (variance decomposition).</strong> What share of the variance in each Big Five trait lies <em>between</em> Russian families versus <em>between individuals within</em> families, and does the between-family share exceed the 5–15% shared-environment benchmark from twin and adoption studies?</p>
+<p><strong>RQ2 (sibling vs.&nbsp;parent–child).</strong> Among under-25 Russians, is family resemblance carried more by <strong>sibling pairs</strong> (suggesting shared rearing) or by <strong>parent–child pairs</strong> (suggesting active transmission)? A formal test of <span class="math inline">\(\rho_{\text{sib}} = \rho_{\text{pc}}\)</span> for each trait directly arbitrates between the two channels.</p>
+<p><strong>RQ3 (individual observables, within families).</strong> How much of the <em>within-family</em> variance in each Big Five trait is explained by observable individual characteristics — age, age², sex, education, disability, firstborn, religiosity — and which characteristics carry the signal? Within-family fixed effects absorb every family-level confounder; the within-R² of the individual-observables vector and the per-regressor coefficients answer the question jointly. RQ3 is the individual-level analog of RQ4: where RQ4 asks how much of family-level variance observable family characteristics explain, RQ3 asks the same of individual variance within families. Birth order enters as one regressor among many; the Sulloway / Damian–Roberts–Rohrer debate gets tested as a by-product, not as the primary question.</p>
+<p><strong>RQ4 (observable family characteristics).</strong> How much of the <em>between-family</em> variance in each Big Five trait is explained by observable family characteristics — urban baseline, parental education, parental occupation, lagged household income, family size, sibling-sex composition? RQ4 augments M1 with a family-observables vector <span class="math inline">\(F_f\)</span> and compares <span class="math inline">\(\sigma^2_f\)</span> before and after; the share of family variance explained is <span class="math inline">\(1 - \sigma^2_f^{\text{M5}} / \sigma^2_f^{\text{M1}}\)</span>. The estimates are predictive, not causal — parental education and occupation correlate with unobserved family endowments. Because the sibling sample is a non-random subset of Russian youth (parents who had multiple children differ systematically from those who did not), the headline unweighted estimates are reported alongside an entropy-balanced robustness check (§7) that reweights the analytic sample to the joint distribution of the under-25 NCS-scored RLMS population.</p>
+</section>
+<section id="data" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="data"><span class="header-section-number">4</span> Data</h2>
+<p><strong>Source.</strong> RLMS-HSE individual file restricted to the five waves with the full 15-item BFI battery (2016, 2019, 2020, 2023, 2024), merged with <code>ind_relatives_id_i_year_USER_RLMS-HSE_HH_1994_2024_rus.sav</code>. The relatives file lists each respondent’s spouse (<code>r01a*</code>), parents (<code>r02a*</code>), own children (<code>r04a*</code>), and full siblings (<code>r06a*</code>) by the relative’s wave-specific <code>id_i</code>. The shared build step <code>02_codes/02_build_vars/90_family.R</code> converts these to stable <code>idind</code> IDs via a <code>(id_w, id_i) → idind</code> lookup, builds an undirected kinship graph pooled across all waves, and writes each respondent’s <code>sibship_id</code>, <code>family_id</code>, <code>n_in_sibship</code>, <code>sibling_order</code>, and <code>family_role</code> to the analysis-ready dataset.</p>
+<p><strong>Sample.</strong> Big Five scores are observed for 24,165 distinct persons across the five waves. The analytic samples are:</p>
+<ul>
+<li><strong>RQ1 (variance decomposition):</strong> every person with at least one Big Five observation under age 25 who belongs to a family with at least two BFI-scored members. This gives <strong>4,420 persons, 10,323 person-wave observations, 3,158 families.</strong></li>
+<li><strong>RQ2 (sibling–parent–child comparison):</strong> <strong>636 sibling pairs</strong> with both members under 25 and BFI-scored, plus <strong>4,676 parent–child dyads</strong> with the child under 25 and BFI-scored (parent age unrestricted).</li>
+<li><strong>RQ3 (individual observables within families):</strong> under-25 BFI-scored respondents in sibships of size <span class="math inline">\(\geq 2\)</span> with religiosity measured, providing <strong>1,474 within-family observations</strong>.</li>
+<li><strong>RQ4 (family observables):</strong> under-25 BFI-scored respondents with at least one parent identifiable in the RLMS data (so that parental education and occupation are observable). Of the 4,915 under-25 NCS-scored persons, <strong>3,659 (74.4%) have at least one parent’s education and occupation observed</strong>, and <strong>2,231 (45.4%) have both parents observed</strong>. The headline RQ4 specification uses the “at least one parent” sample with separate mother and father indicators (NA when missing), with the “both parents observed” subset reported as a robustness check.</li>
+</ul>
+<p><strong>Outcomes.</strong> Big Five trait scores are constructed from the 15 RLMS BFI items as in the AgeNCS proposal §4: three items per trait, reverse-coded as needed, averaged, and standardized to the 2016-cohort distribution. Standardization to a fixed baseline is shared across all non-cognitive-skills papers in this project so coefficients translate across studies.</p>
+<p><strong>Birth-order variables.</strong> For each sibship of size <span class="math inline">\(\geq 2\)</span>, <code>birth_order</code> is the rank of the respondent’s birth year within the sibship (1 = eldest). Twins (same birth year) receive tied ranks. <code>birth_year_gap</code> is years between consecutive sibs.</p>
+<p><strong>Controls.</strong> Age, sex, and baseline education (from the AgeNCS pipeline) enter as individual-level controls. Family-level controls (parental education, urban/rural at birth) are mechanically collinear with the family fixed effect in the within-family regression and are used only in heterogeneity splits.</p>
+<p><strong>Reliability and invariance.</strong> Cronbach’s α and measurement invariance results are inherited from <code>papers/AgeNCS/code/03_reliability.R</code> and <code>05_invariance.R</code>. Internal consistency is modest (α 0.42–0.63 across traits and waves) and metric invariance holds. The reliability ceiling biases all variance components downward proportionally; relative comparisons (sibling vs.&nbsp;parent–child, eldest vs.&nbsp;later-born) are unaffected.</p>
+</section>
+<section id="econometric-strategy" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="econometric-strategy"><span class="header-section-number">5</span> Econometric Strategy</h2>
+<p>The strategy has four stages corresponding to the four research questions. RQ1 and RQ2 use mixed-effects models because the parameter of interest is a <em>variance component</em> — how much of <span class="math inline">\(Y\)</span> lives at the family or pair level. RQ3 uses fixed effects on <code>family_id</code> because the parameter of interest is <em>within-family explanatory power</em> — the within-R² of a vector of individual observables and the per-regressor within-family slopes. RQ4 returns to mixed effects, adding a random intercept for ethnicity on top of the family random effect, because the parameter of interest is again a <em>variance component</em> — how much of <span class="math inline">\(\sigma^2_f\)</span> a vector of family observables absorbs, and how much of total variance lives at the ethnic-group level. RQ3 and RQ4 are deliberately symmetric: where RQ3 decomposes within-family variance through observable individual characteristics, RQ4 decomposes between-family variance through observable family characteristics. Each uses the framework appropriate to its parameter of interest.</p>
+<section id="notation" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="notation"><span class="header-section-number">5.1</span> Notation</h3>
+<p>Let <span class="math inline">\(Y_{ifw}\)</span> denote the standardized Big Five trait score for person <span class="math inline">\(i\)</span> in family <span class="math inline">\(f\)</span> at wave <span class="math inline">\(w\)</span>. Let <span class="math inline">\(u_f \sim \mathcal{N}(0, \sigma^2_f)\)</span> be the family random effect, <span class="math inline">\(v_{i(f)} \sim \mathcal{N}(0, \sigma^2_v)\)</span> the between-individual-within-family effect, <span class="math inline">\(\eta_{e(f)} \sim \mathcal{N}(0, \sigma^2_\eta)\)</span> the ethnicity random effect introduced in RQ4 (with <span class="math inline">\(e(f)\)</span> the modal ethnicity in family <span class="math inline">\(f\)</span>, keyed on <code>i4</code>), and <span class="math inline">\(\varepsilon_{ifw} \sim \mathcal{N}(0, \sigma^2_\varepsilon)\)</span> the within-person residual. <span class="math inline">\(X_{iw}\)</span> collects individual observables (age, age², sex, education, disability, firstborn, religiosity); <span class="math inline">\(F_f\)</span> collects family observables (urban, parental education and occupation, lagged household income, family size, sibling sex composition). In RQ3 only, <span class="math inline">\(\alpha_f\)</span> replaces <span class="math inline">\(u_f\)</span> as a family fixed effect.</p>
+</section>
+<section id="m0-and-m1-variance-partition-rq1" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="m0-and-m1-variance-partition-rq1"><span class="header-section-number">5.2</span> M0 and M1 — Variance partition (RQ1)</h3>
+<p><strong>M0 (unconditional).</strong> Two-level mixed model with crossed random effects for family and individual:</p>
+<p><span class="math display">\[
+Y_{ifw} = \beta_0 + u_f + v_{i(f)} + \varepsilon_{ifw}
+\]</span></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># M0: unconditional variance partition (fit per trait).</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(Y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> family_id) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> idind),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> sample_rq1, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The headline statistic is</p>
+<p><span class="math display">\[
+\text{ICC}_{\text{family}} = \frac{\sigma^2_f}{\sigma^2_f + \sigma^2_v + \sigma^2_\varepsilon},
+\]</span></p>
+<p>reported with bootstrap CIs and compared to the 0.15 WEIRD shared-environment ceiling.</p>
+<p><strong>M1 (conditional on individual observables).</strong> Add age, sex, and baseline education to absorb demographic and cohort variation that may inflate the family component:</p>
+<p><span class="math display">\[
+Y_{ifw} = \beta_0 + X_{iw}'\delta + u_f + v_{i(f)} + \varepsilon_{ifw}
+\]</span></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># M1: conditional on individual demographics.</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(Y <span class="sc">~</span> age <span class="sc">+</span> <span class="fu">I</span>(age<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> sex <span class="sc">+</span> edu_baseline <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>               (<span class="dv">1</span> <span class="sc">|</span> family_id) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> idind),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> sample_rq1, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Persistence of a non-zero <span class="math inline">\(\text{ICC}_{\text{family}}\)</span> in M1 is the substantive result. Bootstrap CIs on the variance components come from <code>lme4::bootMer</code> with <code>nsim = 1000</code>.</p>
+</section>
+<section id="pair-specific-correlations-rq2" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="pair-specific-correlations-rq2"><span class="header-section-number">5.3</span> Pair-specific correlations (RQ2)</h3>
+<p>For each Big Five trait and each pair type <span class="math inline">\(p \in \{\text{sib}, \text{pc}\}\)</span>, the intra-class correlation is</p>
+<p><span class="math display">\[
+\rho_p = \frac{\sigma^2_{\text{pair}}}{\sigma^2_{\text{pair}} + \sigma^2_{\text{within-pair}}},
+\]</span></p>
+<p>estimated from a pair-level random-effects model restricted to dyads of type <span class="math inline">\(p\)</span>, where the random effect groups the two members of each dyad together.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sibling resemblance: one random intercept per sibship.</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(Y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> sibship_id),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> sib_sample, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Parent-child resemblance: one random intercept per dyad</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># (long format with two rows per dyad).</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(Y <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> dyad_id),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> pc_long, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>A bootstrapped 95% CI for <span class="math inline">\(\rho_{\text{sib}} - \rho_{\text{pc}}\)</span> tests equality under a single null. The bootstrap resamples sibships and dyads independently with replacement (<code>boot::boot</code> with <code>R = 1000</code>).</p>
+<p>With 636 sibling pairs the standard error on <span class="math inline">\(\rho_{\text{sib}}\)</span> is approximately <span class="math inline">\(1/\sqrt{636} \approx 0.04\)</span>, giving a CI of about <span class="math inline">\(\pm 0.08\)</span> around a point estimate near 0.20. With 4,676 parent–child dyads the corresponding SE is approximately 0.015, an order of magnitude tighter. The asymmetry implies a wider CI for the <em>difference</em> than for either correlation alone — the comparison test will have moderate power, sufficient to detect a difference of 0.10 or larger.</p>
+</section>
+<section id="within-family-individual-observables-rq3" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="within-family-individual-observables-rq3"><span class="header-section-number">5.4</span> Within-family individual observables (RQ3)</h3>
+<p><strong>RQ3 is identified by a within-family fixed-effects regression.</strong> The family fixed effect <span class="math inline">\(\alpha_f\)</span> absorbs every unobserved family-level confounder — parental personality, household income, region, parenting style, religious environment, generational cohort, ethnic background — so the remaining coefficients <span class="math inline">\(\delta\)</span> identify <em>within-family</em> slopes: brother-vs.-sister, eldest-vs.-younger, more-vs.-less-religious sibling-of-the-same-parents comparisons. Standard errors are family-clustered.</p>
+<p><span class="math display">\[
+Y_{if} = X_{if}'\delta + \alpha_f + \varepsilon_{if}.
+\]</span></p>
+<p>The individual covariate vector <span class="math inline">\(X_{if}\)</span> contains: age and age² (maturation), sex (Costa, Terracciano, and McCrae 2001), firstborn indicator (Sulloway 1996 vs.&nbsp;Rohrer, Egloff, and Schmukle 2015), disability (opportunity-set channel), religiosity (<code>j72_18</code> reverse-coded; Saroglou 2010), and an education variable. To reduce reverse causality from contemporaneous personality on schooling decisions, we use <strong>lagged completed education</strong> — the respondent’s <code>edu_lvl</code> from the most recent prior RLMS wave — rather than the contemporaneous value. The lag does not eliminate reverse causality (personality and schooling co-evolve continuously across adolescence; Borghans, Duckworth, Heckman, and ter Weel 2008), but it removes the direct one-wave feedback in which a personality shock at <span class="math inline">\(t\)</span> alters the recorded completed level at <span class="math inline">\(t\)</span>. Persons without a prior RLMS observation drop from this specification.</p>
+<p>For comparison, a second specification replaces completed education with <strong>current educational attendance</strong> (<code>in_education = 1</code> if currently enrolled at any level, 0 otherwise). Among under-25s the attendance variable carries different information from completed level: a 19-year-old currently enrolled at university has the same <code>edu_lvl</code> as a 19-year-old high-school graduate who chose not to continue, but contrasts on attendance.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Headline RQ3: within-family fixed-effects regression, family-clustered SEs.</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>fixest<span class="sc">::</span><span class="fu">feols</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  Y <span class="sc">~</span> age <span class="sc">+</span> <span class="fu">I</span>(age<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> sex <span class="sc">+</span> firstborn <span class="sc">+</span> disability <span class="sc">+</span> religiosity <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>      edu_lvl_lag <span class="sc">|</span> family_id,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data    =</span> fe_sample,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cluster =</span> <span class="sc">~</span> family_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><strong>A second RQ3 specification adds parent-relationship variables</strong> on the smaller wave-28 subset, where <code>close_father</code> and <code>close_mother</code> are observed:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># RQ3 with parent-relationship vars (wave-28 subset).</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>fixest<span class="sc">::</span><span class="fu">feols</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  Y <span class="sc">~</span> age <span class="sc">+</span> <span class="fu">I</span>(age<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> sex <span class="sc">+</span> firstborn <span class="sc">+</span> disability <span class="sc">+</span> religiosity <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>      edu_lvl_lag <span class="sc">+</span> close_father <span class="sc">+</span> close_mother <span class="sc">|</span> family_id,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data    =</span> fe_sample_w28,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">cluster =</span> <span class="sc">~</span> family_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Both specifications belong to RQ3 — <code>close_father</code> and <code>close_mother</code> vary across siblings within the same family (one sibling may report being very close to the father while another does not) and therefore identify a within-family individual-level slope, not a family-level slope.</p>
+<p>The interpretation has two parallel parts. The within-R² says <em>how much</em> of the sibling-vs.-sibling difference in <span class="math inline">\(Y\)</span> the observables collectively explain. The individual coefficients say <em>which</em> observables carry the signal.</p>
+</section>
+<section id="m5-family-observables-rq4" class="level3" data-number="5.5">
+<h3 data-number="5.5" class="anchored" data-anchor-id="m5-family-observables-rq4"><span class="header-section-number">5.5</span> M5 — Family observables (RQ4)</h3>
+<p><strong>RQ4 is identified by a random-intercept-by-household regression.</strong> The model is M1 augmented with a vector <span class="math inline">\(F_f\)</span> of family-level observables on the right-hand side:</p>
+<p><span class="math display">\[
+Y_{ifw} = \beta_0 + F_f'\theta + X_{iw}'\delta + u_f + v_{i(f)} + \varepsilon_{ifw}.
+\]</span></p>
+<p>The parameter of interest is the share of between-family variance that the family-observables vector absorbs:</p>
+<p><span class="math display">\[
+\text{share explained} = 1 - \frac{\sigma^2_f \text{ (M5)}}{\sigma^2_f \text{ (M1)}},
+\]</span></p>
+<p>reported with a bootstrap CI from <code>lme4::bootMer</code>.</p>
+<p><span class="math inline">\(F_f\)</span> contains exclusively family-level variables — those that take a single value for every member of a given household and therefore cannot, by construction, be moved by the family fixed effect of RQ3: urban-or-city baseline residence; mother tertiary; father tertiary; mother in ISCO-08 major groups 1–3 (high-skilled white collar); father in ISCO-08 major groups 1–3; log per-capita household income measured at the focal person’s baseline-minus-one wave (to limit reverse causality from older youth contributing to current family income); family size; and the share of male siblings among the focal’s siblings. The individual-level controls <span class="math inline">\(X_{iw}\)</span> — age, age², sex, education, disability, religiosity — are carried through from §5.4 for comparability.</p>
+<p>Note that <code>close_father</code> and <code>close_mother</code> do not belong in <span class="math inline">\(F_f\)</span>: they vary across siblings within the same household and therefore identify an individual-level slope, not a family-level one. They enter the second RQ3 specification (§5.4), not RQ4.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Headline M5: mixed model with random intercept by household</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (random effect on family_id) and on individual (random effect</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># on idind), augmented with family observables F.</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">lmer</span>(</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  Y <span class="sc">~</span> urban_baseline <span class="sc">+</span> mother_tertiary <span class="sc">+</span> father_tertiary <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>      mother_white_collar <span class="sc">+</span> father_white_collar <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      log_hh_inc_pc_lag <span class="sc">+</span> nfam <span class="sc">+</span> male_share_siblings <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      age <span class="sc">+</span> <span class="fu">I</span>(age<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> sex <span class="sc">+</span> edu_baseline <span class="sc">+</span> disability <span class="sc">+</span> religiosity <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>      (<span class="dv">1</span> <span class="sc">|</span> family_id) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> idind),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> sample_rq4, <span class="at">REML =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Combining all restrictions yields a stacked set of analytic samples:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Restriction</th>
+<th>n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Under-25 NCS persons</td>
+<td>4,915</td>
+</tr>
+<tr class="even">
+<td>+ with lagged household income (prior-wave obs)</td>
+<td>3,100</td>
+</tr>
+<tr class="odd">
+<td>+ with at least one parent’s education observed</td>
+<td><strong>2,775</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The headline M5 specification uses the 2,775 sample. Parental characteristics (<code>mother_edu_lvl</code>, <code>mother_occ08</code>, <code>mother_tertiary</code>, <code>mother_white_collar</code>, and the father analogs) are attached to each respondent’s row by the shared build step <code>02_codes/02_build_vars/90_family.R</code>. The values are the parent’s latest observed record across all RLMS waves.</p>
+<p>We do not include an ethnicity random intercept in the headline. The under-25 NCS-scored sample is 74% Russian and 12% non-response; the identified non-Russian categories together account for 14% of the sample and are distributed across many small groups. A random intercept on <code>i4</code> is identified almost entirely off this small heterogeneous tail and produces variance components with wide bootstrap CIs. The ethnic-group component is reported separately in the robustness section (§7).</p>
+</section>
+<section id="what-this-design-can-identify" class="level3" data-number="5.6">
+<h3 data-number="5.6" class="anchored" data-anchor-id="what-this-design-can-identify"><span class="header-section-number">5.6</span> What this design CAN identify</h3>
+<ol type="1">
+<li><strong>The family share of NCS variance</strong> (<span class="math inline">\(\text{ICC}_{\text{family}}\)</span>), with and without observable controls.</li>
+<li><strong>A direct comparison of sibling and parent–child resemblance.</strong> Twin and adoption studies cannot perform this comparison because their shared-environment parameter applies to one pair type.</li>
+<li><strong>Within-family explanatory power of individual observables.</strong> The family fixed effect makes RQ3’s within-R² and per-regressor coefficients robust to every between-family confounder that has plagued cross-sectional personality regressions — including the cross-sectional birth-order literature, which RQ3 nests as a special case.</li>
+<li><strong>The share of family clustering explained by observable family characteristics.</strong> Comparing <span class="math inline">\(\sigma^2_f\)</span> in M1 (no <span class="math inline">\(F\)</span> controls) to <span class="math inline">\(\sigma^2_f\)</span> in M5 (with <span class="math inline">\(F\)</span> controls) bounds the contribution of observable SES variables to the family signature.</li>
+<li><strong>Where in the Big Five family clustering is strongest.</strong> Pooled estimates suggest openness and agreeableness cluster more than extraversion and emotional stability; the under-25 estimates will sharpen this.</li>
+</ol>
+</section>
+<section id="what-this-design-cannot-identify" class="level3" data-number="5.7">
+<h3 data-number="5.7" class="anchored" data-anchor-id="what-this-design-cannot-identify"><span class="header-section-number">5.7</span> What this design CANNOT identify</h3>
+<ol type="1">
+<li><strong>Decomposing the family share into genes and environment.</strong> Sibling pairs share roughly half their genes on average and (typically) the same rearing. Without twin or adoption variation, the two channels are not separately identified. The headline ICC should be read as the family <em>signature</em>, not as shared environment in the behavioral-genetics sense.</li>
+<li><strong>Assortative mating contamination of</strong> <span class="math inline">\(\rho_{\text{pc}}\)</span>. Spouses select on personality (Watson, Klohnen, Casillas, Simms, Haig, and Berry 2004). Parent–child correlations capture transmission plus the parents’ own resemblance to one another. We report a sensitivity restricting to dyads where the second parent is also observed and including spousal <span class="math inline">\(Y\)</span> as a covariate.</li>
+<li><strong>Direction of effect within parent–child dyads.</strong> Parent personality may shape child personality, but child temperament can also shape measured parent personality. The cross-sectional dyad does not separate these. A wave-lagged specification (parent NCS in 2016 → child NCS in 2024) is the natural robustness check.</li>
+<li><strong>Causal effects of individual observables on personality within families.</strong> The RQ3 coefficients on education, religiosity, and disability are within-family but not within-person: a sibling who got more education differs from her sibship’s average on a host of unobservables (ability, peer environment, parental investment ex post) that the family FE does not absorb. The estimates bound the within-family slope, not its causal component.</li>
+<li><strong>Confounding of birth order with sibship size.</strong> Eldest children are over-represented in small sibships. The within-family fixed-effect regression controls for sibship size mechanically (size is constant within family) but cannot identify the interaction of birth order with sibship size without further structure.</li>
+<li><strong>Selection on which families are observed.</strong> Russian parents who have multiple children differ systematically from those who do not — more rural, lower-income, more religious, larger, less Russian. The entropy-balanced robustness check addresses this on observables; selection on unobservables that correlate with NCS remains a limitation.</li>
+<li><strong>Causal effects of observable family characteristics.</strong> The M5 coefficients on parental education, occupation, household income, and area are predictive, not causal. They correlate with unobserved family endowments — genetic transmission, parenting style, neighborhood quality, the latent permanent income behind observed income — and the share-explained statistic conflates these channels with the SES variables themselves.</li>
+</ol>
+</section>
+<section id="reporting-and-inference" class="level3" data-number="5.8">
+<h3 data-number="5.8" class="anchored" data-anchor-id="reporting-and-inference"><span class="header-section-number">5.8</span> Reporting and inference</h3>
+<p>For each trait we report:</p>
+<ul>
+<li>M0 variance components and ICCs with bootstrap CIs.</li>
+<li>Pair-specific <span class="math inline">\(\rho_{\text{sib}}\)</span> and <span class="math inline">\(\rho_{\text{pc}}\)</span> with bootstrap CIs and the test of equality.</li>
+<li>Within-family birth-order estimates (<span class="math inline">\(\gamma_1, \gamma_2\)</span>) with family-clustered SEs.</li>
+<li>A two-panel figure: trait on the x-axis, ICC plus pairwise <span class="math inline">\(\rho\)</span> on the y-axis (left), and birth-order <span class="math inline">\(\gamma\)</span> on the y-axis (right), with a horizontal reference line at the 0.15 WEIRD ceiling and at zero respectively.</li>
+<li>A heterogeneity table for sibling pairs broken down by absolute age gap and sex composition.</li>
+</ul>
+<p>Multiple-testing concerns are addressed with Benjamini–Hochberg-adjusted <span class="math inline">\(p\)</span>-values across the five Big Five outcomes.</p>
+</section>
+</section>
+<section id="results" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="results"><span class="header-section-number">6</span> Results</h2>
+<section id="sample" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="sample"><span class="header-section-number">6.1</span> Sample</h3>
+<p>The analytic sample is 2,250 under-25 NCS-scored persons (5,362 person-wave observations) embedded in 988 families with at least two NCS-scored members. Family role within the sample skews toward children: 1,512 <code>child_g1</code>, 222 <code>parent_g0</code>, 180 <code>middle_g1</code>, 61 <code>sibling_only</code>. Sibship sizes in the sample are 795 dyads, 137 triads, 38 quads, 11 quintets, and 7 sextets.</p>
+<p>Descriptive statistics for the variables of study are reported below. Continuous variables are summarized by mean and standard deviation; categorical variables by counts and percentages. All statistics are computed at the latest observed wave per person (n = 2,250 unique persons).</p>
+<p><strong>Outcomes (Big Five, standardized to 2016 cohort).</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th style="text-align: right;">Mean</th>
+<th style="text-align: right;">SD</th>
+<th style="text-align: right;">Min</th>
+<th style="text-align: right;">Max</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td style="text-align: right;">0.162</td>
+<td style="text-align: right;">0.868</td>
+<td style="text-align: right;">−2.78</td>
+<td style="text-align: right;">1.96</td>
+</tr>
+<tr class="even">
+<td>Conscientiousness</td>
+<td style="text-align: right;">−0.263</td>
+<td style="text-align: right;">0.950</td>
+<td style="text-align: right;">−3.42</td>
+<td style="text-align: right;">2.03</td>
+</tr>
+<tr class="odd">
+<td>Extraversion</td>
+<td style="text-align: right;">0.200</td>
+<td style="text-align: right;">0.907</td>
+<td style="text-align: right;">−2.78</td>
+<td style="text-align: right;">2.30</td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td style="text-align: right;">−0.032</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">−3.27</td>
+<td style="text-align: right;">2.05</td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td style="text-align: right;">0.265</td>
+<td style="text-align: right;">0.898</td>
+<td style="text-align: right;">−2.92</td>
+<td style="text-align: right;">2.36</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Demographics and individual covariates.</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Sex</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td>Male</td>
+<td style="text-align: right;">1,066</td>
+<td style="text-align: right;">47.4</td>
+</tr>
+<tr class="odd">
+<td>Female</td>
+<td style="text-align: right;">1,184</td>
+<td style="text-align: right;">52.6</td>
+</tr>
+<tr class="even">
+<td><strong>Education (highest completed)</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td>1. No school</td>
+<td style="text-align: right;">739</td>
+<td style="text-align: right;">32.8</td>
+</tr>
+<tr class="even">
+<td>2. Secondary School</td>
+<td style="text-align: right;">447</td>
+<td style="text-align: right;">19.9</td>
+</tr>
+<tr class="odd">
+<td>3. Secondary Vocational</td>
+<td style="text-align: right;">782</td>
+<td style="text-align: right;">34.8</td>
+</tr>
+<tr class="even">
+<td>4. Tertiary</td>
+<td style="text-align: right;">282</td>
+<td style="text-align: right;">12.5</td>
+</tr>
+<tr class="odd">
+<td><strong>Disability status</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td>Not disabled</td>
+<td style="text-align: right;">2,209</td>
+<td style="text-align: right;">98.2</td>
+</tr>
+<tr class="odd">
+<td>Disabled</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">1.8</td>
+</tr>
+<tr class="even">
+<td><strong>Area of residence</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td>Rural</td>
+<td style="text-align: right;">908</td>
+<td style="text-align: right;">40.4</td>
+</tr>
+<tr class="even">
+<td>Urban-type settlement</td>
+<td style="text-align: right;">510</td>
+<td style="text-align: right;">22.7</td>
+</tr>
+<tr class="odd">
+<td>City</td>
+<td style="text-align: right;">145</td>
+<td style="text-align: right;">6.4</td>
+</tr>
+<tr class="even">
+<td>Regional centre</td>
+<td style="text-align: right;">687</td>
+<td style="text-align: right;">30.5</td>
+</tr>
+<tr class="odd">
+<td><strong>Ethnicity (self-reported, <code>i4</code>)</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td>Russian</td>
+<td style="text-align: right;">1,656</td>
+<td style="text-align: right;">73.6</td>
+</tr>
+<tr class="odd">
+<td>Other identified ethnicity</td>
+<td style="text-align: right;">325</td>
+<td style="text-align: right;">14.4</td>
+</tr>
+<tr class="even">
+<td>No response / unknown</td>
+<td style="text-align: right;">269</td>
+<td style="text-align: right;">12.0</td>
+</tr>
+</tbody>
+</table>
+<p><em>Note on ethnicity:</em> <code>i4</code> contains 17 distinct identified categories in the analytic sample (excluding non-response codes). Russian dominates (74%); the remaining identified categories include Tatar (5.9%), Caucasus-group ethnicities pooled (4.1%), Bashkir / Chuvash (1.6%), Ukrainian, and twelve smaller groups together accounting for the rest. Given the heavy imbalance, we do not include an ethnicity random intercept in the headline specification; the variance-component implications are discussed qualitatively in §6.5 and reported as a robustness check (§7).</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th style="text-align: right;">Mean</th>
+<th style="text-align: right;">SD</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Age (years)</td>
+<td style="text-align: right;">20.8</td>
+<td style="text-align: right;">3.2</td>
+</tr>
+<tr class="even">
+<td>HH income per capita (rubles)</td>
+<td style="text-align: right;">5,385</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Family structure within the analytic sample.</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">%</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Sibling order</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td>1 (firstborn)</td>
+<td style="text-align: right;">734</td>
+<td style="text-align: right;">45.7</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: right;">702</td>
+<td style="text-align: right;">43.7</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: right;">129</td>
+<td style="text-align: right;">8.0</td>
+</tr>
+<tr class="odd">
+<td>4+</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">2.5</td>
+</tr>
+<tr class="even">
+<td><strong>Sibship size</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="odd">
+<td>Dyad (2)</td>
+<td style="text-align: right;">921</td>
+<td style="text-align: right;">57.4</td>
+</tr>
+<tr class="even">
+<td>Triad (3)</td>
+<td style="text-align: right;">421</td>
+<td style="text-align: right;">26.2</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: right;">136</td>
+<td style="text-align: right;">8.5</td>
+</tr>
+<tr class="even">
+<td>5+</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: right;">7.9</td>
+</tr>
+</tbody>
+</table>
+<p>(645 persons in the sample appear without identified siblings — they enter the sample because at least one parent has BFI data; they contribute to the parent–child analysis but not to within-sibship statistics.)</p>
+</section>
+<section id="rq1-variance-decomposition" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="rq1-variance-decomposition"><span class="header-section-number">6.2</span> RQ1 — Variance decomposition</h3>
+<p>The variance decomposition rejects the WEIRD 5–15% shared-environment benchmark for all five Big Five traits.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th><span class="math inline">\(\sigma^2_f\)</span> (family)</th>
+<th><span class="math inline">\(\sigma^2_v\)</span> (individual)</th>
+<th><span class="math inline">\(\sigma^2_\varepsilon\)</span> (residual)</th>
+<th><span class="math inline">\(\text{ICC}_{\text{family}}\)</span></th>
+<th><span class="math inline">\(\text{ICC}_{\text{individual}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td>0.201</td>
+<td>0.526</td>
+<td>0.265</td>
+<td><strong>0.254</strong></td>
+<td>0.665</td>
+</tr>
+<tr class="even">
+<td>Conscientiousness</td>
+<td>0.206</td>
+<td>0.382</td>
+<td>0.293</td>
+<td><strong>0.234</strong></td>
+<td>0.667</td>
+</tr>
+<tr class="odd">
+<td>Extraversion</td>
+<td>0.139</td>
+<td>0.456</td>
+<td>0.281</td>
+<td><strong>0.159</strong></td>
+<td>0.679</td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td>0.292</td>
+<td>0.401</td>
+<td>0.353</td>
+<td><strong>0.279</strong></td>
+<td>0.663</td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td>0.142</td>
+<td>0.752</td>
+<td>0.413</td>
+<td><strong>0.109</strong></td>
+<td>0.668</td>
+</tr>
+</tbody>
+</table>
+<p>Between-family variance is 11% (Emotional Stability) to 28% (Agreeableness) of total trait variance — two to three times the WEIRD shared-environment ceiling. The result holds with and without age, age², sex, and baseline-education controls (M1 numbers differ from M0 by less than 0.02 in every cell, confirming that the family component is not driven by demographic composition within families).</p>
+<p>The trait-by-trait pattern is informative: family clustering is strongest for agreeableness and openness (the value-laden traits most plausibly transmitted within households) and weakest for emotional stability and extraversion (the more dispositional traits). This ordering matches the few non-Russian comparisons available (Anger and Schnitzlein 2017 on the German SOEP), suggesting the <em>pattern</em> of family clustering across traits is cross-culturally stable even though the <em>level</em> is much higher in Russia.</p>
+</section>
+<section id="rq2-sibling-versus-parentchild-resemblance" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="rq2-sibling-versus-parentchild-resemblance"><span class="header-section-number">6.3</span> RQ2 — Sibling versus parent–child resemblance</h3>
+<p>Pair-specific intra-class correlations from 486 sibling sibships (both members under 25, BFI-scored) and 4,676 parent–child dyads:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th><span class="math inline">\(\rho_{\text{sib}}\)</span></th>
+<th>SE</th>
+<th><span class="math inline">\(\rho_{\text{pc}}\)</span></th>
+<th>SE</th>
+<th><span class="math inline">\(\rho_{\text{sib}} - \rho_{\text{pc}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td>0.359</td>
+<td>0.040</td>
+<td>0.292</td>
+<td>0.013</td>
+<td><strong>+0.067</strong></td>
+</tr>
+<tr class="even">
+<td>Conscientiousness</td>
+<td>0.273</td>
+<td>0.042</td>
+<td>0.123</td>
+<td>0.014</td>
+<td><strong>+0.150</strong></td>
+</tr>
+<tr class="odd">
+<td>Extraversion</td>
+<td>0.127</td>
+<td>0.045</td>
+<td>0.155</td>
+<td>0.014</td>
+<td>−0.028</td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td>0.372</td>
+<td>0.039</td>
+<td>0.293</td>
+<td>0.013</td>
+<td><strong>+0.079</strong></td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td>0.159</td>
+<td>0.044</td>
+<td>0.192</td>
+<td>0.014</td>
+<td>−0.032</td>
+</tr>
+</tbody>
+</table>
+<p>For three of the five traits — openness, conscientiousness, and agreeableness — sibling resemblance is meaningfully <em>higher</em> than parent–child resemblance. The gap is largest on conscientiousness (<span class="math inline">\(\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15\)</span>), where siblings are more than twice as similar to one another as parents and children are. Extraversion and emotional stability show no sibling premium: parent–child resemblance is essentially the same as sibling resemblance.</p>
+<p>The pattern points to the shared-rearing channel for the trait domains where it operates. If parental transmission were the dominant mechanism, parent–child correlations would equal or exceed sibling correlations across the board. They do not — which says that what siblings share with each other is not, mostly, what they each share with their parents.</p>
+</section>
+<section id="rq3-individual-observables-within-families-fixed-effects" class="level3" data-number="6.4">
+<h3 data-number="6.4" class="anchored" data-anchor-id="rq3-individual-observables-within-families-fixed-effects"><span class="header-section-number">6.4</span> RQ3 — Individual observables within families (fixed-effects)</h3>
+<p><strong>Specification.</strong> Within-family fixed-effects regressions (<code>family_id</code> absorbed). Completed education is lagged to the most recent prior RLMS wave (<code>edu_lvl_lag</code>) to reduce reverse causality; “1. No school” is the reference category. Standard errors are family-clustered. Sample: under-25 NCS-scored persons in sibships of size ≥ 2 with religiosity observed and a prior-wave education record (n = 1,198).</p>
+<p><strong>Table 1: RQ3 headline — individual observables (lagged completed education).</strong> Coefficients in standardized-trait units. Within-family FE absorbed; family-clustered SEs in parentheses. *** p &lt; 0.01, ** p &lt; 0.05, * p &lt; 0.10.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th style="text-align: right;">O</th>
+<th style="text-align: right;">C</th>
+<th style="text-align: right;">E</th>
+<th style="text-align: right;">A</th>
+<th style="text-align: right;">ES</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Age</td>
+<td style="text-align: right;">0.053 (0.163)</td>
+<td style="text-align: right;"><strong>0.302* (0.154)</strong></td>
+<td style="text-align: right;">0.037 (0.172)</td>
+<td style="text-align: right;">0.166 (0.161)</td>
+<td style="text-align: right;">−0.006 (0.159)</td>
+</tr>
+<tr class="even">
+<td>Age²</td>
+<td style="text-align: right;">−0.002 (0.004)</td>
+<td style="text-align: right;"><strong>−0.008** (0.004)</strong></td>
+<td style="text-align: right;">−0.001 (0.004)</td>
+<td style="text-align: right;">−0.005 (0.004)</td>
+<td style="text-align: right;">0.000 (0.004)</td>
+</tr>
+<tr class="odd">
+<td>Female (vs.&nbsp;male)</td>
+<td style="text-align: right;"><strong>0.109* (0.057)</strong></td>
+<td style="text-align: right;"><strong>0.214*** (0.063)</strong></td>
+<td style="text-align: right;">0.030 (0.066)</td>
+<td style="text-align: right;"><strong>0.150** (0.061)</strong></td>
+<td style="text-align: right;"><strong>−0.293*** (0.062)</strong></td>
+</tr>
+<tr class="even">
+<td>Firstborn</td>
+<td style="text-align: right;">−0.010 (0.055)</td>
+<td style="text-align: right;">0.062 (0.058)</td>
+<td style="text-align: right;">−0.010 (0.066)</td>
+<td style="text-align: right;">−0.007 (0.056)</td>
+<td style="text-align: right;">−0.001 (0.056)</td>
+</tr>
+<tr class="odd">
+<td>Disabled</td>
+<td style="text-align: right;"><strong>−0.719** (0.297)</strong></td>
+<td style="text-align: right;">−0.210 (0.240)</td>
+<td style="text-align: right;"><strong>−0.567** (0.258)</strong></td>
+<td style="text-align: right;">−0.291 (0.270)</td>
+<td style="text-align: right;">−0.161 (0.287)</td>
+</tr>
+<tr class="even">
+<td>Religiosity (1–5)</td>
+<td style="text-align: right;">0.051 (0.039)</td>
+<td style="text-align: right;"><strong>0.105** (0.044)</strong></td>
+<td style="text-align: right;"><strong>0.083* (0.049)</strong></td>
+<td style="text-align: right;">0.044 (0.042)</td>
+<td style="text-align: right;">−0.025 (0.051)</td>
+</tr>
+<tr class="odd">
+<td>Edu lag: 2. Secondary</td>
+<td style="text-align: right;">0.054 (0.101)</td>
+<td style="text-align: right;">0.090 (0.108)</td>
+<td style="text-align: right;">−0.043 (0.114)</td>
+<td style="text-align: right;">0.029 (0.108)</td>
+<td style="text-align: right;">−0.016 (0.096)</td>
+</tr>
+<tr class="even">
+<td>Edu lag: 3. Vocational</td>
+<td style="text-align: right;"><strong>0.212** (0.104)</strong></td>
+<td style="text-align: right;"><strong>0.304*** (0.108)</strong></td>
+<td style="text-align: right;">−0.035 (0.113)</td>
+<td style="text-align: right;">0.175 (0.111)</td>
+<td style="text-align: right;">0.061 (0.107)</td>
+</tr>
+<tr class="odd">
+<td>Edu lag: 4. Tertiary</td>
+<td style="text-align: right;"><strong>0.343** (0.150)</strong></td>
+<td style="text-align: right;"><strong>0.334* (0.175)</strong></td>
+<td style="text-align: right;">0.062 (0.195)</td>
+<td style="text-align: right;"><strong>0.429** (0.173)</strong></td>
+<td style="text-align: right;">−0.163 (0.172)</td>
+</tr>
+<tr class="even">
+<td><strong>Within-R²</strong></td>
+<td style="text-align: right;">0.046</td>
+<td style="text-align: right;">0.077</td>
+<td style="text-align: right;">0.017</td>
+<td style="text-align: right;">0.033</td>
+<td style="text-align: right;">0.043</td>
+</tr>
+<tr class="odd">
+<td><strong>N (persons)</strong></td>
+<td style="text-align: right;">1,198</td>
+<td style="text-align: right;">1,198</td>
+<td style="text-align: right;">1,198</td>
+<td style="text-align: right;">1,198</td>
+<td style="text-align: right;">1,198</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table 2: RQ3 with parent-relationship variables (wave-28 sub-sample).</strong> Same fixed-effects specification, restricted to persons with <code>close_father</code> or <code>close_mother</code> observed (n = 522).</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th style="text-align: right;">O</th>
+<th style="text-align: right;">C</th>
+<th style="text-align: right;">E</th>
+<th style="text-align: right;">A</th>
+<th style="text-align: right;">ES</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Age</td>
+<td style="text-align: right;">0.159 (0.330)</td>
+<td style="text-align: right;">0.457 (0.293)</td>
+<td style="text-align: right;">0.307 (0.321)</td>
+<td style="text-align: right;">0.045 (0.288)</td>
+<td style="text-align: right;">0.111 (0.279)</td>
+</tr>
+<tr class="even">
+<td>Age²</td>
+<td style="text-align: right;">−0.005 (0.008)</td>
+<td style="text-align: right;">−0.011 (0.007)</td>
+<td style="text-align: right;">−0.007 (0.008)</td>
+<td style="text-align: right;">−0.002 (0.007)</td>
+<td style="text-align: right;">−0.004 (0.007)</td>
+</tr>
+<tr class="odd">
+<td>Female (vs.&nbsp;male)</td>
+<td style="text-align: right;"><strong>0.176** (0.079)</strong></td>
+<td style="text-align: right;"><strong>0.238** (0.098)</strong></td>
+<td style="text-align: right;">−0.045 (0.092)</td>
+<td style="text-align: right;">0.020 (0.086)</td>
+<td style="text-align: right;"><strong>−0.356*** (0.087)</strong></td>
+</tr>
+<tr class="even">
+<td>Firstborn</td>
+<td style="text-align: right;">−0.099 (0.075)</td>
+<td style="text-align: right;">−0.027 (0.090)</td>
+<td style="text-align: right;">−0.080 (0.094)</td>
+<td style="text-align: right;">0.052 (0.085)</td>
+<td style="text-align: right;">0.079 (0.086)</td>
+</tr>
+<tr class="odd">
+<td>Disabled</td>
+<td style="text-align: right;">−0.264 (0.398)</td>
+<td style="text-align: right;">0.200 (0.357)</td>
+<td style="text-align: right;">0.092 (0.265)</td>
+<td style="text-align: right;">0.006 (0.333)</td>
+<td style="text-align: right;">−0.226 (0.367)</td>
+</tr>
+<tr class="even">
+<td>Religiosity (1–5)</td>
+<td style="text-align: right;">−0.020 (0.054)</td>
+<td style="text-align: right;">0.105 (0.075)</td>
+<td style="text-align: right;">0.051 (0.078)</td>
+<td style="text-align: right;">0.043 (0.066)</td>
+<td style="text-align: right;">−0.107 (0.089)</td>
+</tr>
+<tr class="odd">
+<td>Edu lag: 2. Secondary</td>
+<td style="text-align: right;">0.162 (0.143)</td>
+<td style="text-align: right;">0.042 (0.178)</td>
+<td style="text-align: right;">−0.230 (0.179)</td>
+<td style="text-align: right;">−0.201 (0.157)</td>
+<td style="text-align: right;">0.047 (0.136)</td>
+</tr>
+<tr class="even">
+<td>Edu lag: 3. Vocational</td>
+<td style="text-align: right;"><strong>0.254* (0.148)</strong></td>
+<td style="text-align: right;">0.227 (0.186)</td>
+<td style="text-align: right;">−0.227 (0.177)</td>
+<td style="text-align: right;">−0.030 (0.172)</td>
+<td style="text-align: right;"><strong>0.317** (0.143)</strong></td>
+</tr>
+<tr class="odd">
+<td>Edu lag: 4. Tertiary</td>
+<td style="text-align: right;"><strong>0.435** (0.210)</strong></td>
+<td style="text-align: right;">0.207 (0.289)</td>
+<td style="text-align: right;">−0.265 (0.300)</td>
+<td style="text-align: right;">0.225 (0.223)</td>
+<td style="text-align: right;">0.202 (0.220)</td>
+</tr>
+<tr class="even">
+<td><strong>Close father</strong></td>
+<td style="text-align: right;">−0.089 (0.137)</td>
+<td style="text-align: right;">−0.247 (0.174)</td>
+<td style="text-align: right;">−0.198 (0.155)</td>
+<td style="text-align: right;"><strong>−0.375** (0.169)</strong></td>
+<td style="text-align: right;">−0.059 (0.156)</td>
+</tr>
+<tr class="odd">
+<td><strong>Close mother</strong></td>
+<td style="text-align: right;"><strong>0.246* (0.146)</strong></td>
+<td style="text-align: right;">0.319 (0.205)</td>
+<td style="text-align: right;"><strong>0.374* (0.201)</strong></td>
+<td style="text-align: right;"><strong>0.570*** (0.184)</strong></td>
+<td style="text-align: right;"><strong>0.364** (0.169)</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Within-R²</strong></td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.074</td>
+<td style="text-align: right;">0.036</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.112</td>
+</tr>
+<tr class="odd">
+<td><strong>N (persons)</strong></td>
+<td style="text-align: right;">522</td>
+<td style="text-align: right;">522</td>
+<td style="text-align: right;">522</td>
+<td style="text-align: right;">522</td>
+<td style="text-align: right;">522</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Summary of RQ3 findings.</strong></p>
+<ol type="1">
+<li><p><strong>Sex</strong> is the most robust within-family individual-level predictor. Women score 0.21 SD higher than their brothers on conscientiousness, 0.15 SD higher on agreeableness, 0.11 SD higher on openness, and 0.29 SD lower on emotional stability (i.e., higher on neuroticism). All four hold within the family — i.e., cleansed of every cross-family selection channel — and most strengthen in the close-parents sub-sample.</p></li>
+<li><p><strong>Religiosity</strong> carries a significant within-family signal on conscientiousness (β = 0.11, p = 0.018) and a marginal one on extraversion in the headline. The conscientiousness effect persists across specifications, consistent with the cross-sectional Saroglou (2010) finding holding once every shared-rearing confounder is absorbed.</p></li>
+<li><p><strong>Lagged completed education</strong> co-moves with personality within families: siblings whose completed level the previous wave was vocational or tertiary score higher on O, C, and A than the no-school reference. The lag does not eliminate co-evolution (Borghans, Duckworth, Heckman, and ter Weel 2008) but removes the direct one-wave feedback.</p></li>
+<li><p><strong>Birth order (firstborn)</strong> is statistically zero on all five traits in both specifications, replicating Rohrer, Egloff, and Schmukle (2015) and Damian and Roberts (2015) on Russian data.</p></li>
+<li><p><strong>Disability</strong> is a large but imprecise within-family shifter on openness (−0.72 SD) and extraversion (−0.57 SD) in the headline; the small N of mixed disabled / non-disabled sibling pairs is the binding constraint.</p></li>
+<li><p><strong>Close-mother</strong> indicators are the standout finding of the wave-28 specification — significantly positive on four of five traits, with the largest coefficient on agreeableness (β = +0.57, p = 0.002). <strong>Close-father</strong> runs negative on agreeableness (β = −0.38, p = 0.027). These are within-sibship contrasts: among siblings raised by the same parents, the one who reports a closer relationship with the mother (or father) scores meaningfully differently on personality.</p></li>
+</ol>
+<p>The within-R² is in the 1.7–11.2% range across traits and specifications. The non-shared portion of NCS variance — what makes one sibling differ from another given their family — is mostly unexplained by individual-level RLMS observables. The remainder lives in unobserved channels (parenting differences across siblings, peer environments, idiosyncratic shocks, measurement) that the survey does not approximate.</p>
+</section>
+<section id="rq4-observable-family-characteristics-random-intercept-by-household" class="level3" data-number="6.5">
+<h3 data-number="6.5" class="anchored" data-anchor-id="rq4-observable-family-characteristics-random-intercept-by-household"><span class="header-section-number">6.5</span> RQ4 — Observable family characteristics (random intercept by household)</h3>
+<p><strong>Specification.</strong> Random-intercept-by-household regression: random effects on <code>family_id</code> and <code>idind</code>, family-level observables on the right-hand side, individual-level demographics as controls. Estimated on n = 2,321 person-wave observations from 1,222 persons in 622 families with at least one parent’s education observed.</p>
+<p><strong>Table 3: RQ4 — share of between-family variance explained by family observables.</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 22%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2_f\)</span> (M1)</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2_f\)</span> (M5)</th>
+<th style="text-align: right;">Share explained</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td style="text-align: right;">0.213</td>
+<td style="text-align: right;">0.184</td>
+<td style="text-align: right;"><strong>13.5%</strong></td>
+</tr>
+<tr class="even">
+<td>Conscientiousness</td>
+<td style="text-align: right;">0.206</td>
+<td style="text-align: right;">0.220</td>
+<td style="text-align: right;">−6.8%</td>
+</tr>
+<tr class="odd">
+<td><strong>Extraversion</strong></td>
+<td style="text-align: right;">0.120</td>
+<td style="text-align: right;">0.075</td>
+<td style="text-align: right;"><strong>37.6%</strong></td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td style="text-align: right;">0.285</td>
+<td style="text-align: right;">0.270</td>
+<td style="text-align: right;">5.2%</td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td style="text-align: right;">0.140</td>
+<td style="text-align: right;">0.153</td>
+<td style="text-align: right;">−9.5%</td>
+</tr>
+</tbody>
+</table>
+<p>Family observables explain about 38% of the between-family variance in extraversion and 13% in openness. For conscientiousness, agreeableness, and emotional stability the explained share is small or weakly negative — observable SES variables do little of the work on these three traits, consistent with the family signature operating through channels (transmitted values, parenting style, unobserved family endowments) that the SES vector does not measure. Negative shares on C and ES reflect random-effects variance moving slightly <em>up</em> when family observables are added; with bootstrap CIs the values are not statistically distinguishable from zero.</p>
+<p><strong>Table 4: RQ4 family-level coefficients (M5).</strong> Family-level variables only; full coefficient table including individual controls in <code>output/rq4_coefficients.csv</code>. *** p &lt; 0.01, ** p &lt; 0.05, * p &lt; 0.10.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 17%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Family variable</th>
+<th style="text-align: right;">O</th>
+<th style="text-align: right;">C</th>
+<th style="text-align: right;">E</th>
+<th style="text-align: right;">A</th>
+<th style="text-align: right;">ES</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Urban baseline</td>
+<td style="text-align: right;">−0.098 (0.071)</td>
+<td style="text-align: right;">−0.010 (0.074)</td>
+<td style="text-align: right;"><strong>−0.267*** (0.065)</strong></td>
+<td style="text-align: right;">0.008 (0.077)</td>
+<td style="text-align: right;">0.024 (0.068)</td>
+</tr>
+<tr class="even">
+<td>Mother tertiary</td>
+<td style="text-align: right;">0.120 (0.084)</td>
+<td style="text-align: right;">−0.095 (0.088)</td>
+<td style="text-align: right;">0.078 (0.077)</td>
+<td style="text-align: right;">0.018 (0.092)</td>
+<td style="text-align: right;">0.070 (0.080)</td>
+</tr>
+<tr class="odd">
+<td>Father tertiary</td>
+<td style="text-align: right;">0.039 (0.090)</td>
+<td style="text-align: right;">0.020 (0.095)</td>
+<td style="text-align: right;">0.022 (0.083)</td>
+<td style="text-align: right;"><strong>0.170* (0.099)</strong></td>
+<td style="text-align: right;">−0.084 (0.087)</td>
+</tr>
+<tr class="even">
+<td>Mother white-collar</td>
+<td style="text-align: right;">−0.008 (0.073)</td>
+<td style="text-align: right;">0.030 (0.076)</td>
+<td style="text-align: right;">0.018 (0.067)</td>
+<td style="text-align: right;"><strong>−0.191** (0.080)</strong></td>
+<td style="text-align: right;">−0.032 (0.070)</td>
+</tr>
+<tr class="odd">
+<td>Father white-collar</td>
+<td style="text-align: right;">0.104 (0.083)</td>
+<td style="text-align: right;">0.007 (0.087)</td>
+<td style="text-align: right;">0.037 (0.076)</td>
+<td style="text-align: right;">0.022 (0.091)</td>
+<td style="text-align: right;">0.033 (0.079)</td>
+</tr>
+<tr class="even">
+<td>Log lagged HH inc. p.c.</td>
+<td style="text-align: right;">0.091 (0.056)</td>
+<td style="text-align: right;">0.067 (0.058)</td>
+<td style="text-align: right;">−0.025 (0.053)</td>
+<td style="text-align: right;"><strong>0.104* (0.060)</strong></td>
+<td style="text-align: right;"><strong>0.130** (0.054)</strong></td>
+</tr>
+<tr class="odd">
+<td>Family size</td>
+<td style="text-align: right;">−0.005 (0.014)</td>
+<td style="text-align: right;">−0.019 (0.014)</td>
+<td style="text-align: right;"><strong>0.022* (0.013)</strong></td>
+<td style="text-align: right;">−0.001 (0.015)</td>
+<td style="text-align: right;">−0.012 (0.013)</td>
+</tr>
+<tr class="even">
+<td>Share male siblings</td>
+<td style="text-align: right;">0.073 (0.064)</td>
+<td style="text-align: right;">0.079 (0.067)</td>
+<td style="text-align: right;">0.010 (0.063)</td>
+<td style="text-align: right;">0.007 (0.069)</td>
+<td style="text-align: right;">−0.015 (0.062)</td>
+</tr>
+<tr class="odd">
+<td><strong>N (person-wave obs)</strong></td>
+<td style="text-align: right;">2,321</td>
+<td style="text-align: right;">2,321</td>
+<td style="text-align: right;">2,321</td>
+<td style="text-align: right;">2,321</td>
+<td style="text-align: right;">2,321</td>
+</tr>
+<tr class="even">
+<td><strong>N (families)</strong></td>
+<td style="text-align: right;">622</td>
+<td style="text-align: right;">622</td>
+<td style="text-align: right;">622</td>
+<td style="text-align: right;">622</td>
+<td style="text-align: right;">622</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Summary of RQ4 findings.</strong> Extraversion is the trait for which observable family characteristics carry the strongest signal: urban baseline drives a large negative coefficient (−0.27 SD, p &lt; 0.001), and family size enters marginally positive. The headline RQ4 finding on extraversion mirrors the RQ1 ranking — the trait with the smallest unconditional family variance is also the trait the family-observables vector explains the most. Lagged HH income per capita is the strongest family-level predictor of emotional stability (β = +0.13, p = 0.016) and a marginal predictor of agreeableness. Parental occupation matters in the canonical direction for agreeableness — having a father in a high-skill occupation pushes a child up by 0.17 SD, while having a mother in a high-skill occupation pulls the child <em>down</em> by 0.19 SD — but the two coefficients largely offset and the share-explained statistic on agreeableness is only 5%.</p>
+</section>
+<section id="robustness-checks-for-rq4" class="level3" data-number="6.6">
+<h3 data-number="6.6" class="anchored" data-anchor-id="robustness-checks-for-rq4"><span class="header-section-number">6.6</span> Robustness checks for RQ4</h3>
+<p><strong>Entropy-balanced re-weighting.</strong> The under-25 NCS-scored sub-sample with at least two NCS-scored family members is not a simple random sample of Russian young people. We construct entropy-balancing weights (Hainmueller 2012) that reweight the analytic sample to the joint distribution of <code>age, sex, urban, parental edu, lagged income, region, ethnicity</code> in the full under-25 NCS-scored RLMS population.</p>
+<p><strong>Table 5: RQ4 share-explained under entropy-balanced re-weighting.</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 21%">
+<col style="width: 22%">
+<col style="width: 31%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2_f\)</span> (M1)</th>
+<th style="text-align: right;"><span class="math inline">\(\sigma^2_f\)</span> (M5w)</th>
+<th style="text-align: right;">Share explained (weighted)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td style="text-align: right;">0.213</td>
+<td style="text-align: right;">0.179</td>
+<td style="text-align: right;"><strong>15.8%</strong></td>
+</tr>
+<tr class="even">
+<td>Conscientiousness</td>
+<td style="text-align: right;">0.206</td>
+<td style="text-align: right;">0.203</td>
+<td style="text-align: right;">1.5%</td>
+</tr>
+<tr class="odd">
+<td><strong>Extraversion</strong></td>
+<td style="text-align: right;">0.120</td>
+<td style="text-align: right;">0.035</td>
+<td style="text-align: right;"><strong>70.7%</strong></td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td style="text-align: right;">0.285</td>
+<td style="text-align: right;">0.238</td>
+<td style="text-align: right;"><strong>16.4%</strong></td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td style="text-align: right;">0.140</td>
+<td style="text-align: right;">0.166</td>
+<td style="text-align: right;">−18.7%</td>
+</tr>
+</tbody>
+</table>
+<p>The weighted shares are larger than the unweighted ones on O, A, and especially E — the under-25 RLMS population is more urban and higher-income than the sibling sub-sample, and reweighting to the population brings out the urban–extraversion gradient more strongly. The negative share on ES is large enough to flag as a concern but is sensitive to the small absolute value of <span class="math inline">\(\sigma^2_f\)</span>.</p>
+<p><strong>Ethnicity as a residual variance component.</strong> A separate robustness specification augments M5 with a random intercept on pooled <code>i4</code>. The estimated share of total NCS variance attributable to ethnicity in M5 is:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Trait</th>
+<th style="text-align: right;"><span class="math inline">\(\text{ICC}_{\text{eth}}\)</span> (M5)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Openness</td>
+<td style="text-align: right;">3.4%</td>
+</tr>
+<tr class="even">
+<td><strong>Conscientiousness</strong></td>
+<td style="text-align: right;"><strong>17.2%</strong></td>
+</tr>
+<tr class="odd">
+<td>Extraversion</td>
+<td style="text-align: right;">0.0%</td>
+</tr>
+<tr class="even">
+<td>Agreeableness</td>
+<td style="text-align: right;">5.6%</td>
+</tr>
+<tr class="odd">
+<td>Emotional Stability</td>
+<td style="text-align: right;">6.7%</td>
+</tr>
+</tbody>
+</table>
+<p>The 17.2% ICC on conscientiousness is notable, but the estimate is identified almost entirely off the small non-Russian tail (14% of the analytic sample, spread across many groups), and its bootstrap CI is wide. We do not include the ethnicity intercept in the headline. The qualitative reading is that the family signature on conscientiousness <em>may</em> contain a meaningful between-ethnicity component the SES vector does not absorb, but the under-25 sample alone is too imbalanced to identify this cleanly. A larger-sample replication on the full age range is the appropriate follow-up.</p>
+</section>
+</section>
+<section id="expected-contributions" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="expected-contributions"><span class="header-section-number">7</span> Expected Contributions</h2>
+<ol type="1">
+<li><p><strong>First Russian estimates of family clustering in non-cognitive skills.</strong> The behavioral-genetics literature has no comparable estimate outside Western settings; Anger and Schnitzlein (2017) on German data is the closest existing benchmark. Headline ICC_family is 11–28% across the Big Five, 2–3× the WEIRD shared-environment ceiling.</p></li>
+<li><p><strong>Direct test of the WEIRD shared-environment finding in a non-WEIRD context.</strong> Pooled-sample variance decompositions on this data already put <span class="math inline">\(\text{ICC}_{\text{family}}\)</span> at 13–31% — 2–3× the 5–15% benchmark. The under-25 estimates confirm that the gap survives age-cohort restriction and is not driven by pooled-age confounding.</p></li>
+<li><p><strong>Sibling versus parent–child decomposition.</strong> Twin and adoption studies cannot separate these channels; the RLMS relatives file makes the comparison possible. Siblings are twice as similar as parents and children on conscientiousness (<span class="math inline">\(\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15\)</span>), pointing to shared rearing rather than active transmission for the trait domains where the family signal is strongest.</p></li>
+<li><p><strong>A symmetric individual-vs.-family observables decomposition.</strong> RQ3 and RQ4 form a matched pair: how much of <em>within</em>-family variance individual observables explain, and how much of <em>between</em>-family variance family observables explain. The variance-explained ratios place upper bounds on what RLMS-measurable characteristics can account for, with the residual identifying the unobserved channels that future work needs to target. Religiosity and sex carry the within-family signal on conscientiousness; urban baseline and lagged household income carry the between-family signal on extraversion and emotional stability.</p></li>
+<li><p><strong>Within-family test of birth-order and other individual-level personality predictors.</strong> Birth order enters RQ3 as one regressor in a within-family vector; this nests the Rohrer–Damian–Roberts birth-order test cleanly. On Russian data the firstborn effect is statistically zero on all five traits — adding to the cross-cultural evidence base while characterizing the within-family channels that survive (sex, religiosity, parent-relationship indicators).</p></li>
+</ol>
+</section>
+<section id="limitations" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="limitations"><span class="header-section-number">8</span> Limitations</h2>
+<ol type="1">
+<li><strong>Three-item BFI scales have modest internal consistency</strong>, particularly for conscientiousness (α ≈ 0.42 across waves; see AgeNCS §5.8.7). Classical measurement error biases all variance components downward in roughly equal proportion, so reported ICCs are lower bounds on the true family signature.</li>
+<li><strong>Selection on relative reporting.</strong> The relatives file records relationships the respondent volunteers when asked. Respondents with weak ties may under-report, biasing the analytic sample toward higher-connectedness families.</li>
+<li><strong>Selection on which families have multiple children.</strong> The headline analytic sample conditions on at least two NCS-scored persons in a family, which over-represents larger, more rural, lower-income, more religious, and ethnically less Russian families. The entropy-balanced robustness check addresses this on the seven covariates with explicit balance constraints; selection on unobservables that correlate with NCS remains.</li>
+<li><strong>Twins and adopted siblings are observationally identical</strong> in the relatives file — both are listed under <code>r06a*</code>. The Russian fertility regime has very few adoptions and few twins, so the bias is small in expectation, but not zero.</li>
+<li><strong>Ethnic-group heterogeneity is not identified in the headline.</strong> The under-25 NCS-scored sample is 74% Russian, 12% non-response, and 14% other-identified across many small categories. A random intercept on <code>i4</code> is identified almost entirely off this small heterogeneous tail and is reported only as a robustness check. A larger-sample replication on the full age range would be needed to pin down the ethnic-cultural component cleanly.</li>
+<li><strong>Step-relationships and blended families</strong> are present in the data (<code>r03a*</code>, <code>r05a*</code>) but not used in the headline specification. A sensitivity adding step-edges to the network and re-running the decomposition will be reported.</li>
+</ol>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Almlund, M., Duckworth, A. L., Heckman, J. J., and Kautz, T. (2011). Personality psychology and economics. In <em>Handbook of the Economics of Education</em>, Vol. 4, 1–181. Elsevier.</li>
+<li>Anger, S., and Schnitzlein, D. D. (2017). Cognitive skills, non-cognitive skills, and family background: Evidence from sibling correlations. <em>Journal of Population Economics</em>, 30(2), 591–620.</li>
+<li>Bertoni, M., and Brunello, G. (2016). Later-borns don’t give up: The temporary effects of birth order on European earnings. <em>Demography</em>, 53(2), 449–470.</li>
+<li>Björklund, A., and Salvanes, K. G. (2011). Education and family background: Mechanisms and policies. In <em>Handbook of the Economics of Education</em>, Vol. 3, 201–247. Elsevier.</li>
+<li>Black, S. E., Devereux, P. J., and Salvanes, K. G. (2005). The more the merrier? The effect of family size and birth order on children’s education. <em>Quarterly Journal of Economics</em>, 120(2), 669–700.</li>
+<li>Black, S. E., Grönqvist, E., and Öckert, B. (2018). Born to lead? The effect of birth order on noncognitive abilities. <em>Review of Economics and Statistics</em>, 100(2), 274–286.</li>
+<li>Bouchard, T. J. (1994). Genes, environment, and personality. <em>Science</em>, 264(5166), 1700–1701.</li>
+<li>Cunha, F., and Heckman, J. J. (2008). Formulating, identifying, and estimating the technology of cognitive and noncognitive skill formation. <em>Journal of Human Resources</em>, 43(4), 738–782.</li>
+<li>Damian, R. I., and Roberts, B. W. (2015). The associations of birth order with personality and intelligence in a representative sample of U.S. high school students. <em>Journal of Research in Personality</em>, 58, 96–105.</li>
+<li>Daniel, A. (1985). Power, privilege, and prestige: Occupations in Australia. <em>Australian and New Zealand Journal of Sociology</em>, 21(1), 88–108.</li>
+<li>Heckman, J. J., Stixrud, J., and Urzua, S. (2006). The effects of cognitive and noncognitive abilities on labor market outcomes and social behavior. <em>Journal of Labor Economics</em>, 24(3), 411–482.</li>
+<li>Henrich, J., Heine, S. J., and Norenzayan, A. (2010). The weirdest people in the world? <em>Behavioral and Brain Sciences</em>, 33(2–3), 61–83.</li>
+<li>Kazenin, K. (2021). Family co-residence in Russia: Trends and determinants. <em>Demographic Review</em>, 8(2), 49–73.</li>
+<li>Loehlin, J. C. (1992). <em>Genes and Environment in Personality Development</em>. SAGE.</li>
+<li>Olneck, M. R., and Bills, D. B. (1980). What makes Sammy run? An empirical assessment of the Bowles–Gintis correspondence theory. <em>American Journal of Education</em>, 89(1), 27–61.</li>
+<li>Plomin, R., and Daniels, D. (1987). Why are children in the same family so different from one another? <em>Behavioral and Brain Sciences</em>, 10(1), 1–16.</li>
+<li>Reiss, D., Neiderhiser, J. M., Hetherington, E. M., and Plomin, R. (2000). <em>The Relationship Code: Deciphering Genetic and Social Influences on Adolescent Development</em>. Harvard University Press.</li>
+<li>Rohrer, J. M., Egloff, B., and Schmukle, S. C. (2015). Examining the effects of birth order on personality. <em>Proceedings of the National Academy of Sciences</em>, 112(46), 14224–14229.</li>
+<li>Snijders, T. A. B., and Bosker, R. J. (2011). <em>Multilevel Analysis</em>. SAGE.</li>
+<li>Sulloway, F. J. (1996). <em>Born to Rebel: Birth Order, Family Dynamics, and Creative Lives</em>. Pantheon.</li>
+<li>Vukasovic, T., and Bratko, D. (2015). Heritability of personality: A meta-analysis of behavior genetic studies. <em>Psychological Bulletin</em>, 141(4), 769–785.</li>
+<li>Watson, D., Klohnen, E. C., Casillas, A., Simms, E. N., Haig, J., and Berry, D. S. (2004). Match makers and deal breakers: Analyses of assortative mating in newlywed couples. <em>Journal of Personality</em>, 72(5), 1029–1068.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

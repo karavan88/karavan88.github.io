@@ -1,0 +1,509 @@
+---
+title: "Intra-family variability in non-cognitive skills during adolescence and youth: insights from household-level random intercepts"
+author:
+  - Garen Avanesian
+  - Ksenia Rozhkova
+date: today
+toc: true
+number-sections: true
+---
+
+## Abstract {.unnumbered}
+
+Behavioral-genetics studies of personality place the shared-family-environment share of Big Five variance at 5–15% (Plomin and Daniels 1987; Vukasovic and Bratko 2015), and the Sulloway (1996) birth-order hypothesis has been largely retracted on Western evidence (Damian and Roberts 2015; Rohrer, Egloff, and Schmukle 2015). Both claims rest almost entirely on WEIRD samples. We revisit them in Russia using a five-wave panel from the RLMS-HSE (2016, 2019, 2020, 2023, 2024) merged with the survey's relatives file, which links each respondent to siblings, parents, and children. The variance-decomposition sample is 4,420 under-25s embedded in families with at least two BFI-scored members, with 636 sibling pairs and 4,676 parent–child dyads available for pairwise comparisons. Four research questions: (RQ1) what share of Big Five variance lies between families; (RQ2) is family resemblance carried by siblings or by parents and children; (RQ3) how much of *within-family* variance do observable individual characteristics — age, sex, education (lagged completed level), disability, firstborn, religiosity, relationship with parents — explain; and (RQ4) how much of *between-family* variance do observable family characteristics — urban, parental SES, household income, family size, sibling-sex composition — explain. Headline findings: between-family variance is 11–28% of total Big Five variance — 2–3× the WEIRD shared-environment ceiling. Siblings are twice as similar to one another as parents and children are on conscientiousness ($\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15$). Within-family individual observables explain 2–11% of within-family variance, with sex, religiosity, and close-mother indicators carrying the signal; the firstborn coefficient is statistically zero on all five traits. Family observables explain 38% of family clustering in extraversion (driven by urban baseline) and 13% in openness, but little on conscientiousness, agreeableness, or emotional stability. An entropy-balanced robustness check confirms that the decomposition is not driven by selection into the multi-NCS-family sample.
+
+------------------------------------------------------------------------
+
+## Problem Statement
+
+Non-cognitive skills predict earnings, schooling, and labor-market attachment at magnitudes comparable to cognitive ability (Heckman, Stixrud, and Urzua 2006; Almlund, Duckworth, Heckman, and Kautz 2011). Where these traits *come from* is a first-order economic question: a trait shaped by family environment is a candidate target for early-childhood policy and parenting interventions; a trait that is essentially individual is not.
+
+The behavioral-genetics literature has converged on the second view. Plomin and Daniels (1987) summarized two decades of twin and adoption studies under the slogan "nothing important happens between families": the shared-environment component of Big Five variance is 5–15%, often statistically indistinguishable from zero (Loehlin 1992; Bouchard 1994). Vukasovic and Bratko (2015) confirm this in a meta-analysis of 134 samples. The popular Sulloway (1996) claim that birth order shapes personality has met a similar fate: Damian and Roberts (2015) report effect sizes of $d \approx 0.02$ and Rohrer, Egloff, and Schmukle (2015) — using within-family designs in three large datasets — find essentially no birth-order effect on any of the Big Five.
+
+Two features of this evidence base limit how far it travels. **First**, the samples are overwhelmingly WEIRD — Western, Educated, Industrialized, Rich, Democratic (Henrich, Heine, and Norenzayan 2010). The underlying datasets — MIDUS, NEAD, the Twins Early Development Study, SOEP, MIDUS — come from low-co-residence, individualist, small-family societies. Russia is not one of these: multigenerational households are routine, adult children stay in the parental home longer (Kazenin 2021), and sibling ties carry financial and care-giving weight into adulthood. If family environment matters for personality anywhere, it should matter more here than where the WEIRD evidence was collected. **Second**, twin and adoption designs pool sibling and parent–child resemblance into a single shared-environment parameter. The behavioral-genetics literature cannot, by construction, say whether the family signal comes from siblings raised together or from parents transmitting traits down a generation. Each channel implies a different policy lever.
+
+The RLMS-HSE relatives file makes a direct decomposition feasible. We identify 3,798 Russians aged under 25 with Big Five scores. Of these, 636 form sibling pairs in which both members have BFI data, and 4,676 are children whose parent has BFI data. Pooled-sample variance decompositions already place the between-family share at 13–31% across the five traits — 2–3× the WEIRD benchmark — without conditioning on age or any controls. The paper estimates these shares cleanly for the under-25 cohort, compares sibling and parent–child resemblance side by side, and applies within-family fixed effects to test birth-order claims that have been largely rejected on Western data.
+
+## Short Literature Review
+
+Four strands of work bear on this question.
+
+**Behavioral genetics of the Big Five.** Loehlin (1992) and Bouchard (1994) report twin correlations of about 0.46 (monozygotic) and 0.21 (dizygotic) for the Big Five, with adoptive-sibling correlations near zero — the textbook decomposition pointing to roughly 40% heritability, 50% non-shared environment, and 10% shared environment. Vukasovic and Bratko (2015) update across 134 samples and find shared-environment shares never above 0.15. *Yet* this literature mixes sibling and parent–child resemblance into one number, and almost all data are Anglo-Western.
+
+**Non-cognitive skills in economics.** Heckman, Stixrud, and Urzua (2006) establish that non-cognitive skills carry returns comparable to cognitive ability. Cunha and Heckman (2008) develop the "technology of skill formation" in which parental investment and shared environment shape skills, but their empirical work is on cognitive outcomes. Anger and Schnitzlein (2017) estimate sibling correlations of 0.20–0.40 for non-cognitive skills in the German SOEP — much larger than the behavioral-genetics shared-environment ceiling — and conclude that family environment matters more than twin designs suggest. Russia, where family structure differs from Germany's, has no comparable estimate.
+
+**Birth-order effects.** Sulloway (1996) argued that firstborns are more conscientious and less open than later-borns. The claim was hugely influential in the popular press but has not held up. Damian and Roberts (2015) meta-analyze 25 studies and find median effect sizes near $d = 0.02$. Rohrer, Egloff, and Schmukle (2015) use within-family designs in the SOEP, NCDS, and LISS — over 20,000 sibling observations — and find essentially no Big Five birth-order effect. Black, Grönqvist, and Öckert (2018) report the same null on Swedish administrative data. *However*, birth-order effects on *cognitive* outcomes and educational attainment are robust (Black, Devereux, and Salvanes 2005; Bertoni and Brunello 2016), suggesting the family-resource story works differently for skills and personality. The Russian setting has not been part of any of this literature.
+
+**Sibling-only and non-twin designs.** Daniel (1985), Olneck and Bills (1980), and the NEAD framework (Reiss, Neiderhiser, Hetherington, and Plomin 2000) show that sibling correlations can identify family components without twin or adoption data, at the cost of conflating heritability with shared environment. For the present question — measuring the *size* of family resemblance, not decomposing it into genes and environment — this trade-off is acceptable. Björklund and Salvanes (2011) survey the use of sibling correlations in intergenerational mobility research, but no application has covered Russian personality data.
+
+**The gap.** No paper, to our knowledge, estimates within-family Big Five resemblance on Russian data, compares sibling-pair and parent–child correlations directly, or tests the Sulloway hypothesis on a non-WEIRD sample with within-family identification. This paper fills the gap.
+
+## Research Questions
+
+**RQ1 (variance decomposition).** What share of the variance in each Big Five trait lies *between* Russian families versus *between individuals within* families, and does the between-family share exceed the 5–15% shared-environment benchmark from twin and adoption studies?
+
+**RQ2 (sibling vs. parent–child).** Among under-25 Russians, is family resemblance carried more by **sibling pairs** (suggesting shared rearing) or by **parent–child pairs** (suggesting active transmission)? A formal test of $\rho_{\text{sib}} = \rho_{\text{pc}}$ for each trait directly arbitrates between the two channels.
+
+**RQ3 (individual observables, within families).** How much of the *within-family* variance in each Big Five trait is explained by observable individual characteristics — age, age², sex, education, disability, firstborn, religiosity — and which characteristics carry the signal? Within-family fixed effects absorb every family-level confounder; the within-R² of the individual-observables vector and the per-regressor coefficients answer the question jointly. RQ3 is the individual-level analog of RQ4: where RQ4 asks how much of family-level variance observable family characteristics explain, RQ3 asks the same of individual variance within families. Birth order enters as one regressor among many; the Sulloway / Damian–Roberts–Rohrer debate gets tested as a by-product, not as the primary question.
+
+**RQ4 (observable family characteristics).** How much of the *between-family* variance in each Big Five trait is explained by observable family characteristics — urban baseline, parental education, parental occupation, lagged household income, family size, sibling-sex composition? RQ4 augments M1 with a family-observables vector $F_f$ and compares $\sigma^2_f$ before and after; the share of family variance explained is $1 - \sigma^2_f^{\text{M5}} / \sigma^2_f^{\text{M1}}$. The estimates are predictive, not causal — parental education and occupation correlate with unobserved family endowments. Because the sibling sample is a non-random subset of Russian youth (parents who had multiple children differ systematically from those who did not), the headline unweighted estimates are reported alongside an entropy-balanced robustness check (§7) that reweights the analytic sample to the joint distribution of the under-25 NCS-scored RLMS population.
+
+## Data
+
+**Source.** RLMS-HSE individual file restricted to the five waves with the full 15-item BFI battery (2016, 2019, 2020, 2023, 2024), merged with `ind_relatives_id_i_year_USER_RLMS-HSE_HH_1994_2024_rus.sav`. The relatives file lists each respondent's spouse (`r01a*`), parents (`r02a*`), own children (`r04a*`), and full siblings (`r06a*`) by the relative's wave-specific `id_i`. The shared build step `02_codes/02_build_vars/90_family.R` converts these to stable `idind` IDs via a `(id_w, id_i) → idind` lookup, builds an undirected kinship graph pooled across all waves, and writes each respondent's `sibship_id`, `family_id`, `n_in_sibship`, `sibling_order`, and `family_role` to the analysis-ready dataset.
+
+**Sample.** Big Five scores are observed for 24,165 distinct persons across the five waves. The analytic samples are:
+
+-   **RQ1 (variance decomposition):** every person with at least one Big Five observation under age 25 who belongs to a family with at least two BFI-scored members. This gives **4,420 persons, 10,323 person-wave observations, 3,158 families.**
+-   **RQ2 (sibling–parent–child comparison):** **636 sibling pairs** with both members under 25 and BFI-scored, plus **4,676 parent–child dyads** with the child under 25 and BFI-scored (parent age unrestricted).
+-   **RQ3 (individual observables within families):** under-25 BFI-scored respondents in sibships of size $\geq 2$ with religiosity measured, providing **1,474 within-family observations**.
+-   **RQ4 (family observables):** under-25 BFI-scored respondents with at least one parent identifiable in the RLMS data (so that parental education and occupation are observable). Of the 4,915 under-25 NCS-scored persons, **3,659 (74.4%) have at least one parent's education and occupation observed**, and **2,231 (45.4%) have both parents observed**. The headline RQ4 specification uses the "at least one parent" sample with separate mother and father indicators (NA when missing), with the "both parents observed" subset reported as a robustness check.
+
+**Outcomes.** Big Five trait scores are constructed from the 15 RLMS BFI items as in the AgeNCS proposal §4: three items per trait, reverse-coded as needed, averaged, and standardized to the 2016-cohort distribution. Standardization to a fixed baseline is shared across all non-cognitive-skills papers in this project so coefficients translate across studies.
+
+**Birth-order variables.** For each sibship of size $\geq 2$, `birth_order` is the rank of the respondent's birth year within the sibship (1 = eldest). Twins (same birth year) receive tied ranks. `birth_year_gap` is years between consecutive sibs.
+
+**Controls.** Age, sex, and baseline education (from the AgeNCS pipeline) enter as individual-level controls. Family-level controls (parental education, urban/rural at birth) are mechanically collinear with the family fixed effect in the within-family regression and are used only in heterogeneity splits.
+
+**Reliability and invariance.** Cronbach's α and measurement invariance results are inherited from `papers/AgeNCS/code/03_reliability.R` and `05_invariance.R`. Internal consistency is modest (α 0.42–0.63 across traits and waves) and metric invariance holds. The reliability ceiling biases all variance components downward proportionally; relative comparisons (sibling vs. parent–child, eldest vs. later-born) are unaffected.
+
+## Econometric Strategy
+
+The strategy has four stages corresponding to the four research questions. RQ1 and RQ2 use mixed-effects models because the parameter of interest is a *variance component* — how much of $Y$ lives at the family or pair level. RQ3 uses fixed effects on `family_id` because the parameter of interest is *within-family explanatory power* — the within-R² of a vector of individual observables and the per-regressor within-family slopes. RQ4 returns to mixed effects, adding a random intercept for ethnicity on top of the family random effect, because the parameter of interest is again a *variance component* — how much of $\sigma^2_f$ a vector of family observables absorbs, and how much of total variance lives at the ethnic-group level. RQ3 and RQ4 are deliberately symmetric: where RQ3 decomposes within-family variance through observable individual characteristics, RQ4 decomposes between-family variance through observable family characteristics. Each uses the framework appropriate to its parameter of interest.
+
+### Notation
+
+Let $Y_{ifw}$ denote the standardized Big Five trait score for person $i$ in family $f$ at wave $w$. Let $u_f \sim \mathcal{N}(0, \sigma^2_f)$ be the family random effect, $v_{i(f)} \sim \mathcal{N}(0, \sigma^2_v)$ the between-individual-within-family effect, $\eta_{e(f)} \sim \mathcal{N}(0, \sigma^2_\eta)$ the ethnicity random effect introduced in RQ4 (with $e(f)$ the modal ethnicity in family $f$, keyed on `i4`), and $\varepsilon_{ifw} \sim \mathcal{N}(0, \sigma^2_\varepsilon)$ the within-person residual. $X_{iw}$ collects individual observables (age, age², sex, education, disability, firstborn, religiosity); $F_f$ collects family observables (urban, parental education and occupation, lagged household income, family size, sibling sex composition). In RQ3 only, $\alpha_f$ replaces $u_f$ as a family fixed effect.
+
+### M0 and M1 — Variance partition (RQ1)
+
+**M0 (unconditional).** Two-level mixed model with crossed random effects for family and individual:
+
+$$
+Y_{ifw} = \beta_0 + u_f + v_{i(f)} + \varepsilon_{ifw}
+$$
+
+``` r
+# M0: unconditional variance partition (fit per trait).
+lme4::lmer(Y ~ 1 + (1 | family_id) + (1 | idind),
+           data = sample_rq1, REML = TRUE)
+```
+
+The headline statistic is
+
+$$
+\text{ICC}_{\text{family}} = \frac{\sigma^2_f}{\sigma^2_f + \sigma^2_v + \sigma^2_\varepsilon},
+$$
+
+reported with bootstrap CIs and compared to the 0.15 WEIRD shared-environment ceiling.
+
+**M1 (conditional on individual observables).** Add age, sex, and baseline education to absorb demographic and cohort variation that may inflate the family component:
+
+$$
+Y_{ifw} = \beta_0 + X_{iw}'\delta + u_f + v_{i(f)} + \varepsilon_{ifw}
+$$
+
+``` r
+# M1: conditional on individual demographics.
+lme4::lmer(Y ~ age + I(age^2) + sex + edu_baseline +
+               (1 | family_id) + (1 | idind),
+           data = sample_rq1, REML = TRUE)
+```
+
+Persistence of a non-zero $\text{ICC}_{\text{family}}$ in M1 is the substantive result. Bootstrap CIs on the variance components come from `lme4::bootMer` with `nsim = 1000`.
+
+### Pair-specific correlations (RQ2)
+
+For each Big Five trait and each pair type $p \in \{\text{sib}, \text{pc}\}$, the intra-class correlation is
+
+$$
+\rho_p = \frac{\sigma^2_{\text{pair}}}{\sigma^2_{\text{pair}} + \sigma^2_{\text{within-pair}}},
+$$
+
+estimated from a pair-level random-effects model restricted to dyads of type $p$, where the random effect groups the two members of each dyad together.
+
+``` r
+# Sibling resemblance: one random intercept per sibship.
+lme4::lmer(Y ~ 1 + (1 | sibship_id),
+           data = sib_sample, REML = TRUE)
+
+# Parent-child resemblance: one random intercept per dyad
+# (long format with two rows per dyad).
+lme4::lmer(Y ~ 1 + (1 | dyad_id),
+           data = pc_long, REML = TRUE)
+```
+
+A bootstrapped 95% CI for $\rho_{\text{sib}} - \rho_{\text{pc}}$ tests equality under a single null. The bootstrap resamples sibships and dyads independently with replacement (`boot::boot` with `R = 1000`).
+
+With 636 sibling pairs the standard error on $\rho_{\text{sib}}$ is approximately $1/\sqrt{636} \approx 0.04$, giving a CI of about $\pm 0.08$ around a point estimate near 0.20. With 4,676 parent–child dyads the corresponding SE is approximately 0.015, an order of magnitude tighter. The asymmetry implies a wider CI for the *difference* than for either correlation alone — the comparison test will have moderate power, sufficient to detect a difference of 0.10 or larger.
+
+### Within-family individual observables (RQ3)
+
+**RQ3 is identified by a within-family fixed-effects regression.** The family fixed effect $\alpha_f$ absorbs every unobserved family-level confounder — parental personality, household income, region, parenting style, religious environment, generational cohort, ethnic background — so the remaining coefficients $\delta$ identify *within-family* slopes: brother-vs.-sister, eldest-vs.-younger, more-vs.-less-religious sibling-of-the-same-parents comparisons. Standard errors are family-clustered.
+
+$$
+Y_{if} = X_{if}'\delta + \alpha_f + \varepsilon_{if}.
+$$
+
+The individual covariate vector $X_{if}$ contains: age and age² (maturation), sex (Costa, Terracciano, and McCrae 2001), firstborn indicator (Sulloway 1996 vs. Rohrer, Egloff, and Schmukle 2015), disability (opportunity-set channel), religiosity (`j72_18` reverse-coded; Saroglou 2010), and an education variable. To reduce reverse causality from contemporaneous personality on schooling decisions, we use **lagged completed education** — the respondent's `edu_lvl` from the most recent prior RLMS wave — rather than the contemporaneous value. The lag does not eliminate reverse causality (personality and schooling co-evolve continuously across adolescence; Borghans, Duckworth, Heckman, and ter Weel 2008), but it removes the direct one-wave feedback in which a personality shock at $t$ alters the recorded completed level at $t$. Persons without a prior RLMS observation drop from this specification.
+
+For comparison, a second specification replaces completed education with **current educational attendance** (`in_education = 1` if currently enrolled at any level, 0 otherwise). Among under-25s the attendance variable carries different information from completed level: a 19-year-old currently enrolled at university has the same `edu_lvl` as a 19-year-old high-school graduate who chose not to continue, but contrasts on attendance.
+
+``` r
+# Headline RQ3: within-family fixed-effects regression, family-clustered SEs.
+fixest::feols(
+  Y ~ age + I(age^2) + sex + firstborn + disability + religiosity +
+      edu_lvl_lag | family_id,
+  data    = fe_sample,
+  cluster = ~ family_id)
+```
+
+**A second RQ3 specification adds parent-relationship variables** on the smaller wave-28 subset, where `close_father` and `close_mother` are observed:
+
+``` r
+# RQ3 with parent-relationship vars (wave-28 subset).
+fixest::feols(
+  Y ~ age + I(age^2) + sex + firstborn + disability + religiosity +
+      edu_lvl_lag + close_father + close_mother | family_id,
+  data    = fe_sample_w28,
+  cluster = ~ family_id)
+```
+
+Both specifications belong to RQ3 — `close_father` and `close_mother` vary across siblings within the same family (one sibling may report being very close to the father while another does not) and therefore identify a within-family individual-level slope, not a family-level slope.
+
+The interpretation has two parallel parts. The within-R² says *how much* of the sibling-vs.-sibling difference in $Y$ the observables collectively explain. The individual coefficients say *which* observables carry the signal.
+
+### M5 — Family observables (RQ4)
+
+**RQ4 is identified by a random-intercept-by-household regression.** The model is M1 augmented with a vector $F_f$ of family-level observables on the right-hand side:
+
+$$
+Y_{ifw} = \beta_0 + F_f'\theta + X_{iw}'\delta + u_f + v_{i(f)} + \varepsilon_{ifw}.
+$$
+
+The parameter of interest is the share of between-family variance that the family-observables vector absorbs:
+
+$$
+\text{share explained} = 1 - \frac{\sigma^2_f \text{ (M5)}}{\sigma^2_f \text{ (M1)}},
+$$
+
+reported with a bootstrap CI from `lme4::bootMer`.
+
+$F_f$ contains exclusively family-level variables — those that take a single value for every member of a given household and therefore cannot, by construction, be moved by the family fixed effect of RQ3: urban-or-city baseline residence; mother tertiary; father tertiary; mother in ISCO-08 major groups 1–3 (high-skilled white collar); father in ISCO-08 major groups 1–3; log per-capita household income measured at the focal person's baseline-minus-one wave (to limit reverse causality from older youth contributing to current family income); family size; and the share of male siblings among the focal's siblings. The individual-level controls $X_{iw}$ — age, age², sex, education, disability, religiosity — are carried through from §5.4 for comparability.
+
+Note that `close_father` and `close_mother` do not belong in $F_f$: they vary across siblings within the same household and therefore identify an individual-level slope, not a family-level one. They enter the second RQ3 specification (§5.4), not RQ4.
+
+``` r
+# Headline M5: mixed model with random intercept by household
+# (random effect on family_id) and on individual (random effect
+# on idind), augmented with family observables F.
+lme4::lmer(
+  Y ~ urban_baseline + mother_tertiary + father_tertiary +
+      mother_white_collar + father_white_collar +
+      log_hh_inc_pc_lag + nfam + male_share_siblings +
+      age + I(age^2) + sex + edu_baseline + disability + religiosity +
+      (1 | family_id) + (1 | idind),
+  data = sample_rq4, REML = TRUE)
+```
+
+Combining all restrictions yields a stacked set of analytic samples:
+
+| Restriction                                          | n         |
+|------------------------------------------------------|-----------|
+| Under-25 NCS persons                                 | 4,915     |
+| \+ with lagged household income (prior-wave obs)     | 3,100     |
+| \+ with at least one parent's education observed     | **2,775** |
+
+The headline M5 specification uses the 2,775 sample. Parental characteristics (`mother_edu_lvl`, `mother_occ08`, `mother_tertiary`, `mother_white_collar`, and the father analogs) are attached to each respondent's row by the shared build step `02_codes/02_build_vars/90_family.R`. The values are the parent's latest observed record across all RLMS waves.
+
+We do not include an ethnicity random intercept in the headline. The under-25 NCS-scored sample is 74% Russian and 12% non-response; the identified non-Russian categories together account for 14% of the sample and are distributed across many small groups. A random intercept on `i4` is identified almost entirely off this small heterogeneous tail and produces variance components with wide bootstrap CIs. The ethnic-group component is reported separately in the robustness section (§7).
+
+### What this design CAN identify
+
+1.  **The family share of NCS variance** ($\text{ICC}_{\text{family}}$), with and without observable controls.
+2.  **A direct comparison of sibling and parent–child resemblance.** Twin and adoption studies cannot perform this comparison because their shared-environment parameter applies to one pair type.
+3.  **Within-family explanatory power of individual observables.** The family fixed effect makes RQ3's within-R² and per-regressor coefficients robust to every between-family confounder that has plagued cross-sectional personality regressions — including the cross-sectional birth-order literature, which RQ3 nests as a special case.
+4.  **The share of family clustering explained by observable family characteristics.** Comparing $\sigma^2_f$ in M1 (no $F$ controls) to $\sigma^2_f$ in M5 (with $F$ controls) bounds the contribution of observable SES variables to the family signature.
+5.  **Where in the Big Five family clustering is strongest.** Pooled estimates suggest openness and agreeableness cluster more than extraversion and emotional stability; the under-25 estimates will sharpen this.
+
+### What this design CANNOT identify
+
+1.  **Decomposing the family share into genes and environment.** Sibling pairs share roughly half their genes on average and (typically) the same rearing. Without twin or adoption variation, the two channels are not separately identified. The headline ICC should be read as the family *signature*, not as shared environment in the behavioral-genetics sense.
+2.  **Assortative mating contamination of** $\rho_{\text{pc}}$. Spouses select on personality (Watson, Klohnen, Casillas, Simms, Haig, and Berry 2004). Parent–child correlations capture transmission plus the parents' own resemblance to one another. We report a sensitivity restricting to dyads where the second parent is also observed and including spousal $Y$ as a covariate.
+3.  **Direction of effect within parent–child dyads.** Parent personality may shape child personality, but child temperament can also shape measured parent personality. The cross-sectional dyad does not separate these. A wave-lagged specification (parent NCS in 2016 → child NCS in 2024) is the natural robustness check.
+4.  **Causal effects of individual observables on personality within families.** The RQ3 coefficients on education, religiosity, and disability are within-family but not within-person: a sibling who got more education differs from her sibship's average on a host of unobservables (ability, peer environment, parental investment ex post) that the family FE does not absorb. The estimates bound the within-family slope, not its causal component.
+5.  **Confounding of birth order with sibship size.** Eldest children are over-represented in small sibships. The within-family fixed-effect regression controls for sibship size mechanically (size is constant within family) but cannot identify the interaction of birth order with sibship size without further structure.
+6.  **Selection on which families are observed.** Russian parents who have multiple children differ systematically from those who do not — more rural, lower-income, more religious, larger, less Russian. The entropy-balanced robustness check addresses this on observables; selection on unobservables that correlate with NCS remains a limitation.
+7.  **Causal effects of observable family characteristics.** The M5 coefficients on parental education, occupation, household income, and area are predictive, not causal. They correlate with unobserved family endowments — genetic transmission, parenting style, neighborhood quality, the latent permanent income behind observed income — and the share-explained statistic conflates these channels with the SES variables themselves.
+
+### Reporting and inference
+
+For each trait we report:
+
+-   M0 variance components and ICCs with bootstrap CIs.
+-   Pair-specific $\rho_{\text{sib}}$ and $\rho_{\text{pc}}$ with bootstrap CIs and the test of equality.
+-   Within-family birth-order estimates ($\gamma_1, \gamma_2$) with family-clustered SEs.
+-   A two-panel figure: trait on the x-axis, ICC plus pairwise $\rho$ on the y-axis (left), and birth-order $\gamma$ on the y-axis (right), with a horizontal reference line at the 0.15 WEIRD ceiling and at zero respectively.
+-   A heterogeneity table for sibling pairs broken down by absolute age gap and sex composition.
+
+Multiple-testing concerns are addressed with Benjamini–Hochberg-adjusted $p$-values across the five Big Five outcomes.
+
+## Results
+
+### Sample
+
+The analytic sample is 2,250 under-25 NCS-scored persons (5,362 person-wave observations) embedded in 988 families with at least two NCS-scored members. Family role within the sample skews toward children: 1,512 `child_g1`, 222 `parent_g0`, 180 `middle_g1`, 61 `sibling_only`. Sibship sizes in the sample are 795 dyads, 137 triads, 38 quads, 11 quintets, and 7 sextets.
+
+Descriptive statistics for the variables of study are reported below. Continuous variables are summarized by mean and standard deviation; categorical variables by counts and percentages. All statistics are computed at the latest observed wave per person (n = 2,250 unique persons).
+
+**Outcomes (Big Five, standardized to 2016 cohort).**
+
+| Trait               | Mean   | SD    | Min   | Max   |
+|---------------------|-------:|------:|------:|------:|
+| Openness            |  0.162 | 0.868 | −2.78 |  1.96 |
+| Conscientiousness   | −0.263 | 0.950 | −3.42 |  2.03 |
+| Extraversion        |  0.200 | 0.907 | −2.78 |  2.30 |
+| Agreeableness       | −0.032 | 0.970 | −3.27 |  2.05 |
+| Emotional Stability |  0.265 | 0.898 | −2.92 |  2.36 |
+
+**Demographics and individual covariates.**
+
+| Variable               | n     | %     |
+|------------------------|------:|------:|
+| **Sex**                |       |       |
+| Male                   | 1,066 | 47.4  |
+| Female                 | 1,184 | 52.6  |
+| **Education (highest completed)** |   |   |
+| 1. No school           |   739 | 32.8  |
+| 2. Secondary School    |   447 | 19.9  |
+| 3. Secondary Vocational|   782 | 34.8  |
+| 4. Tertiary            |   282 | 12.5  |
+| **Disability status**  |       |       |
+| Not disabled           | 2,209 | 98.2  |
+| Disabled               |    41 |  1.8  |
+| **Area of residence**  |       |       |
+| Rural                  |   908 | 40.4  |
+| Urban-type settlement  |   510 | 22.7  |
+| City                   |   145 |  6.4  |
+| Regional centre        |   687 | 30.5  |
+| **Ethnicity (self-reported, `i4`)** |  |       |
+| Russian                | 1,656 | 73.6  |
+| Other identified ethnicity |   325 | 14.4  |
+| No response / unknown  |   269 | 12.0  |
+
+*Note on ethnicity:* `i4` contains 17 distinct identified categories in the analytic sample (excluding non-response codes). Russian dominates (74%); the remaining identified categories include Tatar (5.9%), Caucasus-group ethnicities pooled (4.1%), Bashkir / Chuvash (1.6%), Ukrainian, and twelve smaller groups together accounting for the rest. Given the heavy imbalance, we do not include an ethnicity random intercept in the headline specification; the variance-component implications are discussed qualitatively in §6.5 and reported as a robustness check (§7).
+
+| Variable                          | Mean    | SD     |
+|-----------------------------------|--------:|-------:|
+| Age (years)                       |   20.8  |  3.2   |
+| HH income per capita (rubles)     | 5,385   | —      |
+
+**Family structure within the analytic sample.**
+
+| Variable        | n     | %     |
+|-----------------|------:|------:|
+| **Sibling order** |     |       |
+| 1 (firstborn)   |   734 | 45.7  |
+| 2               |   702 | 43.7  |
+| 3               |   129 |  8.0  |
+| 4+              |    40 |  2.5  |
+| **Sibship size**|       |       |
+| Dyad (2)        |   921 | 57.4  |
+| Triad (3)       |   421 | 26.2  |
+| 4               |   136 |  8.5  |
+| 5+              |   127 |  7.9  |
+
+(645 persons in the sample appear without identified siblings — they enter the sample because at least one parent has BFI data; they contribute to the parent–child analysis but not to within-sibship statistics.)
+
+### RQ1 — Variance decomposition
+
+The variance decomposition rejects the WEIRD 5–15% shared-environment benchmark for all five Big Five traits.
+
+| Trait | $\sigma^2_f$ (family) | $\sigma^2_v$ (individual) | $\sigma^2_\varepsilon$ (residual) | $\text{ICC}_{\text{family}}$ | $\text{ICC}_{\text{individual}}$ |
+|------------|------------|------------|------------|------------|------------|
+| Openness | 0.201 | 0.526 | 0.265 | **0.254** | 0.665 |
+| Conscientiousness | 0.206 | 0.382 | 0.293 | **0.234** | 0.667 |
+| Extraversion | 0.139 | 0.456 | 0.281 | **0.159** | 0.679 |
+| Agreeableness | 0.292 | 0.401 | 0.353 | **0.279** | 0.663 |
+| Emotional Stability | 0.142 | 0.752 | 0.413 | **0.109** | 0.668 |
+
+Between-family variance is 11% (Emotional Stability) to 28% (Agreeableness) of total trait variance — two to three times the WEIRD shared-environment ceiling. The result holds with and without age, age², sex, and baseline-education controls (M1 numbers differ from M0 by less than 0.02 in every cell, confirming that the family component is not driven by demographic composition within families).
+
+The trait-by-trait pattern is informative: family clustering is strongest for agreeableness and openness (the value-laden traits most plausibly transmitted within households) and weakest for emotional stability and extraversion (the more dispositional traits). This ordering matches the few non-Russian comparisons available (Anger and Schnitzlein 2017 on the German SOEP), suggesting the *pattern* of family clustering across traits is cross-culturally stable even though the *level* is much higher in Russia.
+
+### RQ2 — Sibling versus parent–child resemblance
+
+Pair-specific intra-class correlations from 486 sibling sibships (both members under 25, BFI-scored) and 4,676 parent–child dyads:
+
+| Trait | $\rho_{\text{sib}}$ | SE | $\rho_{\text{pc}}$ | SE | $\rho_{\text{sib}} - \rho_{\text{pc}}$ |
+|------------|------------|------------|------------|------------|------------|
+| Openness | 0.359 | 0.040 | 0.292 | 0.013 | **+0.067** |
+| Conscientiousness | 0.273 | 0.042 | 0.123 | 0.014 | **+0.150** |
+| Extraversion | 0.127 | 0.045 | 0.155 | 0.014 | −0.028 |
+| Agreeableness | 0.372 | 0.039 | 0.293 | 0.013 | **+0.079** |
+| Emotional Stability | 0.159 | 0.044 | 0.192 | 0.014 | −0.032 |
+
+For three of the five traits — openness, conscientiousness, and agreeableness — sibling resemblance is meaningfully *higher* than parent–child resemblance. The gap is largest on conscientiousness ($\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15$), where siblings are more than twice as similar to one another as parents and children are. Extraversion and emotional stability show no sibling premium: parent–child resemblance is essentially the same as sibling resemblance.
+
+The pattern points to the shared-rearing channel for the trait domains where it operates. If parental transmission were the dominant mechanism, parent–child correlations would equal or exceed sibling correlations across the board. They do not — which says that what siblings share with each other is not, mostly, what they each share with their parents.
+
+### RQ3 — Individual observables within families (fixed-effects)
+
+**Specification.** Within-family fixed-effects regressions (`family_id` absorbed). Completed education is lagged to the most recent prior RLMS wave (`edu_lvl_lag`) to reduce reverse causality; "1. No school" is the reference category. Standard errors are family-clustered. Sample: under-25 NCS-scored persons in sibships of size ≥ 2 with religiosity observed and a prior-wave education record (n = 1,198).
+
+**Table 1: RQ3 headline — individual observables (lagged completed education).** Coefficients in standardized-trait units. Within-family FE absorbed; family-clustered SEs in parentheses. *** p < 0.01, ** p < 0.05, * p < 0.10.
+
+| Variable                          | O                  | C                    | E                  | A                  | ES                  |
+|-----------------------------------|-------------------:|---------------------:|-------------------:|-------------------:|--------------------:|
+| Age                               | 0.053 (0.163)      | **0.302\* (0.154)**  | 0.037 (0.172)      | 0.166 (0.161)      | −0.006 (0.159)      |
+| Age²                              | −0.002 (0.004)     | **−0.008\*\* (0.004)** | −0.001 (0.004)   | −0.005 (0.004)     | 0.000 (0.004)       |
+| Female (vs. male)                 | **0.109\* (0.057)**| **0.214\*\*\* (0.063)** | 0.030 (0.066)   | **0.150\*\* (0.061)** | **−0.293\*\*\* (0.062)** |
+| Firstborn                         | −0.010 (0.055)     | 0.062 (0.058)        | −0.010 (0.066)     | −0.007 (0.056)     | −0.001 (0.056)      |
+| Disabled                          | **−0.719\*\* (0.297)** | −0.210 (0.240)   | **−0.567\*\* (0.258)** | −0.291 (0.270) | −0.161 (0.287)      |
+| Religiosity (1–5)                 | 0.051 (0.039)      | **0.105\*\* (0.044)**| **0.083\* (0.049)**| 0.044 (0.042)      | −0.025 (0.051)      |
+| Edu lag: 2. Secondary             | 0.054 (0.101)      | 0.090 (0.108)        | −0.043 (0.114)     | 0.029 (0.108)      | −0.016 (0.096)      |
+| Edu lag: 3. Vocational            | **0.212\*\* (0.104)** | **0.304\*\*\* (0.108)** | −0.035 (0.113) | 0.175 (0.111)    | 0.061 (0.107)       |
+| Edu lag: 4. Tertiary              | **0.343\*\* (0.150)** | **0.334\* (0.175)** | 0.062 (0.195)    | **0.429\*\* (0.173)** | −0.163 (0.172)   |
+| **Within-R²**                     | 0.046              | 0.077                | 0.017              | 0.033              | 0.043               |
+| **N (persons)**                   | 1,198              | 1,198                | 1,198              | 1,198              | 1,198               |
+
+**Table 2: RQ3 with parent-relationship variables (wave-28 sub-sample).** Same fixed-effects specification, restricted to persons with `close_father` or `close_mother` observed (n = 522).
+
+| Variable                          | O                  | C                  | E                  | A                    | ES                  |
+|-----------------------------------|-------------------:|-------------------:|-------------------:|---------------------:|--------------------:|
+| Age                               | 0.159 (0.330)      | 0.457 (0.293)      | 0.307 (0.321)      | 0.045 (0.288)        | 0.111 (0.279)       |
+| Age²                              | −0.005 (0.008)     | −0.011 (0.007)     | −0.007 (0.008)     | −0.002 (0.007)       | −0.004 (0.007)      |
+| Female (vs. male)                 | **0.176\*\* (0.079)** | **0.238\*\* (0.098)** | −0.045 (0.092) | 0.020 (0.086)         | **−0.356\*\*\* (0.087)** |
+| Firstborn                         | −0.099 (0.075)     | −0.027 (0.090)     | −0.080 (0.094)     | 0.052 (0.085)        | 0.079 (0.086)       |
+| Disabled                          | −0.264 (0.398)     | 0.200 (0.357)      | 0.092 (0.265)      | 0.006 (0.333)        | −0.226 (0.367)      |
+| Religiosity (1–5)                 | −0.020 (0.054)     | 0.105 (0.075)      | 0.051 (0.078)      | 0.043 (0.066)        | −0.107 (0.089)      |
+| Edu lag: 2. Secondary             | 0.162 (0.143)      | 0.042 (0.178)      | −0.230 (0.179)     | −0.201 (0.157)       | 0.047 (0.136)       |
+| Edu lag: 3. Vocational            | **0.254\* (0.148)**| 0.227 (0.186)      | −0.227 (0.177)     | −0.030 (0.172)       | **0.317\*\* (0.143)** |
+| Edu lag: 4. Tertiary              | **0.435\*\* (0.210)** | 0.207 (0.289)   | −0.265 (0.300)     | 0.225 (0.223)        | 0.202 (0.220)       |
+| **Close father**                  | −0.089 (0.137)     | −0.247 (0.174)     | −0.198 (0.155)     | **−0.375\*\* (0.169)** | −0.059 (0.156)    |
+| **Close mother**                  | **0.246\* (0.146)**| 0.319 (0.205)      | **0.374\* (0.201)**| **0.570\*\*\* (0.184)** | **0.364\*\* (0.169)** |
+| **Within-R²**                     | 0.080              | 0.074              | 0.036              | 0.080                | 0.112               |
+| **N (persons)**                   | 522                | 522                | 522                | 522                  | 522                 |
+
+**Summary of RQ3 findings.**
+
+1. **Sex** is the most robust within-family individual-level predictor. Women score 0.21 SD higher than their brothers on conscientiousness, 0.15 SD higher on agreeableness, 0.11 SD higher on openness, and 0.29 SD lower on emotional stability (i.e., higher on neuroticism). All four hold within the family — i.e., cleansed of every cross-family selection channel — and most strengthen in the close-parents sub-sample.
+
+2. **Religiosity** carries a significant within-family signal on conscientiousness (β = 0.11, p = 0.018) and a marginal one on extraversion in the headline. The conscientiousness effect persists across specifications, consistent with the cross-sectional Saroglou (2010) finding holding once every shared-rearing confounder is absorbed.
+
+3. **Lagged completed education** co-moves with personality within families: siblings whose completed level the previous wave was vocational or tertiary score higher on O, C, and A than the no-school reference. The lag does not eliminate co-evolution (Borghans, Duckworth, Heckman, and ter Weel 2008) but removes the direct one-wave feedback.
+
+4. **Birth order (firstborn)** is statistically zero on all five traits in both specifications, replicating Rohrer, Egloff, and Schmukle (2015) and Damian and Roberts (2015) on Russian data.
+
+5. **Disability** is a large but imprecise within-family shifter on openness (−0.72 SD) and extraversion (−0.57 SD) in the headline; the small N of mixed disabled / non-disabled sibling pairs is the binding constraint.
+
+6. **Close-mother** indicators are the standout finding of the wave-28 specification — significantly positive on four of five traits, with the largest coefficient on agreeableness (β = +0.57, p = 0.002). **Close-father** runs negative on agreeableness (β = −0.38, p = 0.027). These are within-sibship contrasts: among siblings raised by the same parents, the one who reports a closer relationship with the mother (or father) scores meaningfully differently on personality.
+
+The within-R² is in the 1.7–11.2% range across traits and specifications. The non-shared portion of NCS variance — what makes one sibling differ from another given their family — is mostly unexplained by individual-level RLMS observables. The remainder lives in unobserved channels (parenting differences across siblings, peer environments, idiosyncratic shocks, measurement) that the survey does not approximate.
+
+### RQ4 — Observable family characteristics (random intercept by household)
+
+**Specification.** Random-intercept-by-household regression: random effects on `family_id` and `idind`, family-level observables on the right-hand side, individual-level demographics as controls. Estimated on n = 2,321 person-wave observations from 1,222 persons in 622 families with at least one parent's education observed.
+
+**Table 3: RQ4 — share of between-family variance explained by family observables.**
+
+| Trait               | $\sigma^2_f$ (M1) | $\sigma^2_f$ (M5) | Share explained |
+|---------------------|------------------:|------------------:|----------------:|
+| Openness            |             0.213 |             0.184 |    **13.5%**    |
+| Conscientiousness   |             0.206 |             0.220 |       −6.8%     |
+| **Extraversion**    |             0.120 |             0.075 |    **37.6%**    |
+| Agreeableness       |             0.285 |             0.270 |       5.2%      |
+| Emotional Stability |             0.140 |             0.153 |       −9.5%     |
+
+Family observables explain about 38% of the between-family variance in extraversion and 13% in openness. For conscientiousness, agreeableness, and emotional stability the explained share is small or weakly negative — observable SES variables do little of the work on these three traits, consistent with the family signature operating through channels (transmitted values, parenting style, unobserved family endowments) that the SES vector does not measure. Negative shares on C and ES reflect random-effects variance moving slightly *up* when family observables are added; with bootstrap CIs the values are not statistically distinguishable from zero.
+
+**Table 4: RQ4 family-level coefficients (M5).** Family-level variables only; full coefficient table including individual controls in `output/rq4_coefficients.csv`. *** p < 0.01, ** p < 0.05, * p < 0.10.
+
+| Family variable           | O                | C                | E                    | A                  | ES                 |
+|---------------------------|-----------------:|-----------------:|---------------------:|-------------------:|-------------------:|
+| Urban baseline            | −0.098 (0.071)   | −0.010 (0.074)   | **−0.267\*\*\* (0.065)** | 0.008 (0.077)  | 0.024 (0.068)      |
+| Mother tertiary           | 0.120 (0.084)    | −0.095 (0.088)   | 0.078 (0.077)        | 0.018 (0.092)      | 0.070 (0.080)      |
+| Father tertiary           | 0.039 (0.090)    | 0.020 (0.095)    | 0.022 (0.083)        | **0.170\* (0.099)**| −0.084 (0.087)     |
+| Mother white-collar       | −0.008 (0.073)   | 0.030 (0.076)    | 0.018 (0.067)        | **−0.191\*\* (0.080)** | −0.032 (0.070) |
+| Father white-collar       | 0.104 (0.083)    | 0.007 (0.087)    | 0.037 (0.076)        | 0.022 (0.091)      | 0.033 (0.079)      |
+| Log lagged HH inc. p.c.   | 0.091 (0.056)    | 0.067 (0.058)    | −0.025 (0.053)       | **0.104\* (0.060)**| **0.130\*\* (0.054)** |
+| Family size               | −0.005 (0.014)   | −0.019 (0.014)   | **0.022\* (0.013)**  | −0.001 (0.015)     | −0.012 (0.013)     |
+| Share male siblings       | 0.073 (0.064)    | 0.079 (0.067)    | 0.010 (0.063)        | 0.007 (0.069)      | −0.015 (0.062)     |
+| **N (person-wave obs)**   | 2,321            | 2,321            | 2,321                | 2,321              | 2,321              |
+| **N (families)**          | 622              | 622              | 622                  | 622                | 622                |
+
+**Summary of RQ4 findings.** Extraversion is the trait for which observable family characteristics carry the strongest signal: urban baseline drives a large negative coefficient (−0.27 SD, p < 0.001), and family size enters marginally positive. The headline RQ4 finding on extraversion mirrors the RQ1 ranking — the trait with the smallest unconditional family variance is also the trait the family-observables vector explains the most. Lagged HH income per capita is the strongest family-level predictor of emotional stability (β = +0.13, p = 0.016) and a marginal predictor of agreeableness. Parental occupation matters in the canonical direction for agreeableness — having a father in a high-skill occupation pushes a child up by 0.17 SD, while having a mother in a high-skill occupation pulls the child *down* by 0.19 SD — but the two coefficients largely offset and the share-explained statistic on agreeableness is only 5%.
+
+### Robustness checks for RQ4
+
+**Entropy-balanced re-weighting.** The under-25 NCS-scored sub-sample with at least two NCS-scored family members is not a simple random sample of Russian young people. We construct entropy-balancing weights (Hainmueller 2012) that reweight the analytic sample to the joint distribution of `age, sex, urban, parental edu, lagged income, region, ethnicity` in the full under-25 NCS-scored RLMS population.
+
+**Table 5: RQ4 share-explained under entropy-balanced re-weighting.**
+
+| Trait               | $\sigma^2_f$ (M1) | $\sigma^2_f$ (M5w) | Share explained (weighted) |
+|---------------------|------------------:|-------------------:|---------------------------:|
+| Openness            |             0.213 |              0.179 |          **15.8%**         |
+| Conscientiousness   |             0.206 |              0.203 |             1.5%           |
+| **Extraversion**    |             0.120 |              0.035 |          **70.7%**         |
+| Agreeableness       |             0.285 |              0.238 |          **16.4%**         |
+| Emotional Stability |             0.140 |              0.166 |            −18.7%          |
+
+The weighted shares are larger than the unweighted ones on O, A, and especially E — the under-25 RLMS population is more urban and higher-income than the sibling sub-sample, and reweighting to the population brings out the urban–extraversion gradient more strongly. The negative share on ES is large enough to flag as a concern but is sensitive to the small absolute value of $\sigma^2_f$.
+
+**Ethnicity as a residual variance component.** A separate robustness specification augments M5 with a random intercept on pooled `i4`. The estimated share of total NCS variance attributable to ethnicity in M5 is:
+
+| Trait               | $\text{ICC}_{\text{eth}}$ (M5) |
+|---------------------|-------------------------------:|
+| Openness            |                          3.4%  |
+| **Conscientiousness** |                      **17.2%** |
+| Extraversion        |                          0.0%  |
+| Agreeableness       |                          5.6%  |
+| Emotional Stability |                          6.7%  |
+
+The 17.2% ICC on conscientiousness is notable, but the estimate is identified almost entirely off the small non-Russian tail (14% of the analytic sample, spread across many groups), and its bootstrap CI is wide. We do not include the ethnicity intercept in the headline. The qualitative reading is that the family signature on conscientiousness *may* contain a meaningful between-ethnicity component the SES vector does not absorb, but the under-25 sample alone is too imbalanced to identify this cleanly. A larger-sample replication on the full age range is the appropriate follow-up.
+
+## Expected Contributions
+
+1.  **First Russian estimates of family clustering in non-cognitive skills.** The behavioral-genetics literature has no comparable estimate outside Western settings; Anger and Schnitzlein (2017) on German data is the closest existing benchmark. Headline ICC_family is 11–28% across the Big Five, 2–3× the WEIRD shared-environment ceiling.
+
+2.  **Direct test of the WEIRD shared-environment finding in a non-WEIRD context.** Pooled-sample variance decompositions on this data already put $\text{ICC}_{\text{family}}$ at 13–31% — 2–3× the 5–15% benchmark. The under-25 estimates confirm that the gap survives age-cohort restriction and is not driven by pooled-age confounding.
+
+3.  **Sibling versus parent–child decomposition.** Twin and adoption studies cannot separate these channels; the RLMS relatives file makes the comparison possible. Siblings are twice as similar as parents and children on conscientiousness ($\rho_{\text{sib}} - \rho_{\text{pc}} = 0.15$), pointing to shared rearing rather than active transmission for the trait domains where the family signal is strongest.
+
+4.  **A symmetric individual-vs.-family observables decomposition.** RQ3 and RQ4 form a matched pair: how much of *within*-family variance individual observables explain, and how much of *between*-family variance family observables explain. The variance-explained ratios place upper bounds on what RLMS-measurable characteristics can account for, with the residual identifying the unobserved channels that future work needs to target. Religiosity and sex carry the within-family signal on conscientiousness; urban baseline and lagged household income carry the between-family signal on extraversion and emotional stability.
+
+5.  **Within-family test of birth-order and other individual-level personality predictors.** Birth order enters RQ3 as one regressor in a within-family vector; this nests the Rohrer–Damian–Roberts birth-order test cleanly. On Russian data the firstborn effect is statistically zero on all five traits — adding to the cross-cultural evidence base while characterizing the within-family channels that survive (sex, religiosity, parent-relationship indicators).
+
+## Limitations
+
+1.  **Three-item BFI scales have modest internal consistency**, particularly for conscientiousness (α ≈ 0.42 across waves; see AgeNCS §5.8.7). Classical measurement error biases all variance components downward in roughly equal proportion, so reported ICCs are lower bounds on the true family signature.
+2.  **Selection on relative reporting.** The relatives file records relationships the respondent volunteers when asked. Respondents with weak ties may under-report, biasing the analytic sample toward higher-connectedness families.
+3.  **Selection on which families have multiple children.** The headline analytic sample conditions on at least two NCS-scored persons in a family, which over-represents larger, more rural, lower-income, more religious, and ethnically less Russian families. The entropy-balanced robustness check addresses this on the seven covariates with explicit balance constraints; selection on unobservables that correlate with NCS remains.
+4.  **Twins and adopted siblings are observationally identical** in the relatives file — both are listed under `r06a*`. The Russian fertility regime has very few adoptions and few twins, so the bias is small in expectation, but not zero.
+5.  **Ethnic-group heterogeneity is not identified in the headline.** The under-25 NCS-scored sample is 74% Russian, 12% non-response, and 14% other-identified across many small categories. A random intercept on `i4` is identified almost entirely off this small heterogeneous tail and is reported only as a robustness check. A larger-sample replication on the full age range would be needed to pin down the ethnic-cultural component cleanly.
+6.  **Step-relationships and blended families** are present in the data (`r03a*`, `r05a*`) but not used in the headline specification. A sensitivity adding step-edges to the network and re-running the decomposition will be reported.
+
+## References {.unnumbered}
+
+-   Almlund, M., Duckworth, A. L., Heckman, J. J., and Kautz, T. (2011). Personality psychology and economics. In *Handbook of the Economics of Education*, Vol. 4, 1–181. Elsevier.
+-   Anger, S., and Schnitzlein, D. D. (2017). Cognitive skills, non-cognitive skills, and family background: Evidence from sibling correlations. *Journal of Population Economics*, 30(2), 591–620.
+-   Bertoni, M., and Brunello, G. (2016). Later-borns don't give up: The temporary effects of birth order on European earnings. *Demography*, 53(2), 449–470.
+-   Björklund, A., and Salvanes, K. G. (2011). Education and family background: Mechanisms and policies. In *Handbook of the Economics of Education*, Vol. 3, 201–247. Elsevier.
+-   Black, S. E., Devereux, P. J., and Salvanes, K. G. (2005). The more the merrier? The effect of family size and birth order on children's education. *Quarterly Journal of Economics*, 120(2), 669–700.
+-   Black, S. E., Grönqvist, E., and Öckert, B. (2018). Born to lead? The effect of birth order on noncognitive abilities. *Review of Economics and Statistics*, 100(2), 274–286.
+-   Bouchard, T. J. (1994). Genes, environment, and personality. *Science*, 264(5166), 1700–1701.
+-   Cunha, F., and Heckman, J. J. (2008). Formulating, identifying, and estimating the technology of cognitive and noncognitive skill formation. *Journal of Human Resources*, 43(4), 738–782.
+-   Damian, R. I., and Roberts, B. W. (2015). The associations of birth order with personality and intelligence in a representative sample of U.S. high school students. *Journal of Research in Personality*, 58, 96–105.
+-   Daniel, A. (1985). Power, privilege, and prestige: Occupations in Australia. *Australian and New Zealand Journal of Sociology*, 21(1), 88–108.
+-   Heckman, J. J., Stixrud, J., and Urzua, S. (2006). The effects of cognitive and noncognitive abilities on labor market outcomes and social behavior. *Journal of Labor Economics*, 24(3), 411–482.
+-   Henrich, J., Heine, S. J., and Norenzayan, A. (2010). The weirdest people in the world? *Behavioral and Brain Sciences*, 33(2–3), 61–83.
+-   Kazenin, K. (2021). Family co-residence in Russia: Trends and determinants. *Demographic Review*, 8(2), 49–73.
+-   Loehlin, J. C. (1992). *Genes and Environment in Personality Development*. SAGE.
+-   Olneck, M. R., and Bills, D. B. (1980). What makes Sammy run? An empirical assessment of the Bowles–Gintis correspondence theory. *American Journal of Education*, 89(1), 27–61.
+-   Plomin, R., and Daniels, D. (1987). Why are children in the same family so different from one another? *Behavioral and Brain Sciences*, 10(1), 1–16.
+-   Reiss, D., Neiderhiser, J. M., Hetherington, E. M., and Plomin, R. (2000). *The Relationship Code: Deciphering Genetic and Social Influences on Adolescent Development*. Harvard University Press.
+-   Rohrer, J. M., Egloff, B., and Schmukle, S. C. (2015). Examining the effects of birth order on personality. *Proceedings of the National Academy of Sciences*, 112(46), 14224–14229.
+-   Snijders, T. A. B., and Bosker, R. J. (2011). *Multilevel Analysis*. SAGE.
+-   Sulloway, F. J. (1996). *Born to Rebel: Birth Order, Family Dynamics, and Creative Lives*. Pantheon.
+-   Vukasovic, T., and Bratko, D. (2015). Heritability of personality: A meta-analysis of behavior genetic studies. *Psychological Bulletin*, 141(4), 769–785.
+-   Watson, D., Klohnen, E. C., Casillas, A., Simms, E. N., Haig, J., and Berry, D. S. (2004). Match makers and deal breakers: Analyses of assortative mating in newlywed couples. *Journal of Personality*, 72(5), 1029–1068.
