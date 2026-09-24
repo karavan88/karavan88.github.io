@@ -1,6 +1,9 @@
 project:
   type: website
   output-dir: docs
+  resources:
+    - avanesian_slides.html
+    - avanesian_slides.pdf
 
 website:
   title: "Garen Avanesian"

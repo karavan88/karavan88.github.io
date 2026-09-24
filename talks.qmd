@@ -14,6 +14,20 @@ editor: visual
 
 ## Academic Presentations
 
+### Влияние некогнитивных навыков на характеристики занятости молодежи
+*Защита кандидатской диссертации*
+
+**Author:** Аванесян Карен Алексеевич  
+**Institution:** НИУ ВШЭ  
+**Year:** 2026  
+**Language:** Russian
+
+Slides for the PhD (кандидатская) defense: how the Big Five non-cognitive skills relate to formal employment, wages and job satisfaction of Russian youth (RLMS-HSE 2016 and 2019), with heterogeneity by family income, education and gender. The deck includes an appendix with methodology, instrument psychometrics, robustness checks, skill variability over the life course and the full regression tables.
+
+**Links:** [View Slides](avanesian_slides.html){target="_blank"} | [PDF](avanesian_slides.pdf){target="_blank"}
+
+---
+
 ### Некогнитивные компоненты человеческого капитала
 *Теория, измерение и экономическое значение*
 
