@@ -4,6 +4,7 @@ project:
   resources:
     - avanesian_slides.html
     - avanesian_slides.pdf
+    - pialand-deck.html
 
 website:
   title: "Garen Avanesian"
