@@ -20,6 +20,8 @@ website:
         href: my_publications.qmd
       - text: Stat Tutorials
         href: tutorials.qmd  
+      - text: Teaching
+        href: causal-r/index.qmd
       - text: CV
         href: cv.qmd
       - text: Media

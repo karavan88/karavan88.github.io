@@ -1,0 +1,1376 @@
+---
+title: "Лекция 15. Медиация: через что работает эффект"
+subtitle: "Блок 4. Механизмы и гетерогенность"
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(mediation)                       # до tidyverse: MASS::select не должен перекрыть dplyr::select
+source(here::here("causal-r/R/load_panel.R"))
+library(ggdag)
+options(scipen = 5)                      # p-value пакета печатаются как <2e-16, а не 0.0000…
+set.seed(16)
+d <- rlms |>
+  filter(year == 2016, employed == 1, age >= 25, age <= 60,
+         !is.na(log_wage), !is.na(C), !is.na(occup_group)) |>
+  mutate(prof = as.integer(occup_group %in% levels(factor(occup_group))[2:4]),
+         site = factor(site_code)) |>
+  select(idind, psu, log_wage, higher_ed, prof, years_educ, female, age, urban, site,
+         O, C, E, A, ES, official) |>
+  drop_na(-official) |> as.data.frame()
+ctrl <- "female + age + I(age^2) + urban + site + O + C + E + A + ES"
+f <- function(lhs, rhs) as.formula(paste(lhs, "~", rhs, "+", ctrl))
+m_tot <- feols(f("log_wage", "higher_ed"), d, vcov = "hetero")         # c: полный
+m_a   <- feols(f("prof", "higher_ed"), d, vcov = "hetero")             # a: D -> M (LPM)
+m_cb  <- feols(f("log_wage", "higher_ed + prof"), d, vcov = "hetero")  # c' и b
+# форматирование чисел для инлайна
+r3  <- function(x, k = 3) formatC(as.numeric(x), format = "f", digits = k)
+ci  <- function(v, k = 3) paste0("[", r3(v[1], k), "; ", r3(v[2], k), "]")
+pc  <- function(x) round(100 * as.numeric(x))
+# компактная печать: без строки Signif. codes и пустых строк
+show <- function(x) {
+  out <- capture.output(print(x))
+  cat(out[!grepl("^Signif|^---|^\\s*$", out)], sep = "\n")
+}
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Эффект есть. А через что он работает?
+
+-   Блоки 1–3 отвечали на вопрос «**сколько**»: диплом добавляет ≈ `r r3(coef(m_tot)["higher_ed"], 2)` лога к зарплате. Для политики часто важнее «**как**»: диплом даёт доступ к профессиям с высокой оплатой — или повышает зарплату внутри той же профессии?
+-   Если всё дело в доступе к профессиям, то важна не учёба, а «входной билет» — и тогда сертификация или квоты сработают так же. Если нет — работает содержание обучения
+-   **Медиация** — разложение полного эффекта на **прямой** и **косвенный** (через медиатор $M$)
+
+::: {.thesis .smaller}
+Медиация требует допущений сильнее всего, что было до сих пор: даже эксперимент с рандомизацией $D$ не говорит, через что он работает. Поэтому главное на этом занятии — правильно прочитать вывод пакета и провести анализ чувствительности.
+:::
+
+## Пример занятия
+
+::: {.tiles}
+::: {.tile .navy}
+[`r format(nrow(d), big.mark = " ")`]{.v} [человек: занятые 25–60 лет]{.l}
+:::
+::: {.tile}
+[2016]{.v} [волна RLMS с «Большой пятёркой»]{.l}
+:::
+::: {.tile}
+[ISCO 1–3]{.v} [медиатор: профессиональные и руководящие позиции]{.l}
+:::
+:::
+
+::: {.cards}
+::: {.card}
+[дизайн]{.k}
+
+### $D \to M \to Y$
+
+$D$ — высшее образование; $Y$ — log зарплаты; $M$ — работа на **профессиональной или руководящей позиции** (руководители, специалисты высшего и среднего уровня). Черты личности O, C, E, A, ES — контроли за способности и мотивацию.
+:::
+::: {.card .tint}
+[вопрос]{.k}
+
+### Какая доля отдачи — через позицию?
+
+Второй пример: добросовестность ($C$) → годы образования → зарплата — непрерывные воздействие и медиатор.
+:::
+:::
+
+## План занятия: двойное занятие {.smaller}
+
+::: {.cards}
+::: {.card}
+[часть 1]{.k}
+
+### Идея и рабочий цикл `mediation`
+
+1.  Прямой, косвенный и полный эффект; Baron–Kenny
+2.  Последовательная игнорируемость
+3.  Что симулирует `mediate()`: квази-байес и бутстрап
+4.  Цикл: модель $M$ → модель $Y$ → `mediate` → `summary` → `plot`
+5.  Как читать вывод; ошибки, кластеры, бутстрап; взаимодействие $D \times M$
+:::
+::: {.card .tint}
+[часть 2]{.k}
+
+### Модели, проверки, чувствительность
+
+1.  Бинарные медиатор и исход, непрерывное воздействие
+2.  Эффекты по подгруппам: `covariates`, `test.modmed`
+3.  `medsens`: $\rho$ и $R^2$, как читать вывод
+4.  Проверки: выборка, перекрытие, Baron–Kenny, пост-воздейственные конфаундеры
+5.  Симуляция, шаблон для статьи, ошибки, чек-лист
+:::
+:::
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Три эффекта
+
+Медиатор — тоже потенциальный исход: $M(1)$, $M(0)$. А исход зависит и от $D$, и от $M$: $Y(d, m)$.
+
+::: {.cards .c3}
+::: {.card}
+[полный]{.k}
+
+### $Y(1, M(1)) - Y(0, M(0))$
+
+То, что мы оценивали весь курс.
+:::
+::: {.card .tint}
+[прямой · ADE]{.k}
+
+### $Y(1, M(d)) - Y(0, M(d))$
+
+Меняем диплом, **фиксируя** профессию на том уровне, какой был бы при $d$.
+:::
+::: {.card .tint}
+[косвенный · ACME]{.k}
+
+### $Y(d, M(1)) - Y(d, M(0))$
+
+Диплом тот же, меняется только профессия так, как её изменил бы диплом.
+:::
+:::
+
+Полный = ACME($d$) + ADE($1-d$). $Y(1, M(0))$ — величина, которую **никогда не наблюдаем**: у человека с дипломом профессия «как без диплома». Это и делает медиацию трудной.
+
+## Что делали раньше: Baron–Kenny
+
+Три регрессии: $Y$ на $D$ (полный, $c$); $M$ на $D$ ($a$); $Y$ на $D$ и $M$ ($c'$ и $b$). Косвенный $= a \cdot b = c - c'$.
+
+-   При линейности и без взаимодействий это **совпадает** с ACME. Но арифметика не делает оценку причинной: $b$ — эффект профессии на зарплату — требует, чтобы профессия была «как случайна» при данных $D$ и $X$
+-   А это уже не про диплом. Диплом может быть хоть рандомизирован — люди в профессии и вне её различаются по способностям, амбициям, связям. Пропущенная переменная между $M$ и $Y$ искажает и $b$, и $c'$
+-   Современная формулировка (Imai, Keele, Yamamoto 2010) — те же регрессии, но явные допущения, взаимодействия, нелинейные модели и анализ чувствительности
+
+## Последовательная игнорируемость {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.6
+#| out-width: "68%"
+#| fig-align: center
+dag <- dagify(Y ~ D + M + X + U, M ~ D + X + U, D ~ X,
+              coords = list(x = c(D = 0, M = 1, Y = 2, X = 1, U = 1.6),
+                            y = c(D = 0, M = 0.8, Y = 0, X = -0.9, U = 0.9)),
+              labels = c(D = "диплом", M = "профессия", Y = "зарплата", X = "X", U = "U?"))
+ggdag(dag, text = FALSE, use_labels = "label", node_size = 14) + theme_dag() +
+  theme(legend.position = "none")
+```
+
+1.  При данных $X$ диплом не связан с потенциальными исходами и медиаторами — то же, что в блоке 1
+2.  При данных $X$ и $D$ профессия не связана с потенциальными исходами: **нет $U$**, и нет переменных, на которые влияет диплом и которые влияют на профессию и зарплату одновременно
+
+## Медиатор и «плохой контроль» — одно и то же
+
+-   В лекциях 3–4 мы учили: не контролируйте то, на что влияет воздействие, — оценка полного эффекта сломается
+-   В медиации мы делаем ровно это, **намеренно**: кондиционируем на $M$, чтобы получить прямой эффект. Вопрос другой — и цена другая: нужно допущение 2
+-   Отсюда правило чтения чужих работ: «эффект образования с контролем за профессию и отрасль» — это **не** эффект образования и **не** его прямой эффект, пока не обоснована игнорируемость профессии
+
+::: {.thesis .smaller}
+«Контрольная» переменная, лежащая на пути от $D$ к $Y$, превращает оценку полного эффекта в оценку прямого — со всеми допущениями медиации, о которых авторы обычно не подозревают.
+:::
+
+## Что делает `mediate()` внутри
+
+Алгоритм Imai, Keele, Tingley (2010): контрфакт $Y(1, M(0))$ не наблюдается — его **предсказывают** по двум моделям.
+
+::: {.steps}
+::: {}
+**Тянем** `sims` наборов параметров обеих моделей
+:::
+::: {}
+**Предсказываем** каждому $M(1)$ и $M(0)$ — со случайностью модели $M$
+:::
+::: {}
+**Предсказываем** $Y(d, M(1))$ и $Y(d, M(0))$ по модели $Y$
+:::
+::: {}
+**Усредняем** разности → ACME, ADE, полный эффект
+:::
+::: {}
+**Распределение** по `sims` → оценка, интервал, p-value
+:::
+:::
+
+-   Значит, годится любая пара моделей, из которых можно предсказывать: `lm`, `glm`, `polr`, `rq`, `gam`, `survreg`, `lmer`/`glmer`. Формулы Baron–Kenny не нужны
+-   Результат — **симуляционный**: от запуска к запуску он слегка меняется. Для отчёта — `set.seed()` и `sims = 1000` (по умолчанию) или больше
+
+## Квази-байес или бутстрап
+
+::: {.cards}
+::: {.card}
+[`boot = FALSE` · по умолчанию]{.k}
+
+### Квази-байесовская аппроксимация
+
+Параметры тянутся из многомерного нормального с центром в оценках и ковариационной матрицей модели (King, Tomz, Wittenberg 2000). **Быстро.** Матрицу можно заменить: `robustSE = TRUE` (Уайт) или `cluster = d$psu` (кластерная). «Estimate» — среднее по симуляциям.
+:::
+::: {.card .tint}
+[`boot = TRUE`]{.k}
+
+### Непараметрический бутстрап
+
+`sims` раз переоцениваем **обе** модели на перевыборке строк. Медленнее, без допущения о нормальности оценок. Интервал: `boot.ci.type = "perc"` (перцентильный, по умолчанию) или `"bca"` (с поправкой на смещение и асимметрию — его рекомендуют для косвенных эффектов). «Estimate» — по исходной выборке.
+:::
+:::
+
+::: {.callout-important appearance="minimal"}
+При `boot = TRUE` аргументы `robustSE` и `cluster` **игнорируются** (с предупреждением). Для части моделей (`gam`, `rq` для медиатора; `polr`, `gam` для исхода) квази-байес невозможен — нужен бутстрап.
+:::
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Рабочий цикл пакета `mediation`
+
+```{r}
+#| eval: false
+library(mediation)                    # ДО tidyverse / load_panel.R: иначе MASS::select закроет dplyr::select
+d <- rlms |> filter(...) |> select(...) |> drop_na() |> as.data.frame()   # 0. одна выборка
+
+model.m <- glm(prof ~ higher_ed + X, data = d, family = binomial("probit"))  # 1. модель медиатора
+model.y <- lm(log_wage ~ higher_ed + prof + X, data = d)                     # 2. модель исхода
+
+set.seed(16)
+med <- mediate(model.m, model.y, treat = "higher_ed", mediator = "prof",    # 3. симуляции
+               sims = 1000)                     # + boot = TRUE / robustSE = TRUE / cluster = d$psu
+summary(med); plot(med)                         # 4. таблица и график
+
+sens <- medsens(med, rho.by = 0.05, sims = 50)  # 5. чувствительность к нарушению допущения 2
+summary(sens); plot(sens, sens.par = "rho")     # 6. при каком ρ ACME = 0
+```
+
+-   `treat` и `mediator` — **строки** с именами переменных; `cluster` — **вектор**, а не имя
+-   Модель медиатора: $M$ на $D$ и $X$. Модель исхода: $Y$ на $D$, $M$ и **те же** $X$
+
+## Требования к моделям
+
+::: {.cards .c3}
+::: {.card}
+[1 · одна выборка]{.k}
+
+Обе модели на **одних и тех же строках**. Иначе ошибка `number of observations do not match`. `dropobs = TRUE` переоценит на общих строках — лучше `drop_na()` заранее
+:::
+::: {.card}
+[2 · одно имя $D$]{.k}
+
+`treat = "higher_ed"` — переменная в обеих моделях под тем же именем. Не `factor(higher_ed)` в одной и `higher_ed` в другой. Медиатор обязан быть в модели исхода
+:::
+::: {.card}
+[3 · одни и те же $X$]{.k}
+
+Только **до-воздейственные** ковариаты, обычно одинаковые в обеих моделях. Всё, на что влияет $D$, кроме $M$, — нарушение допущения 2
+:::
+::: {.card .tint}
+[4 · бинарный $M$]{.k}
+
+Числовой 0/1, **не factor**. `binomial` — только для 0/1; квазиправдоподобие (`quasibinomial`) не допускается
+:::
+::: {.card .tint}
+[5 · взаимодействие]{.k}
+
+`D * M` в модели исхода `mediate` находит сам — и выдаёт эффекты отдельно для $d = 0$ и $d = 1$
+:::
+::: {.card .warn}
+[6 · не поддерживается]{.k}
+
+Объекты `feols` и т. п. Фиксированные эффекты — фактором в `lm`/`glm` (у нас `site`). Список классов — в `?mediate`
+:::
+:::
+
+## Полный эффект и его части руками
+
+::: {.tiles}
+::: {.tile .navy}
+[`r r3(coef(m_a)["higher_ed"] * coef(m_cb)["prof"])`]{.v} [косвенный по Baron–Kenny: $a \cdot b$]{.l}
+:::
+::: {.tile}
+[`r r3(coef(m_tot)["higher_ed"] - coef(m_cb)["higher_ed"])`]{.v} [он же: $c - c'$]{.l}
+:::
+::: {.tile}
+[+`r pc(coef(m_a)["higher_ed"])` п.п.]{.v} [диплом → шанс профессиональной позиции]{.l}
+:::
+::: {.tile}
+[`r r3(coef(m_cb)["prof"], 2)`]{.v} [лога добавляет позиция]{.l}
+:::
+:::
+
+::: {.panel-tabset}
+### Таблица
+
+```{r}
+#| echo: false
+etable(m_tot, m_a, m_cb, keep = c("higher_ed", "prof"), depvar = TRUE, fitstat = ~ n)
+```
+
+### Код
+
+```{r}
+#| eval: false
+ctrl <- "female + age + I(age^2) + urban + site + O + C + E + A + ES"
+f <- function(lhs, rhs) as.formula(paste(lhs, "~", rhs, "+", ctrl))
+m_tot <- feols(f("log_wage", "higher_ed"), d, vcov = "hetero")         # c: полный
+m_a   <- feols(f("prof", "higher_ed"), d, vcov = "hetero")             # a: D -> M (LPM)
+m_cb  <- feols(f("log_wage", "higher_ed + prof"), d, vcov = "hetero")  # c' и b
+etable(m_tot, m_a, m_cb, keep = c("higher_ed", "prof"), depvar = TRUE, fitstat = ~ n)
+```
+:::
+
+```{r}
+#| label: fit-main
+#| include: false
+#| cache: true
+m_med <- glm(f("prof", "higher_ed"), d, family = binomial("probit"))   # медиатор: пробит
+m_out <- lm(f("log_wage", "higher_ed + prof"), d)                       # исход: МНК
+set.seed(16)
+t_qb <- system.time(
+  med <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000)
+)[["elapsed"]]
+```
+
+## Базовый вызов на данных RLMS
+
+```{r}
+#| eval: false
+m_med <- glm(f("prof", "higher_ed"), d, family = binomial("probit"))   # медиатор: пробит
+m_out <- lm(f("log_wage", "higher_ed + prof"), d)                       # исход: МНК
+set.seed(16)
+med <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000)
+summary(med)
+```
+
+::: {.tiles}
+::: {.tile .navy}
+[`r nobs(m_med)` = `r nobs(m_out)`]{.v} [наблюдений в моделях $M$ и $Y$ — проверить до `mediate`]{.l}
+:::
+::: {.tile}
+[пробит]{.v} [$M$ бинарный; пробит, а не логит, — ради `medsens`]{.l}
+:::
+::: {.tile}
+[`r round(t_qb)` с]{.v} [1000 квази-байесовских симуляций]{.l}
+:::
+:::
+
+## Как читать вывод `summary(mediate)`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+show(summary(med))
+```
+
+### С пояснениями: строки
+
+::: {.cards}
+::: {.card}
+[1 · ACME]{.k}
+
+Косвенный эффект: на сколько лог-пунктов вырастает зарплата, если профессия меняется так, как её меняет диплом, а сам диплом нет. У нас `r r3(med$d1)`
+:::
+::: {.card}
+[2 · ADE]{.k}
+
+Прямой эффект: диплом меняется, профессия зафиксирована. `r r3(med$z0)` — отдача **внутри** позиции
+:::
+::: {.card .tint}
+[3 · Total Effect]{.k}
+
+ACME + ADE = `r r3(med$tau.coef)`. Сверьте с регрессией без $M$ (`r r3(coef(m_tot)["higher_ed"])`): расхождение — сигнал ошибки в моделях
+:::
+::: {.card .tint}
+[4 · Prop. Mediated]{.k}
+
+ACME / Total = `r pc(med$n0)`%. Медиана симуляций **отношения**; неустойчива при малом полном эффекте
+:::
+:::
+
+Одна строка на эффект — потому что исход линейный и без $D \times M$: ACME(0) = ACME(1). Иначе строк станет десять.
+
+### С пояснениями: столбцы
+
+::: {.cards .c3}
+::: {.card}
+[5 · шапка]{.k}
+
+`Quasi-Bayesian Confidence Intervals` или `Nonparametric Bootstrap … Percentile / BCa Method` — как получены интервалы
+:::
+::: {.card}
+[6 · Estimate и CI]{.k}
+
+Среднее симуляций и их 2.5% и 97.5% перцентили (уровень — `conf.level`)
+:::
+::: {.card}
+[7 · p-value]{.k}
+
+$2 \cdot \min$(доля симуляций > 0, доля < 0). `<2e-16` = ни одной по другую сторону нуля, т. е. $p < 2/$`sims`
+:::
+::: {.card .tint}
+[8 · Sample Size Used]{.k}
+
+Число строк в моделях. Должно совпадать с тем, что вы ожидали после `drop_na()`
+:::
+::: {.card .tint}
+[9 · Simulations]{.k}
+
+`sims`. При 100 краевые перцентили шумные; для статьи ≥ 1000
+:::
+::: {.card .warn}
+[сигналы беды]{.k}
+
+Total ≠ регрессии без $M$; Prop. Mediated < 0 или > 1; ACME и ADE разных знаков; N меньше ожидаемого
+:::
+:::
+:::
+
+## `plot(med)`: тот же результат картинкой {.nostretch}
+
+::: {.panel-tabset}
+### `plot(med)`
+
+```{r}
+#| echo: false
+#| fig-height: 2.6
+#| out-width: "80%"
+#| fig-align: center
+par(mar = c(3, 6, 1, 1), cex = 0.9)
+plot(med, xlim = c(0, 0.32))
+```
+
+### То же в ggplot
+
+```{r}
+#| echo: false
+#| fig-height: 2.4
+#| out-width: "72%"
+#| fig-align: center
+tibble(эффект = factor(c("ACME", "ADE", "полный"), levels = c("полный", "ADE", "ACME")),
+       est = c(med$d0, med$z0, med$tau.coef),
+       lo = c(med$d0.ci[1], med$z0.ci[1], med$tau.ci[1]), hi = c(med$d0.ci[2], med$z0.ci[2], med$tau.ci[2])) |>
+  ggplot(aes(est, эффект)) + geom_vline(xintercept = 0, colour = "grey60") +
+  geom_pointrange(aes(xmin = lo, xmax = hi), colour = pal["indigo"]) + labs(x = "log зарплаты", y = NULL)
+```
+
+### Код
+
+```{r}
+#| eval: false
+plot(med)                          # точки и 95% интервалы: ACME, ADE, полный
+plot(med, treatment = "both")      # при D × M: сплошная — treated, пунктир — control
+# свой график: всё лежит в объекте
+c(med$d0, med$d0.ci, med$z0, med$tau.coef)   # оценки и интервалы
+hist(med$d0.sims)                             # сами симуляции (long = TRUE)
+```
+:::
+
+-   ACME ≈ `r r3(med$d0, 2)`: около `r pc(med$n0)`% отдачи от диплома — доступ к профессиональным и руководящим позициям; ADE ≈ `r r3(med$z0, 2)` — остальное внутри позиций
+-   В объекте `med` есть всё: `d0`, `d1` (ACME), `z0`, `z1` (ADE), `tau.coef`, `n0`, `*.ci`, `*.p` и векторы симуляций `*.sims`
+
+```{r}
+#| label: fit-se
+#| include: false
+#| cache: true
+set.seed(16)
+med_rob <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000,
+                   robustSE = TRUE)
+med_cl  <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000,
+                   cluster = d$psu)
+t_boot <- system.time(
+  med_bp <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 500,
+                    boot = TRUE)
+)[["elapsed"]]
+med_bca <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 500,
+                   boot = TRUE, boot.ci.type = "bca")
+```
+
+## Ошибки: обычные, robust, кластерные, бутстрап
+
+::: {.panel-tabset}
+### Сравнение
+
+```{r}
+#| echo: false
+se_tab <- function(m, lab) tibble(вариант = lab, ACME = r3(m$d0), `95% ДИ ACME` = ci(m$d0.ci),
+                                  полный = r3(m$tau.coef), `95% ДИ полного` = ci(m$tau.ci))
+bind_rows(se_tab(med, "квази-байес, обычные"), se_tab(med_rob, "квази-байес, robustSE = TRUE"),
+          se_tab(med_cl, "квази-байес, cluster = d$psu"), se_tab(med_bp, "бутстрап 500, perc"),
+          se_tab(med_bca, "бутстрап 500, bca"))
+```
+
+### Код
+
+```{r}
+#| eval: false
+med_rob <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000,
+                   robustSE = TRUE)                       # sandwich::vcovHC
+med_cl  <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 1000,
+                   cluster = d$psu)                       # sandwich::vcovCL по ПЕРВИЧНЫМ ЕДИНИЦАМ ОТБОРА
+med_bp  <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 500,
+                   boot = TRUE)                           # перцентильный
+med_bca <- mediate(m_med, m_out, treat = "higher_ed", mediator = "prof", sims = 500,
+                   boot = TRUE, boot.ci.type = "bca")     # BCa
+```
+:::
+
+-   RLMS — кластерная выборка по первичным единицам отбора (`psu`): кластерные ошибки — разумный выбор по умолчанию. Здесь они расширяют интервал **полного** эффекта, ACME почти не меняется
+-   Бутстрап на 500 повторов шёл `r round(t_boot)` с против `r round(t_qb)` с у 1000 квази-байесовских симуляций. Бутстрап не учитывает кластеры: он перевыбирает строки, а не PSU
+
+```{r}
+#| label: fit-int
+#| include: false
+#| cache: true
+m_out2 <- lm(f("log_wage", "higher_ed * prof"), d)
+set.seed(16)
+med2 <- mediate(m_med, m_out2, treat = "higher_ed", mediator = "prof", sims = 1000)
+tmint <- test.TMint(med2)
+```
+
+## Взаимодействие диплома и профессии
+
+Отдача от позиции может быть разной с дипломом и без. Тогда ACME и ADE зависят от того, при каком $d$ их считать:
+
+```{r}
+#| eval: false
+m_out2 <- lm(f("log_wage", "higher_ed * prof"), d)      # D × M в модели исхода
+med2 <- mediate(m_med, m_out2, treat = "higher_ed", mediator = "prof", sims = 1000)
+summary(med2)
+test.TMint(med2)                                       # ACME(1) − ACME(0) = 0?
+```
+
+::: {.cards .c3}
+::: {.card}
+[control · $d = 0$]{.k}
+
+**ACME (control)** = $E[Y(0, M(1)) - Y(0, M(0))]$: позиция меняется, отдача от неё — как у людей **без** диплома
+:::
+::: {.card .tint}
+[treated · $d = 1$]{.k}
+
+**ACME (treated)** = $E[Y(1, M(1)) - Y(1, M(0))]$: отдача от позиции — как у людей **с** дипломом
+:::
+::: {.card}
+[пары]{.k}
+
+Полный = ACME (treated) + ADE (control) = ACME (control) + ADE (treated)
+:::
+:::
+
+## Как читать вывод `summary(mediate)` с взаимодействием
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+show(summary(med2))
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · ACME (control / treated)]{.k}
+
+`r r3(med2$d0)` и `r r3(med2$d1)`: позиция приносит больше тем, у кого есть диплом
+:::
+::: {.card}
+[2 · ADE (control / treated)]{.k}
+
+`r r3(med2$z0)` и `r r3(med2$z1)`: прямой эффект при профессии «как без диплома» и «как с дипломом»
+:::
+::: {.card .tint}
+[3 · Total Effect]{.k}
+
+Один: `r r3(med2$tau.coef)`. Проверка: `r r3(med2$d1)` + `r r3(med2$z0)` ≈ `r r3(med2$d1 + med2$z0)`
+:::
+::: {.card .tint}
+[4 · Prop. Mediated]{.k}
+
+`r pc(med2$n0)`% и `r pc(med2$n1)`% — доля зависит от точки отсчёта
+:::
+::: {.card}
+[5 · (average)]{.k}
+
+Простое среднее control и treated: ACME `r r3(med2$d.avg)`. Удобно, но скрывает различие
+:::
+::: {.card .warn}
+[когда 10 строк]{.k}
+
+Есть $D \times M$ **или** исход нелинейный (`glm`) — даже без взаимодействия
+:::
+:::
+:::
+
+## `test.TMint()`: различаются ли ACME(1) и ACME(0)?
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+tmint
+```
+
+### Как читать
+
+-   `ACME(1) - ACME(0)` = `r r3(tmint$statistic)` — разность косвенных эффектов при $d = 1$ и $d = 0$; интервал и p-value — по тем же симуляциям, что и в `mediate`
+-   p = `r r3(tmint$p.value, 2)`, 95% ДИ `r ci(tmint$conf.int)`: **различие не значимо**. Тест работает только если в модели исхода есть $D \times M$ (иначе ошибка)
+:::
+
+-   Вывод: точечно позиция приносит больше обладателям диплома, но данные не позволяют отличить это от нуля. Сообщаем модель с взаимодействием и обе строки — или модель без него с оговоркой, что тест не отверг равенство
+-   Если взаимодействие значимо, сообщайте обе ACME: строка `(average)` скрывает именно то, что интересно
+
+## Какие модели понимает `mediate()`
+
+::: {.cards}
+::: {.card}
+[`mediate` · таблица 1 виньетки]{.k}
+
+### Медиатор и исход
+
+| Медиатор ↓ / исход → | lm, glm | polr | rq, survreg, tobit |
+|---|:-:|:-:|:-:|
+| `lm`, `glm`, `polr` | ✓ | ✓ boot | ✓ |
+| `rq`, `gam` | ✓ boot | ✓ boot | ✓ boot |
+| tobit (`vglm`) | — | — | — |
+
+`glmer`/`lmer` — многоуровневые; `gam`-исход — только бутстрап
+:::
+::: {.card .tint}
+[`medsens` · таблица 2]{.k}
+
+### Чувствительность — только три пары
+
+| Медиатор | Исход | type |
+|---|---|:-:|
+| `lm` | `lm` | ct |
+| `glm` probit | `lm` | bm |
+| `lm` | `glm` probit | bo |
+
+Пробит-исход — без $D \times M$. Логит, probit–probit, `polr` → ошибка
+:::
+:::
+
+Выбор модели — не только про данные, но и про то, сможете ли вы потом проверить чувствительность.
+
+```{r}
+#| label: fit-types
+#| include: false
+#| cache: true
+set.seed(16)
+m_logit <- glm(f("prof", "higher_ed"), d, family = binomial("logit"))
+med_logit <- mediate(m_logit, m_out, treat = "higher_ed", mediator = "prof", sims = 1000)
+err_logit <- tryCatch(medsens(med_logit, rho.by = 0.1, sims = 20), error = conditionMessage)
+m_lpm <- lm(f("prof", "higher_ed"), d)
+med_lpm <- mediate(m_lpm, m_out, treat = "higher_ed", mediator = "prof", sims = 1000)
+# бинарный исход: официальное оформление (есть пропуски -> своя выборка)
+d_o <- d |> filter(!is.na(official))
+m_med_o <- glm(f("prof", "higher_ed"), d_o, family = binomial("probit"))
+m_off   <- glm(f("official", "higher_ed + prof"), d_o, family = binomial("probit"))
+med_bb  <- mediate(m_med_o, m_off, treat = "higher_ed", mediator = "prof", sims = 1000)
+err_bb  <- tryCatch(medsens(med_bb, rho.by = 0.1, sims = 20), error = conditionMessage)
+# линейный медиатор + пробит-исход: C -> годы образования -> позиция
+ctrl2 <- "O + E + A + ES + female + age + I(age^2) + urban + site"
+mm    <- lm(as.formula(paste("years_educ ~ C +", ctrl2)), d)
+mo_p  <- glm(as.formula(paste("prof ~ C + years_educ +", ctrl2)), d, family = binomial("probit"))
+med_lb <- mediate(mm, mo_p, treat = "C", mediator = "years_educ",
+                  control.value = 0, treat.value = 1, sims = 1000)
+sens_lb <- medsens(med_lb, rho.by = 0.1, sims = 50)
+```
+
+## Бинарный медиатор: пробит, логит или LPM
+
+::: {.panel-tabset}
+### Сравнение
+
+```{r}
+#| echo: false
+mt <- function(m, lab) tibble(`модель M` = lab, ACME = r3(m$d0), `95% ДИ` = ci(m$d0.ci),
+                              ADE = r3(m$z0), `доля` = paste0(pc(m$n0), "%"))
+bind_rows(mt(med, "glm probit"), mt(med_logit, "glm logit"), mt(med_lpm, "lm (LPM)"))
+```
+
+### `medsens` для логита
+
+```{r}
+#| eval: false
+m_logit   <- glm(f("prof", "higher_ed"), d, family = binomial("logit"))
+med_logit <- mediate(m_logit, m_out, treat = "higher_ed", mediator = "prof", sims = 1000)
+medsens(med_logit, rho.by = 0.1)
+```
+
+```{r}
+#| echo: false
+cat("Error:", err_logit)
+```
+:::
+
+-   Три модели медиатора — практически одна оценка: при хорошем перекрытии форма связи $D \to M$ мало что меняет
+-   Но `medsens` выводится из **нормальных** латентных ошибок: формулы есть для пробита, а для логита нет. Поэтому для бинарного медиатора берём пробит
+
+## Бинарный исход: диплом → позиция → официальное оформление
+
+```{r}
+#| eval: false
+d_o     <- d |> filter(!is.na(official))           # у official есть пропуски: обе модели на d_o
+m_med_o <- glm(f("prof", "higher_ed"), d_o, family = binomial("probit"))
+m_off   <- glm(f("official", "higher_ed + prof"), d_o, family = binomial("probit"))
+med_bb  <- mediate(m_med_o, m_off, treat = "higher_ed", mediator = "prof", sims = 1000)
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(print(summary(med_bb)))
+cat(out[!grepl("^Signif|^---|^\\s*$|^Causal|^Quasi|^Simul|^Sample", out)], sep = "\n")
+```
+
+### Как читать
+
+-   Эффекты — в **вероятности**: диплом повышает шанс официального оформления на `r pc(med_bb$tau.coef)` п.п., из них `r r3(100 * med_bb$d.avg, 1)` п.п. (в среднем) — через позицию
+-   10 строк без всякого $D \times M$: в пробите эффект позиции зависит от уровня остальных слагаемых, поэтому ACME(0) ≠ ACME(1)
+-   `medsens(med_bb)` → ошибка «`r err_bb`»: пара probit–probit не поддерживается
+:::
+
+## Линейный медиатор, бинарный исход
+
+Добросовестность ($C$, +1 SD) → годы образования → профессиональная позиция. Пара lm–probit: `medsens` работает.
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(print(summary(med_lb)))
+cat(out[!grepl("^Signif|^---|^\\s*$|^Causal|^Quasi|^Simul|^Sample", out)], sep = "\n")
+```
+
+### Код
+
+```{r}
+#| eval: false
+ctrl2 <- "O + E + A + ES + female + age + I(age^2) + urban + site"
+mm    <- lm(as.formula(paste("years_educ ~ C +", ctrl2)), d)
+mo_p  <- glm(as.formula(paste("prof ~ C + years_educ +", ctrl2)), d,
+             family = binomial("probit"))
+med_lb  <- mediate(mm, mo_p, treat = "C", mediator = "years_educ",
+                   control.value = 0, treat.value = 1, sims = 1000)
+sens_lb <- medsens(med_lb, rho.by = 0.1, sims = 50)    # тип "bo": работает
+```
+:::
+
+ACME = `r r3(med_lb$d.avg, 4)` уверенно отличен от нуля, полный эффект — на грани (p = `r r3(med_lb$tau.p)`, нижняя граница `r r3(med_lb$tau.ci[1], 4)`). Посмотрите на интервал `Prop. Mediated`.
+
+## Prop. Mediated: когда доле нельзя верить {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.5
+#| out-width: "82%"
+#| fig-align: center
+bind_rows(tibble(пример = "диплом → позиция → зарплата", доля = c(med$n0.sims)),
+          tibble(пример = "C → годы учёбы → позиция", доля = c(med_lb$n.avg.sims))) |>
+  filter(abs(доля) < 4) |>
+  ggplot(aes(доля, fill = пример)) + geom_histogram(bins = 80, alpha = .85) +
+  geom_vline(xintercept = c(0, 1), linetype = 2, colour = "grey40") +
+  facet_wrap(~ пример, ncol = 2, scales = "free_y") +
+  theme(legend.position = "none", axis.text.y = element_blank()) +
+  labs(x = "симуляции Prop. Mediated (показаны |доля| < 4)", y = NULL)
+```
+
+-   Доля — **отношение** двух шумных чисел. Когда полный эффект едва отличим от нуля, знаменатель в части симуляций около нуля или другого знака — и доля улетает: интервал `r ci(med_lb$n.avg.ci, 1)` против `r ci(med$n0.ci, 2)` в основном примере
+-   Правило: сообщать долю, только если полный эффект явно отличен от нуля, а ACME и ADE одного знака. Иначе — ACME и ADE в единицах исхода
+
+```{r}
+#| label: fit-cont
+#| include: false
+#| cache: true
+set.seed(16)
+mo <- lm(as.formula(paste("log_wage ~ C + years_educ +", ctrl2)), d)
+medC  <- mediate(mm, mo, treat = "C", mediator = "years_educ", sims = 1000,
+                 control.value = 0, treat.value = 1)
+medC2 <- mediate(mm, mo, treat = "C", mediator = "years_educ", sims = 1000,
+                 control.value = -1, treat.value = 1)
+sensC <- medsens(medC, rho.by = 0.05)
+```
+
+## Непрерывное воздействие: `treat.value` и `control.value`
+
+::: {.panel-tabset}
+### Код
+
+```{r}
+#| eval: false
+# добросовестность (C, z-score) -> годы образования -> зарплата
+mm <- lm(years_educ ~ C + O + E + A + ES + female + age + I(age^2) + urban + site, d)
+mo <- lm(log_wage ~ C + years_educ + O + E + A + ES + female + age + I(age^2) + urban + site, d)
+medC  <- mediate(mm, mo, treat = "C", mediator = "years_educ", sims = 1000,
+                 control.value = 0, treat.value = 1)      # эффект +1 SD добросовестности
+medC2 <- mediate(mm, mo, treat = "C", mediator = "years_educ", sims = 1000,
+                 control.value = -1, treat.value = 1)     # от −1 SD до +1 SD
+```
+
+### Вывод R: 0 → 1
+
+```{r}
+#| echo: false
+show(summary(medC))
+```
+
+### Вывод R: −1 → 1
+
+```{r}
+#| echo: false
+show(summary(medC2))
+```
+:::
+
+-   Для непрерывного $D$ эффект определяется **парой** значений; по умолчанию `control.value = 0`, `treat.value = 1` — для z-score это +1 SD от среднего
+-   В линейных моделях результат пропорционален разности: от −1 до +1 SD ACME = `r r3(medC2$d0, 4)` ≈ 2 × `r r3(medC$d0, 4)`. В нелинейных пара значений меняет ответ — выбирайте осмысленную (квартили, ±1 SD)
+
+## Что видно
+
+-   +1 SD добросовестности: +`r r3(100 * medC$tau.coef, 1)`% зарплаты, из них `r pc(medC$n0)`% через лишние годы учёбы. Личность работает в основном напрямую — на рабочем месте
+-   Чувствительность (lm–lm): ACME обращается в ноль при $\rho$ = `r r3(sensC$err.cr.d, 2)` — ненаблюдаемая общая причина образования и зарплаты (способности, семья) такой силы вполне правдоподобна
+-   Оговорка: черты измерены в 2016, образование получено раньше. Мы допускаем, что личность стабильна; если учёба меняет добросовестность — стрелка обратная, и расчёт теряет смысл
+
+```{r}
+#| label: fit-mod
+#| include: false
+#| cache: true
+m_med_f <- glm(f("prof", "higher_ed * female"), d, family = binomial("probit"))
+m_out_f <- lm(f("log_wage", "higher_ed * female + prof * female"), d)
+set.seed(16)
+med_w <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof",
+                 covariates = list(female = 1), sims = 1000)
+med_m <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof",
+                 covariates = list(female = 0), sims = 1000)
+med_init <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof", sims = 2)
+tmod <- test.modmed(med_init, covariates.1 = list(female = 1),
+                    covariates.2 = list(female = 0), sims = 500)
+```
+
+## Эффекты для подгрупп: `covariates =`
+
+```{r}
+#| eval: false
+m_med_f <- glm(f("prof", "higher_ed * female"), d, family = binomial("probit"))   # D × пол
+m_out_f <- lm(f("log_wage", "higher_ed * female + prof * female"), d)             # D × пол, M × пол
+med_w <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof",
+                 covariates = list(female = 1), sims = 1000)                       # женщины
+med_m <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof",
+                 covariates = list(female = 0), sims = 1000)                       # мужчины
+```
+
+::: {.tiles}
+::: {.tile .navy}
+[`r r3(med_w$d0)`]{.v} [ACME, женщины · доля `r pc(med_w$n0)`%]{.l}
+:::
+::: {.tile .navy}
+[`r r3(med_m$d0)`]{.v} [ACME, мужчины · доля `r pc(med_m$n0)`%]{.l}
+:::
+::: {.tile}
+[`r r3(med_w$tau.coef)`]{.v} [полный эффект, женщины]{.l}
+:::
+::: {.tile}
+[`r r3(med_m$tau.coef)`]{.v} [полный эффект, мужчины]{.l}
+:::
+:::
+
+-   В шапке вывода появляется строка `(Inference Conditional on the Covariate Values Specified in 'covariates')`: эффекты посчитаны при `female = 1`, остальные $X$ усреднены по выборке
+-   Модератор должен **взаимодействовать** с $D$ и $M$ в моделях — иначе (в линейных моделях) эффекты у подгрупп совпадут по построению
+
+## `test.modmed()`: значима ли разница между подгруппами?
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(print(tmod))
+cat(out[!grepl("^\\s*$|^alternative", out)], sep = "\n")
+```
+
+### Код
+
+```{r}
+#| eval: false
+med_init <- mediate(m_med_f, m_out_f, treat = "higher_ed", mediator = "prof",
+                    sims = 2)                        # сам вызов — лишь «заготовка»
+test.modmed(med_init, covariates.1 = list(female = 1),
+                      covariates.2 = list(female = 0), sims = 500)
+```
+:::
+
+-   Два теста: `ACME(covariates.1) - ACME(covariates.2)` = `r r3(tmod[[1]]$statistic)`, p = `r r3(tmod[[1]]$p.value, 2)`; то же для ADE: `r r3(tmod[[2]]$statistic)`, p = `r r3(tmod[[2]]$p.value, 2)`
+-   Различия между женщинами и мужчинами **не значимы**: «у женщин механизм другой» на этих данных не подтверждается. `test.modmed` сам перезапускает `mediate` дважды — `sims` в заготовке не важны
+
+```{r}
+#| label: fit-sens
+#| include: false
+#| cache: true
+set.seed(16)
+sens <- medsens(med, rho.by = 0.05, sims = 50)
+```
+
+## Чувствительность: что если есть $U$?
+
+Пусть ошибки уравнений медиатора и исхода коррелируют с $\rho$ — это и есть след ненаблюдаемого $U$. `medsens` пересчитывает ACME для каждого $\rho$:
+
+```{r}
+#| eval: false
+sens <- medsens(med, rho.by = 0.05, sims = 50,     # шаг по ρ; sims — для интервалов (bm, bo)
+                effect.type = "indirect")          # "direct" или "both" — для ADE
+summary(sens)
+plot(sens, sens.par = "rho")                       # ACME(ρ)
+plot(sens, sens.par = "R2", r.type = "total", sign.prod = "positive")
+```
+
+::: {.cards .c3}
+::: {.card}
+[$\rho > 0$]{.k}
+
+$U$ двигает $M$ и $Y$ в **одну** сторону (способности → и позиция, и зарплата). ACME завышена
+:::
+::: {.card}
+[$\rho < 0$]{.k}
+
+$U$ двигает их в **разные** стороны. ACME занижена
+:::
+::: {.card .tint}
+[время]{.k}
+
+Пробит–lm: `rho.by` × `sims` перезапусков. Ставьте шаг 0.05–0.1 и `sims` 50–100
+:::
+:::
+
+## Как читать вывод `summary(medsens)`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(print(summary(sens)))
+cat(out[!grepl("^\\s*$", out)], sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Sensitivity Region]{.k}
+
+Строки таблицы — значения $\rho$, при которых 95% интервал ACME **накрывает ноль**. Чем ближе они к $\rho = 0$, тем хрупче результат
+:::
+::: {.card}
+[2 · Rho at which ACME = 0]{.k}
+
+`r r3(sens$err.cr.d, 2)`: такая корреляция ошибок уравнений $M$ и $Y$ обнуляет косвенный эффект
+:::
+::: {.card .tint}
+[3 · `R^2_M*R^2_Y*`]{.k}
+
+`r r3(sens$R2star.d.thresh)`: произведение долей **остаточной** дисперсии $M$ и $Y$, которые объяснил бы $U$
+:::
+::: {.card .tint}
+[4 · `R^2_M~R^2_Y~`]{.k}
+
+`r r3(sens$R2tilde.d.thresh)`: то же для **общей** дисперсии. Его легче сравнивать с $R^2$ наблюдаемых $X$
+:::
+::: {.card}
+[5 · с взаимодействием]{.k}
+
+Для модели с $D \times M$ — отдельные блоки и пороги для ACME (control) и ACME (treated)
+:::
+::: {.card .warn}
+[сигналы беды]{.k}
+
+ACME = 0 при малом $|\rho|$; произведение $R^2$ меньше, чем у наблюдаемых контролей. Для бинарного $M$ $R^2$ — латентной переменной
+:::
+:::
+:::
+
+## Насколько хрупок косвенный эффект {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.7
+#| out-width: "70%"
+#| fig-align: center
+tibble(rho = sens$rho, acme = c(sens$d0), lo = c(sens$lower.d0), hi = c(sens$upper.d0)) |>
+  ggplot(aes(rho, acme)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), fill = pal["lavender"], alpha = .3) +
+  geom_line(colour = pal["indigo"], linewidth = 1) +
+  geom_hline(yintercept = 0, colour = pal["coral"]) +
+  labs(x = "ρ: корреляция ошибок уравнений M и Y", y = "ACME")
+```
+
+-   ACME обращается в ноль уже при $\rho \approx$ `r r3(sens$err.cr.d, 2)`: $U$, объясняющий около `r pc(sqrt(sens$R2star.d.thresh))`% остаточной дисперсии в каждом из уравнений, стирает косвенный эффект. Это тот же график, что `plot(sens, sens.par = "rho")`
+-   Такой $U$ правдоподобен: способности, связи, амбиции влияют и на позицию, и на зарплату
+
+```{r}
+#| label: bench
+#| include: false
+r2 <- function(fml) summary(lm(fml, d))$r.squared
+ctrl_noB5 <- "female + age + I(age^2) + urban + site"
+dR2_y <- r2(f("log_wage", "higher_ed + prof")) - r2(as.formula(paste("log_wage ~ higher_ed + prof +", ctrl_noB5)))
+dR2_m <- r2(f("prof", "higher_ed")) - r2(as.formula(paste("prof ~ higher_ed +", ctrl_noB5)))
+```
+
+## Чувствительность в терминах $R^2$ {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.9
+#| fig-width: 10
+#| out-width: "88%"
+#| fig-align: center
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1), cex = 0.8)
+plot(sens, sens.par = "R2", r.type = "total", sign.prod = "positive",
+     main = "sign.prod = \"positive\"")
+plot(sens, sens.par = "R2", r.type = "total", sign.prod = "negative",
+     main = "sign.prod = \"negative\"")
+```
+
+-   Оси — доли **общей** дисперсии $M$ и $Y$, объяснённые $U$ (`r.type = "total"`; `"residual"` — остаточной); линии — уровни ACME, **жирная** — ACME = 0; левый нижний угол — $U$ нет
+-   `sign.prod = "positive"`: $U$ повышает и позицию, и зарплату — ACME падает до нуля; `"negative"`: в разные стороны — ACME только растёт
+
+## Ориентир: насколько силён должен быть $U$
+
+Сравним порог из `medsens` с тем, сколько дисперсии объясняют **наблюдаемые** конфаундеры — вся «Большая пятёрка» сразу (прирост $R^2$ при её добавлении, LPM для позиции).
+
+::: {.tiles}
+::: {.tile .navy}
+[`r r3(sens$R2tilde.d.thresh, 4)`]{.v} [порог $\tilde R^2_M \tilde R^2_Y$, при котором ACME = 0]{.l}
+:::
+::: {.tile}
+[`r r3(100 * dR2_m, 1)`%]{.v} [дисперсии позиции объясняют O, C, E, A, ES]{.l}
+:::
+::: {.tile}
+[`r r3(100 * dR2_y, 1)`%]{.v} [дисперсии зарплаты объясняют O, C, E, A, ES]{.l}
+:::
+::: {.tile}
+[`r r3(dR2_m * dR2_y, 5)`]{.v} [их произведение — в `r round(sens$R2tilde.d.thresh / (dR2_m * dR2_y))` раз меньше порога]{.l}
+:::
+:::
+
+-   Чтобы обнулить ACME, $U$ должен быть намного сильнее всех пяти черт личности вместе. Но черты — слабый ориентир: способности, качество вуза, связи объясняют зарплату гораздо лучше
+-   Калибровка грубая ($R^2$ LPM, а не латентной переменной пробита). Её смысл — перевести $\rho$ в язык «насколько сильнее того, что мы уже контролируем»
+
+## Проверка 1: одна и та же выборка
+
+::: {.panel-tabset}
+### Ошибка
+
+```{r}
+#| echo: false
+m_bad <- lm(f("log_wage", "higher_ed + prof + official"), d)   # official с пропусками
+cat("nobs(m_med) =", nobs(m_med), "  nobs(m_bad) =", nobs(m_bad), "\n")
+cat("Error:", tryCatch(mediate(m_med, m_bad, treat = "higher_ed", mediator = "prof", sims = 10),
+                       error = conditionMessage), "\n")
+```
+
+### Код
+
+```{r}
+#| eval: false
+m_bad <- lm(f("log_wage", "higher_ed + prof + official"), d)   # official с пропусками
+c(nobs(m_med), nobs(m_bad))                                    # проверять ДО mediate
+mediate(m_med, m_bad, treat = "higher_ed", mediator = "prof")  # ошибка
+mediate(m_med, m_bad, ..., dropobs = TRUE)  # переоценит обе модели на общих строках
+# лучше: d_o <- d |> filter(!is.na(official)) и обе модели на d_o
+```
+:::
+
+-   `lm` и `glm` молча выбрасывают строки с пропусками. Если пропуски в разных переменных — модели оценены на разных людях, а контрфакт $Y(1, M(0))$ склеивается из несопоставимых частей
+-   `dropobs = TRUE` спасает вызов, но меняет выборку: сравните `med$nobs` с ожидаемым N и сообщите, сколько строк ушло
+
+## Проверка 2: перекрытие по медиатору {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.4
+#| out-width: "76%"
+#| fig-align: center
+d$p_hat <- predict(m_med, type = "response")
+ggplot(d, aes(p_hat, fill = factor(higher_ed, labels = c("без диплома", "с дипломом")))) +
+  geom_histogram(bins = 50, alpha = .7, position = "identity") +
+  labs(x = "P(профессиональная позиция | D, X) по пробиту", y = NULL, fill = NULL)
+tab_dm <- table(d$higher_ed, d$prof)
+```
+
+-   Допущение 2 требует ещё и $0 < P(M = m \mid D, X) < 1$: должны быть люди без диплома на профессиональных позициях и с дипломом — вне их. В таблице $D \times M$ самая малая клетка — `r min(tab_dm)` человек
+-   Прогнозы пробита не прижаты к 0 и 1: у людей без диплома максимум `r r3(max(d$p_hat[d$higher_ed == 0]), 2)`, у людей с дипломом минимум `r r3(min(d$p_hat[d$higher_ed == 1]), 2)`. Где перекрытия нет, $Y(0, M(1))$ — экстраполяция модели
+
+## Проверка 3: сверка с Baron–Kenny
+
+```{r}
+#| echo: false
+bk <- coef(m_a)["higher_ed"] * coef(m_cb)["prof"]
+tibble(способ = c("Baron–Kenny: a · b (feols)", "mediate: lm – lm (LPM)",
+                  "mediate: probit – lm", "mediate: logit – lm"),
+       ACME = r3(c(bk, med_lpm$d0, med$d0, med_logit$d0)),
+       `95% ДИ` = c("—", ci(med_lpm$d0.ci), ci(med$d0.ci), ci(med_logit$d0.ci)),
+       полный = r3(c(coef(m_tot)["higher_ed"], med_lpm$tau.coef, med$tau.coef, med_logit$tau.coef)))
+```
+
+-   lm–lm воспроизводит $a \cdot b$ с точностью до шума симуляций — так и должно быть (`?mediate`: «identical to the usual LSEM method»). Если не совпадает — модели оценены на разных данных или с разными $X$
+-   Сильное расхождение пробита и LPM — сигнал плохого перекрытия или неверной формы: смотрите проверку 2
+
+## Проверка 4: пост-воздейственный конфаундер {.nostretch}
+
+```{r}
+#| echo: false
+#| fig-height: 2.2
+#| out-width: "62%"
+#| fig-align: center
+dagL <- dagify(Y ~ D + M + L, M ~ D + L, L ~ D,
+               coords = list(x = c(D = 0, L = 1, M = 2, Y = 3), y = c(D = 0, L = 0.8, M = 0.8, Y = 0)),
+               labels = c(D = "диплом", L = "официальное", M = "позиция", Y = "зарплата"))
+ggdag(dagL, text = FALSE, use_labels = "label", node_size = 14) + theme_dag() +
+  theme(legend.position = "none")
+```
+
+-   $L$ зависит от диплома и влияет на позицию и зарплату. **Не включить** $L$ — нарушить допущение 2 (общая причина $M$ и $Y$). **Включить** как ковариату — кондиционировать на следствии $D$: ACME перестаёт быть косвенным эффектом. `mediate` корректно не умеет ни то, ни другое
+-   Что делать: (1) считать $(L, M)$ **одним** механизмом; (2) `multimed()` (Imai, Yamamoto 2013) — ACME при допущении однородного взаимодействия и анализ чувствительности к нему; (3) контролируемый прямой эффект — sequential g-estimation (пакет `DirectEffects`)
+
+```{r}
+#| label: fit-multi
+#| include: false
+#| cache: true
+set.seed(16)
+mm_o1 <- lm(f("prof", "higher_ed"), d_o)
+mo_o1 <- lm(f("log_wage", "higher_ed + prof"), d_o)
+mm_o2 <- lm(f("prof", "higher_ed + official"), d_o)
+mo_o2 <- lm(f("log_wage", "higher_ed + prof + official"), d_o)
+med_noL <- mediate(mm_o1, mo_o1, treat = "higher_ed", mediator = "prof", sims = 1000)
+med_L   <- mediate(mm_o2, mo_o2, treat = "higher_ed", mediator = "prof", sims = 1000)
+dm <- d_o |> mutate(age2 = age^2)                        # multimed: имена столбцов, не формула
+mmed <- multimed(outcome = "log_wage", med.main = "prof", med.alt = "official",
+                 treat = "higher_ed", data = dm, sims = 500,
+                 covariates = c("female", "age", "age2", "urban", "site", "O", "C", "E", "A", "ES"))
+smm <- summary(mmed)
+```
+
+## Проверка 4 на данных: `multimed()`
+
+::: {.panel-tabset}
+### Сравнение
+
+```{r}
+#| echo: false
+tibble(спецификация = c("mediate: L не учтён", "mediate: L как ковариата", "multimed: L = med.alt"),
+       ACME = r3(c(med_noL$d0, med_L$d0, mmed$d.ave.lb[1])),
+       ADE = r3(c(med_noL$z0, med_L$z0, mmed$z.ave.lb[1])),
+       полный = r3(c(med_noL$tau.coef, med_L$tau.coef, mmed$tau)))
+```
+
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(print(smm))
+cat(out[!grepl("^\\s*$", out)][2:10], sep = "\n")
+```
+
+### Код
+
+```{r}
+#| eval: false
+dm <- d_o |> mutate(age2 = age^2)            # multimed: имена столбцов, а не формула
+mmed <- multimed(outcome = "log_wage", med.main = "prof",
+                 med.alt = "official",        # пост-воздейственный конфаундер L
+                 treat = "higher_ed", data = dm, sims = 500,   # sims — бутстрап
+                 covariates = c("female", "age", "age2", "urban", "site", "O", "C", "E", "A", "ES"))
+summary(mmed); plot(mmed)
+```
+:::
+
+-   Все три оценки близки: официальное оформление — слабый конфаундер позиции и зарплаты. Если бы ACME сильно менялся, механизмы «через позицию» и «через формальный сектор» было бы не разделить
+-   `multimed`: линейные модели и **однородное** взаимодействие $D \times M$; ACME (average) теряет значимость, если его неоднородность объясняет `r r3(100 * mmed$R2tilde[min(which(mmed$d.ave.ci[1, ] <= 0))], 1)`% общей дисперсии $Y$ (`R2t(CI)`)
+
+## Симуляция: эксперимент не спасает
+
+```{r}
+#| include: false
+#| cache: true
+set.seed(1); n <- 5000; U <- rnorm(n); D <- rbinom(n, 1, 0.5)  # D случаен, U скрыт
+M <- 0.5 * D + 0.8 * U + rnorm(n)                               # ACME = 0.5 * 0.4 = 0.2
+Y <- 0.3 * D + 0.4 * M + 0.8 * U + rnorm(n)                     # ADE = 0.3, полный = 0.5
+s <- data.frame(D, M, Y)
+naive <- mediate(lm(M ~ D, s), lm(Y ~ D + M, s), treat = "D", mediator = "M", sims = 200)
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+tibble(эффект = c("ACME", "ADE", "полный"), истина = c(0.2, 0.3, 0.5),
+       оценка = round(c(naive$d0, naive$z0, naive$tau.coef), 3))
+```
+
+### Код
+
+```{r}
+#| eval: false
+set.seed(1); n <- 5000; U <- rnorm(n); D <- rbinom(n, 1, 0.5)  # D случаен, U скрыт
+M <- 0.5 * D + 0.8 * U + rnorm(n)                               # ACME = 0.5 * 0.4 = 0.2
+Y <- 0.3 * D + 0.4 * M + 0.8 * U + rnorm(n)                     # ADE = 0.3, полный = 0.5
+s <- data.frame(D, M, Y)
+naive <- mediate(lm(M ~ D, s), lm(Y ~ D + M, s), treat = "D", mediator = "M", sims = 200)
+tibble(эффект = c("ACME", "ADE", "полный"), истина = c(0.2, 0.3, 0.5),
+       оценка = round(c(naive$d0, naive$z0, naive$tau.coef), 3))
+```
+:::
+
+-   Полный эффект верен: $D$ рандомизирован. Но ACME в `r r3(naive$d0 / 0.2, 1)` раза больше истины, а прямой почти исчез: $U$ завышает $b$, и прямой эффект «переезжает» в косвенный
+-   Рандомизация $D$ закрывает допущение 1, но не 2. Для 2 нужно рандомизировать и медиатор или найти для него инструмент
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«Высшее образование повышает log зарплаты на **`r r3(med$tau.coef)`** (95% ДИ `r ci(med_cl$tau.ci)`, кластеры по PSU). Около **`r pc(med$n0)`%** этого эффекта — ACME = `r r3(med$d0)` (`r ci(med_cl$d0.ci)`) — приходится на доступ к профессиональным и руководящим позициям; прямой эффект внутри позиций — `r r3(med$z0)`. Оценки — `mediate` (Imai et al. 2010; пробит для позиции, МНК для зарплаты; пол, возраст, тип поселения, регион и Big Five; 1000 квази-байесовских симуляций). Разложение держится на **последовательной игнорируемости**: при данных контролях нет общих причин позиции и зарплаты. Косвенный эффект обращается в ноль при $\rho$ = `r r3(sens$err.cr.d, 2)`, т. е. если ненаблюдаемый фактор объясняет по ≈ `r pc(sqrt(sens$R2tilde.d.thresh))`% общей дисперсии позиции и зарплаты ($\tilde R^2_M \tilde R^2_Y$ = `r r3(sens$R2tilde.d.thresh, 4)`).»
+:::
+
+-   Обязательно: estimand (ACME / ADE, при каком $d$, если есть $D \times M$), модели, тип интервалов и `sims`, $\rho$ и $R^2$ при ACME = 0, оговорка о допущении 2
+-   Не писать: «механизм доказан», «`r pc(med$n0)`% эффекта объясняется профессией» без оговорки; долю — при незначимом полном эффекте
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Восемь ошибок с медиацией
+
+::: {.flips}
+::: {.flip}
+[ошибка 1]{.k}
+
+### Медиатор «для чистоты»
+
+Контроль за профессию при оценке полного эффекта
+
+---
+
+**Как правильно:** это уже прямой эффект — со всеми допущениями медиации (лекции 3–4)
+:::
+::: {.flip}
+[ошибка 2]{.k}
+
+### $a \cdot b$ без допущений
+
+Произведение коэффициентов как «косвенный эффект»
+
+---
+
+**Как правильно:** назвать допущение 2 и показать `medsens`; без этого число не причинное
+:::
+::: {.flip}
+[ошибка 3]{.k}
+
+### Медиатор не после $D$
+
+Профессия измерена до диплома или одновременно
+
+---
+
+**Как правильно:** проверить порядок $D \to M \to Y$ во времени; иначе стрелка может быть обратной
+:::
+::: {.flip}
+[ошибка 4]{.k}
+
+### Пост-воздейственный $L$
+
+$L$ «просто добавили» в обе модели
+
+---
+
+**Как правильно:** $(L, M)$ как один механизм, `multimed` или контролируемый прямой эффект
+:::
+:::
+
+## Восемь ошибок с медиацией (2)
+
+::: {.flips}
+::: {.flip}
+[ошибка 5]{.k}
+
+### Разные выборки
+
+`dropobs = TRUE` «чтобы заработало»
+
+---
+
+**Как правильно:** `drop_na()` до моделей, сверить `nobs()` и `Sample Size Used`
+:::
+::: {.flip}
+[ошибка 6]{.k}
+
+### Доля при нулевом эффекте
+
+«Медиатор объясняет `r pc(med_lb$n.avg)`%»
+
+---
+
+**Как правильно:** долю — только при явном полном эффекте и одинаковых знаках ACME и ADE
+:::
+::: {.flip}
+[ошибка 7]{.k}
+
+### Логит — и без чувствительности
+
+`medsens` выдал ошибку, анализ пропущен
+
+---
+
+**Как правильно:** пробит или lm для $M$; `medsens` работает только в трёх парах моделей
+:::
+::: {.flip}
+[ошибка 8]{.k}
+
+### Ошибки без дизайна
+
+Квази-байес с обычной матрицей, `sims = 100`
+
+---
+
+**Как правильно:** `cluster = d$psu` или BCa-бутстрап, `sims` ≥ 1000, `set.seed()`
+:::
+:::
+
+## Чек-лист {.smaller}
+
+-   [ ] Вопрос сформулирован: полный, прямой или косвенный эффект; при каком $d$
+-   [ ] DAG: $D \to M \to Y$, $X$, возможный $U$ и пост-воздейственные $L$; порядок во времени соблюдён
+-   [ ] Одна таблица после `drop_na()`; `nobs()` моделей совпадают, `Sample Size Used` — ожидаемый
+-   [ ] Модели: пробит или lm для $M$ (ради `medsens`); одинаковые до-воздейственные $X$; `test.TMint`, `test.modmed`
+-   [ ] `mediate`: `set.seed()`, `sims` ≥ 1000; `cluster` или бутстрап (`bca`); перекрытие и сверка с $a \cdot b$
+-   [ ] `medsens`: $\rho$ и $\tilde R^2_M \tilde R^2_Y$ при ACME = 0, сравнение с наблюдаемыми $X$
+-   [ ] Prop. Mediated — только при явном полном эффекте; в тексте — оговорка о допущении 2
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Разложите эффект диплома на зарплату через **официальное оформление** (`official`) вместо профессии. Какая доля идёт через формальный сектор? Нарисуйте DAG, назовите наиболее вероятный $U$ и проведите `medsens` (какая пара моделей для этого нужна?)
+2.  Повторите основной анализ отдельно для женщин и мужчин через `covariates` и `test.modmed`, добавив взаимодействие с `urban`. Где различия значимы?
+3.  Для разложения через профессию добавьте в модель исхода `hours_week`. Что это за переменная относительно $M$ и $Y$ — контроль, медиатор или коллайдер? Как меняются ACME и ADE и имеет ли это смысл?
+4.  Повторите симуляцию с $U$, влияющим только на $M$ (не на $Y$). Что происходит с ACME? Сравните с выводом `medsens` для этих данных
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать {.smaller}
+
+-   Imai K., Keele L., Tingley D. (2010). A General Approach to Causal Mediation Analysis. *Psychological Methods* — алгоритм `mediate`, с кодом
+-   Imai K., Keele L., Yamamoto T. (2010). Identification, Inference and Sensitivity Analysis for Causal Mediation Effects. *Statistical Science* — допущения, $\rho$ и $R^2$
+-   Imai K., Keele L., Tingley D., Yamamoto T. (2011). Unpacking the Black Box of Causality: Learning about Causal Mechanisms from Experimental and Observational Studies. *American Political Science Review* — дизайны и как писать о механизмах
+-   Tingley D., Yamamoto T., Hirose K., Keele L., Imai K. (2014). mediation: R Package for Causal Mediation Analysis. *Journal of Statistical Software* 59(5) — виньетка пакета: `vignette("mediation")`
+-   Imai K., Yamamoto T. (2013). Identification and Sensitivity Analysis for Multiple Causal Mechanisms. *Political Analysis* — `multimed`
+-   Acharya A., Blackwell M., Sen M. (2016). Explaining Causal Findings Without Bias: Detecting and Assessing Direct Effects. *APSR* — контролируемые прямые эффекты, `DirectEffects`
+-   VanderWeele T. (2015). *Explanation in Causal Inference: Methods for Mediation and Interaction*. Oxford University Press — учебник по медиации и взаимодействию

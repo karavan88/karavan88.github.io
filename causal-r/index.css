@@ -1,0 +1,11 @@
+.lec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin: 0.6rem 0 1.6rem; }
+.lec-card { position: relative; border: 1px solid rgba(127,179,238,.28); border-radius: 14px; padding: 16px 18px 14px;
+  background: linear-gradient(160deg, rgba(28,92,171,.20) 0%, rgba(13,54,107,.08) 100%); transition: border-color .15s, transform .15s; }
+.lec-card:hover { border-color: #5aa2f0; transform: translateY(-2px); }
+.lec-card p { margin: 0 0 8px; font-size: .92rem; line-height: 1.4; color: #c9d4e3; }
+.lec-num { display: inline-block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .78rem; font-weight: 700; letter-spacing: .12em;
+  color: #fff; background: #1c5cab; border-radius: 6px; padding: 1px 8px; }
+.lec-title { display: block; font-size: 1.08rem; font-weight: 700; line-height: 1.25; color: #fff !important; text-decoration: none !important; margin-top: 2px; }
+.lec-title:hover { color: #9cc3f2 !important; }
+.lec-chip { display: inline-block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .72rem; color: #9cc3f2; border: 1px solid rgba(127,179,238,.35);
+  border-radius: 999px; padding: 0 8px; margin: 2px 3px 0 0; }

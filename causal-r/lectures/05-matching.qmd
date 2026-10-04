@@ -1,0 +1,1195 @@
+---
+title: "Лекция 5. Мэтчинг"
+subtitle: "Блок 1. Отбор по наблюдаемым"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+library(MatchIt); library(cobalt)
+set.seed(5)
+prev <- rlms |> transmute(idind, year = year + 1, log_wage_prev = log_wage)
+tr <- adults |>
+  filter(year == 2019, employed == 1, age >= 25, age <= 60,
+         !is.na(log_wage), !is.na(training_12m), !is.na(years_educ), !is.na(official)) |>
+  left_join(prev, by = c("idind", "year")) |>
+  filter(!is.na(log_wage_prev), !is.na(state_owned), !is.na(occup_group), !is.na(industry)) |>
+  mutate(treat = training_12m, tenure = coalesce(tenure, 0),
+         # укрупняем профессии (ISCO) и отрасли, чтобы вывод помещался на слайд
+         occ = case_when(as.integer(occup_group) %in% 2:3 ~ "рук_спец",
+                         as.integer(occup_group) %in% 4:5 ~ "спец_ср",
+                         as.integer(occup_group) == 6     ~ "услуги",
+                         TRUE                             ~ "рабочие"),
+         ind = case_when(str_detect(industry, "ОБРАЗОВАНИЕ")                     ~ "образ",
+                         str_detect(industry, "ЗДРАВООХР|СОЦИАЛЬН")              ~ "здрав",
+                         str_detect(industry, "ПРОМЫШЛ|МАШИНОСТР|КОМПЛЕКС|СТРОИТ") ~ "пром",
+                         str_detect(industry, "ТОРГОВЛЯ|УСЛУГИ|ПИТАНИЯ|СПОРТ|НЕДВИЖ|РЕКЛАМА") ~ "торг",
+                         str_detect(industry, "УПРАВЛЕНИЯ|АРМИЯ|ЮРИСП")          ~ "госупр",
+                         TRUE                                                     ~ "прочее"),
+         occ = factor(occ, c("рабочие", "услуги", "спец_ср", "рук_спец")),
+         ind = factor(ind, c("пром", "торг", "образ", "здрав", "госупр", "прочее"))) |>
+  select(idind, treat, log_wage, log_wage_prev, female, age, years_educ, urban, official,
+         state_owned, tenure, occ, ind, psu)
+
+f_y <- log_wage ~ treat * (log_wage_prev + female + age + years_educ + urban + official +
+                             state_owned + tenure + occ + ind)
+
+# сводка баланса одной спецификации: обработанные, ESS контролей, max |SMD|
+bal_row <- function(m) {
+  s  <- summary(m, un = FALSE, pair.dist = FALSE)
+  si <- summary(m, un = FALSE, pair.dist = FALSE, interactions = TRUE)
+  b  <- if (is.null(s$sum.matched)) s$sum.across else s$sum.matched
+  bi <- if (is.null(si$sum.matched)) si$sum.across else si$sum.matched
+  b  <- b[rownames(b) != "distance", , drop = FALSE]
+  bi <- bi[rownames(bi) != "distance", , drop = FALSE]
+  tibble(`обраб.` = s$nn["Matched", "Treated"],
+         `ESS контр.` = round(s$nn["Matched (ESS)", "Control"]),
+         `max |SMD|` = round(max(abs(b[, "Std. Mean Diff."])), 3),
+         `max |SMD| взаим.` = round(max(abs(bi[, "Std. Mean Diff."]), na.rm = TRUE), 3))
+}
+
+# ATT по рецепту виньетки estimating-effects
+att_est <- function(m, f = f_y) {
+  repl <- isTRUE(m$info$replace)
+  d  <- if (repl) get_matches(m) else match.data(m)
+  vc <- if (repl) ~subclass + id else if (m$info$method %in% c("cem", "subclass")) "HC3" else ~subclass
+  nd <- if (m$estimand == "ATE") d else subset(d, treat == 1)
+  fit <- lm(f, data = d, weights = weights)
+  avg_comparisons(fit, variables = "treat", vcov = vc, newdata = nd, wts = "weights")
+}
+ci_txt <- function(a) sprintf("%.3f [%.3f; %.3f]", a$estimate, a$conf.low, a$conf.high)
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Та же идея, другая техника
+
+::: {.cards}
+::: {.card}
+[регрессия]{.k}
+
+### Сравнение неявное
+
+Усредняет сравнения «при прочих равных», но веса и зона экстраполяции спрятаны внутри формулы.
+:::
+::: {.card .tint}
+[мэтчинг]{.k}
+
+### Сравнение явное
+
+Каждому обработанному подбираем похожего необработанного, остальных отбрасываем. Видно, **кого с кем** сравниваем; баланс проверяется **до** взгляда на исход; не нужна линейность.
+:::
+:::
+
+::: {.thesis}
+Допущение то же — условная независимость при данных $X$ (backdoor). Мэтчинг не решает проблему неизмеренных конфаундеров. Он делает честнее всё остальное.
+:::
+
+## Пример занятия: допобучение и зарплата
+
+::: {.tiles}
+::: {.tile .navy}
+[`r format(nrow(tr), big.mark = " ")`]{.v} [занятых 25–60 лет, RLMS 2019]{.l}
+:::
+::: {.tile}
+[`r sum(tr$treat)`]{.v} [проходили профобучение за 12 месяцев (`r round(100 * mean(tr$treat))`%)]{.l}
+:::
+::: {.tile}
+[`r round(mean(tr$log_wage[tr$treat == 1]) - mean(tr$log_wage[tr$treat == 0]), 2)`]{.v} [наивная разница в log зарплаты]{.l}
+:::
+:::
+
+::: {.cards}
+::: {.card}
+[проблема]{.k}
+
+### Учатся не случайные люди
+
+Чаще женщины, с высшим образованием, в госсекторе, специалисты и руководители, в образовании. Воздействие — `training_12m`, исход — log зарплаты.
+:::
+::: {.card .tint}
+[козырь панели]{.k}
+
+### Зарплата за год до обучения
+
+`log_wage_prev` из волны 2018 — предшествующий исход, лучший из возможных контролей. Профессию (`occ`) и отрасль (`ind`) укрупнили до 4 и 6 групп.
+:::
+:::
+
+## Кто обучается
+
+```{r}
+tr |> group_by(treat) |>
+  summarise(n = n(), log_wage = mean(log_wage), wage_prev = mean(log_wage_prev),
+            female = mean(female), years_educ = mean(years_educ), state = mean(state_owned),
+            manager_prof = mean(occ == "рук_спец"), education = mean(ind == "образ"))
+```
+
+Обученные отличаются почти по всему — и по прошлой зарплате тоже. Задача мэтчинга — найти им контролей, похожих по **всем** этим признакам сразу.
+
+## План занятия
+
+::: {.cards}
+::: {.card}
+[часть 1]{.k}
+
+### Идея и диагностика
+
+1.  От точного мэтчинга к propensity score
+2.  Рабочий процесс `MatchIt`: пять шагов
+3.  Эстиманд и семейства методов
+4.  Баланс: `summary()`, графики, `cobalt`
+:::
+::: {.card .tint}
+[часть 2]{.k}
+
+### Методы и оценка
+
+5.  Перебор спецификаций: калипер, Махаланобис, full, CEM, подклассы, генетический
+6.  Оценка эффекта: g-computation и правильные ошибки
+7.  Как писать результат и что показать в статье
+:::
+:::
+
+::: {.callout-note appearance="minimal"}
+Лекция длинная — это **сдвоенное занятие**. Естественная граница — слайд «Шаг 4 → снова шаг 3: калипер не лечит».
+:::
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## От точного мэтчинга к propensity score
+
+-   **Точный мэтчинг**: сравниваем людей с *одинаковыми* $X$. С 2 бинарными признаками — 4 ячейки, с 10 — 1024, с возрастом и зарплатой — ячейки пустеют
+-   **Propensity score** (Rosenbaum & Rubin, 1983): $e(X) = P(D = 1 \mid X)$. Если условная независимость верна при $X$, она верна и при $e(X)$ — одном числе
+-   Люди с одинаковым $e(X)$ имеют **одинаковое распределение** $X$ между группами → достаточно подбирать пары по $e(X)$
+-   $e(X)$ оценивается логитом (или ML). Его цель — **баланс**, а не предсказание: ROC-AUC здесь не критерий качества
+-   Но «одинаковый $e(X)$» ≠ «похожие люди»: пара может совпасть по $e(X)$ и сильно различаться по каждому $X$ (King & Nielsen, 2019). Поэтому есть и **расстояние Махаланобиса** — прямо по ковариатам
+
+## Мэтчинг — это препроцессинг
+
+::: {.steps}
+::: {}
+**Планирование:** эстиманд, ковариаты из DAG (лекция 3), все — до воздействия
+:::
+::: {}
+**Исходный дисбаланс:** `matchit(..., method = NULL)` + `summary()`
+:::
+::: {}
+**Мэтчинг:** `matchit(..., method = "nearest")` и др.
+:::
+::: {}
+**Баланс:** `summary()`, `plot()`, `cobalt`. Плохо → назад к шагу 3
+:::
+::: {}
+**Эффект:** `match.data()` + `lm()` + `avg_comparisons()`
+:::
+:::
+
+::: {.thesis}
+Шаги 2–4 делаются **без исхода** (Ho, Imai, King, Stuart 2007). Спецификаций можно перепробовать сколько угодно — пока не смотрите на `log_wage`. Исход открывается один раз, на шаге 5.
+:::
+
+## Эстиманд: для кого эффект
+
+::: {.cards .c4}
+::: {.card .tint}
+[ATT · по умолчанию]{.k}
+
+### Эффект на обработанных
+
+`estimand = "ATT"`. Каждому обработанному — контроли. Обработанные не трогаются → популяция = все обученные.
+:::
+::: {.card}
+[ATC]{.k}
+
+### Эффект на контролях
+
+`estimand = "ATC"`. Роли меняются: контролям ищут обработанных. «Что было бы, если бы обучили необученных».
+:::
+::: {.card}
+[ATE]{.k}
+
+### Средний эффект
+
+`estimand = "ATE"` — только full, subclass, CEM/exact без потерь, profile. Пара-мэтчинг (nearest, optimal) его не даёт.
+:::
+::: {.card .warn}
+[ATM]{.k}
+
+### Эффект в остатке
+
+Если калипер, `discard` или CEM **выбросили обработанных**, это уже не ATT, а эффект для «сопоставимых». Надо описать, кто это.
+:::
+:::
+
+::: {.callout-important appearance="minimal"}
+Эстиманд выбирается до мэтчинга — по вопросу исследования. Метод подбирается под эстиманд, а не наоборот.
+:::
+
+## Три семейства методов
+
+::: {.cards .c3}
+::: {.card}
+[distance matching]{.k}
+
+### Пары по расстоянию
+
+`nearest`, `optimal`, `full`, `quick`, `genetic`. Расстояние — разница PS, Махаланобис или своя матрица. Непарных выбрасывают. Обычно ATT/ATC (full — и ATE).
+:::
+::: {.card .tint}
+[stratum matching]{.k}
+
+### Страты и веса
+
+`exact`, `cem`, `subclass`. Ячейки по (огрублённым) $X$ или по PS; ячейки без одной из групп выбрасываются; веса = «PS внутри ячейки». ATT, ATC, ATE.
+:::
+::: {.card}
+[subset selection]{.k}
+
+### Подвыборка под баланс
+
+`cardinality`: найти **самую большую** подвыборку, где разница средних не больше заданного допуска. Пар нет, баланс задаётся напрямую.
+:::
+:::
+
+Все методы MatchIt — это **выбор подмножества и веса** (subset selection). Это не «мэтчинг-импутация» Абади–Имбенса (`Matching::Match`, Stata `teffects nnmatch`) — у неё свои оценки и ошибки.
+
+## Методы `MatchIt` на одной странице {.smaller}
+
+| method | Как подбирает | Веса | Эстиманд | Когда |
+|------------|---------------|------|----------|-------|
+| `"nearest"` | жадно: по очереди ближайший контроль | 1 (или $1/k$, с заменой — кратность) | ATT, ATC | базовый вариант; много контролей |
+| `"optimal"` | минимизирует **сумму** расстояний в парах (`optmatch`) | как nearest | ATT, ATC | редко лучше nearest по балансу |
+| `"full"` | все единицы в подклассы 1:k или k:1 (`optmatch`) | разные | ATT, ATC, ATE | хочется сохранить всех |
+| `"genetic"` | подбирает веса ковариат в расстоянии под баланс (`Matching`) | как nearest | ATT, ATC | медленно, но баланс часто лучший |
+| `"exact"` / `"cem"` | точно по (огрублённым) $X$ | по ячейкам | ATT, ATC, ATE | мало переменных, много данных |
+| `"subclass"` | страты по квантилям PS | по стратам | ATT, ATC, ATE | быстро, большие данные |
+| `"cardinality"` | максимальная подвыборка при ограничениях баланса | 0/1 | ATT, ATC, ATE | плохое перекрытие |
+
+## Ручки настройки {.smaller}
+
+| Аргумент | Что делает | Цена |
+|----------|-----------|------|
+| `distance = "glm"` | PS логитом (по умолчанию); `link = "linear.logit"` — расстояние на шкале логита | PS близок ≠ люди близки |
+| `distance = "mahalanobis"` | расстояние прямо по ковариатам; `mahvars =` — Махаланобис при PS-калипере | хуже при многих переменных |
+| `caliper = 0.2` | не дальше 0.2 SD PS; `std.caliper = FALSE` — в сырых единицах; можно на отдельные $X$ | обработанные без пары выпадают → ATM |
+| `exact = ~ female + occ` | точное совпадение по этим переменным, остальное — внутри ячеек | возможна потеря обработанных |
+| `discard = "both"` | выбросить единицы вне общей поддержки PS (`"treated"`, `"control"`) | обработанные выпали → не ATT |
+| `ratio = 2` | 2 контроля на обработанного | второй сосед хуже первого |
+| `replace = TRUE` | контроль можно использовать многократно | ниже ESS, особые ошибки |
+| `m.order` | порядок жадного подбора: `"largest"` (по умолчанию для PS), `"closest"`, `"random"`, `"data"` | — |
+
+## Чем измерять баланс
+
+::: {.cards .c3}
+::: {.card .tint}
+[SMD]{.k}
+
+Разница средних / SD (обработанных для ATT, из **исходной** выборки). Порог $|SMD| < 0.1$; для сильных предикторов исхода $< 0.05$
+:::
+::: {.card}
+[Var. Ratio]{.k}
+
+Дисперсия обработанных / контролей. Около 1, допустимо 0.5–2. Для бинарных не считается: их дисперсия задана долей
+:::
+::: {.card}
+[eCDF Mean / Max]{.k}
+
+Средний и максимальный разрыв эмпирических функций распределения (0–1). Max — статистика Колмогорова–Смирнова. Ловит разную **форму**
+:::
+::: {.card}
+[квадраты и взаимодействия]{.k}
+
+Баланс средних $X$ не гарантирует баланс $X^2$ и $X_1 X_2$. `interactions = TRUE`, `addlvariables =`
+:::
+::: {.card}
+[Std. Pair Dist.]{.k}
+
+Средняя разница **внутри пар**. Чем меньше, тем меньше оценка зависит от модели исхода
+:::
+::: {.card .warn}
+[не p-значения]{.k}
+
+Баланс — свойство выборки, а не популяции; мощность теста падает вместе с $n$ после мэтчинга; порог 0.05 ничего не значит. `MatchIt` тестов не печатает
+:::
+:::
+
+## Оценка после мэтчинга: g-computation
+
+::: {.steps}
+::: {}
+**Модель исхода** на матчированной выборке: `lm(y ~ treat * (X), weights = weights)`
+:::
+::: {}
+**Предсказать** для каждого обработанного $\hat Y$ при `treat = 1` и при `treat = 0`
+:::
+::: {}
+**Усреднить** разность по обработанным с весами → ATT
+:::
+::: {}
+**Ошибки** — дельта-метод с кластерами по паре (`vcov = ~subclass`)
+:::
+:::
+
+-   Ковариаты в модели исхода — «двойная защита»: оценка состоятельна, если **либо** мэтчинг сбалансировал $X$, **либо** модель исхода верна
+-   Всё это делает одна функция: `marginaleffects::avg_comparisons()`. Коэффициенты самой `lm()` не интерпретируем
+
+::: {.thesis}
+Мэтчинг — **препроцессинг** данных (Ho, Imai, King, Stuart 2007). Модель исхода всё равно нужна, но от её спецификации теперь мало что зависит.
+:::
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Шаг 2. Исходный дисбаланс
+
+```{r}
+f_ps <- treat ~ log_wage_prev + female + age + years_educ + urban + official +
+  state_owned + tenure + occ + ind
+m0 <- matchit(f_ps, data = tr, method = NULL, distance = "glm")   # ничего не мэтчим
+```
+
+::: {style="font-size: 0.86em"}
+```{r}
+#| echo: false
+op <- options(width = 130)
+cat(capture.output(summary(m0))[c(5:15, 16, 19, 21, 22)], sep = "\n")
+options(op)
+```
+:::
+
+`method = NULL` — объект `matchit` без мэтчинга: PS оценён, баланс посчитан «как есть». Образование: SMD = `r round(summary(m0)$sum.all["years_educ", "Std. Mean Diff."], 2)`, рабочие: `r round(summary(m0)$sum.all["occрабочие", "Std. Mean Diff."], 2)` — это и надо устранить.
+
+## Общая поддержка до мэтчинга
+
+```{r}
+#| fig-height: 3.9
+bal.plot(m0, var.name = "distance", type = "histogram", mirror = TRUE) +
+  labs(x = "propensity score", title = NULL)
+```
+
+-   Зеркальная гистограмма PS: сверху одна группа, снизу другая. Ищем зоны, где **у обработанных есть масса, а у контролей нет**
+-   Здесь контроли есть почти везде, но с $e(X) > 0.3$ их единицы: самые «типичные» обученные будут сопоставлены с немногими похожими контролями
+
+## Шаг 3. Ближайший сосед 1:1 по PS
+
+```{r}
+m1 <- matchit(f_ps, data = tr, method = "nearest", distance = "glm")
+m1
+```
+
+Печать объекта — паспорт спецификации: метод, как считалось расстояние, сколько единиц осталось (`r sum(m1$weights > 0)` из `r nrow(tr)`), эстиманд. Именно это пишут в разделе «Методы».
+
+## Что лежит внутри объекта `matchit`
+
+::: {.panel-tabset}
+### match.matrix
+
+```{r}
+head(m1$match.matrix, 4)       # строка = обработанный, ячейка = номер его контроля
+```
+
+```{r}
+table(treat = tr$treat, weight = m1$weights)   # вес 0 = выброшен из анализа
+```
+
+`m1$distance` — PS каждого, `m1$weights` — вес, `m1$subclass` — номер пары.
+
+### match.data()
+
+```{r}
+md1 <- match.data(m1)          # только оставшиеся + distance, weights, subclass
+md1 |> arrange(subclass) |>
+  select(idind, treat, log_wage_prev, female, age, occ, distance, weights, subclass) |>
+  head(6)
+```
+:::
+
+## Шаг 4. Баланс после мэтчинга
+
+```{r}
+#| eval: false
+summary(m1, un = FALSE)        # un = FALSE: не повторять таблицу «до»
+```
+
+::: {style="font-size: 0.86em"}
+```{r}
+#| echo: false
+op <- options(width = 130)
+cat(capture.output(summary(m1, un = FALSE))[c(5:15, 18, 19, 27:32)], sep = "\n")
+options(op)
+```
+:::
+
+## Как читать вывод `summary(matchit)`
+
+::: {.panel-tabset}
+### Вывод R
+
+::: {style="font-size: 0.86em"}
+```{r}
+#| echo: false
+op <- options(width = 130)
+cat(capture.output(summary(m1, un = FALSE))[c(6:11, 15, 18, 19)], sep = "\n")
+options(op)
+```
+:::
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Means Treated / Control]{.k}
+
+Средние в группах; для факторов — **доля** каждого уровня (`occрук_спец`). После мэтчинга средние контролей взвешены весами мэтчинга
+:::
+::: {.card .tint}
+[2 · Std. Mean Diff.]{.k}
+
+(среднее₁ − среднее₀) / SD обработанных **до** мэтчинга — знаменатель один и тот же до и после. Ориентир: $|SMD| < 0.1$, для сильных предикторов $< 0.05$
+:::
+::: {.card}
+[3 · Var. Ratio]{.k}
+
+Дисперсия обработанных / контролей. Около 1, норма 0.5–2. Точка «.» у бинарных — не ошибка: их дисперсия определяется долей
+:::
+::: {.card}
+[4 · eCDF Mean / Max]{.k}
+
+Средний и максимальный разрыв функций распределения, от 0 до 1. Max = статистика КС. Растут, когда у групп разные хвосты или форма
+:::
+::: {.card .tint}
+[5 · Std. Pair Dist.]{.k}
+
+Средняя |разница| **внутри пар** в SD. У `distance` ≈ 0 — пары совпали по PS, но у `age` = `r round(summary(m1, un = FALSE)$sum.matched["age", "Std. Pair Dist."], 2)` SD: внутри пары возраст сильно разный
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+`age`: SMD = `r round(summary(m1, un = FALSE)$sum.matched["age", "Std. Mean Diff."], 3)` > 0.1; `occрук_спец`: `r round(summary(m1, un = FALSE)$sum.matched["occрук_спец", "Std. Mean Diff."], 3)`. Баланс по `distance` идеален — и ничего не доказывает. Эту спецификацию **не принимаем**
+:::
+:::
+:::
+
+## Размеры выборок: All, Matched, Unmatched, Discarded, ESS
+
+```{r}
+m_disc <- matchit(f_ps, data = tr, method = "nearest", discard = "both")  # общая поддержка
+m_full <- matchit(f_ps, data = tr, method = "full")                        # полный мэтчинг
+```
+
+:::: {.columns}
+::: {.column width="50%"}
+```{r}
+summary(m_disc)$nn
+```
+:::
+::: {.column width="50%"}
+```{r}
+summary(m_full)$nn
+```
+:::
+::::
+
+**Unmatched** — не нашлось пары; **Discarded** — выброшены правилом общей поддержки ещё до мэтчинга. **ESS** = $(\sum w)^2 / \sum w^2$ — скольким невзвешенным наблюдениям эквивалентны взвешенные: full сохранил все `r nrow(tr) - sum(tr$treat)` контролей, но «весят» они как `r round(summary(m_full)$nn["Matched (ESS)", "Control"])`.
+
+## Квадраты и взаимодействия
+
+```{r}
+s_int <- summary(m1, un = FALSE, interactions = TRUE)$sum.matched
+s_int[order(-abs(s_int[, "Std. Mean Diff."])), 1:3] |> head(6) |> round(3)
+```
+
+```{r}
+#| eval: false
+summary(m1, addlvariables = ~ I(age^2) + I(log_wage_prev^2) + female:years_educ)  # свои термы
+```
+
+-   `interactions = TRUE` — все квадраты и попарные произведения; выводов много, смотрим **максимум**
+-   Здесь пары перекошены по стажу внутри групп профессий и отраслей: `r sum(abs(s_int[, "Std. Mean Diff."]) > 0.1, na.rm = TRUE)` термов с $|SMD| > 0.1$
+
+## Love plot из `MatchIt`: `plot(summary(m))`
+
+```{r}
+#| fig-height: 4.4
+#| fig-width: 8
+par(mar = c(4, 1, 1, 1))
+plot(summary(m1), var.order = "unmatched")
+```
+
+Белые точки — до, чёрные — после; пунктир — пороги 0.05 и 0.1. Всё, что правее 0.1 после мэтчинга, — в работу.
+
+## Визуальная диагностика: `type = "jitter"`
+
+```{r}
+#| fig-height: 3.2
+#| fig-width: 10
+plot(m1, type = "jitter", interactive = FALSE)
+```
+
+Каждая точка — человек по PS. Смотрим: нет ли **Unmatched Treated** (здесь пусто — ATT сохранён) и где лежат выброшенные контроли — они должны быть слева, с малым PS.
+
+## `type = "density"`: распределения ковариат
+
+```{r}
+#| fig-height: 3.5
+#| fig-width: 10
+plot(m1, type = "density", which.xs = ~ age + tenure + occ, interactive = FALSE)
+```
+
+Чёрная линия — обработанные, серая — контроли; слева до, справа после. Для факторов — столбики долей. Возраст: средние сблизились не до конца, форма тоже не совпадает.
+
+## `type = "ecdf"` и `type = "qq"`
+
+```{r}
+#| eval: false
+plot(m1, type = "ecdf", which.xs = ~ age + years_educ + log_wage_prev, interactive = FALSE)
+plot(m1, type = "qq",   which.xs = ~ age + years_educ + log_wage_prev, interactive = FALSE)
+```
+
+::: {.panel-tabset}
+### eCDF
+
+```{r}
+#| echo: false
+#| fig-height: 2.8
+#| fig-width: 10
+plot(m1, type = "ecdf", which.xs = ~ age + years_educ + log_wage_prev, interactive = FALSE)
+```
+
+Доля выборки ниже $x$. Линии должны совпадать; наибольший разрыв — `eCDF Max`.
+
+### QQ
+
+```{r}
+#| echo: false
+#| fig-height: 2.8
+#| fig-width: 10
+plot(m1, type = "qq", which.xs = ~ age + years_educ + log_wage_prev, interactive = FALSE)
+```
+
+Квантили контролей (x) против обработанных (y). Баланс — точки на диагонали.
+:::
+
+## `cobalt::bal.tab()` с порогами
+
+::: {.panel-tabset}
+### Таблица
+
+::: {style="font-size: 0.86em"}
+```{r}
+#| echo: false
+op <- options(width = 130)
+cat(capture.output(bal.tab(m1, un = TRUE, thresholds = c(m = .1, v = 2)))[c(1:11, 15, 18)], sep = "\n")
+options(op)
+```
+:::
+
+### Итоги
+
+::: {.cards}
+::: {.card}
+```{r}
+#| echo: false
+cat(capture.output(bal.tab(m1, un = TRUE, thresholds = c(m = .1, v = 2)))[23:30], sep = "\n")
+```
+:::
+::: {.card .tint}
+[как читать]{.k}
+
+`Diff.Un` / `Diff.Adj` — до и после. **Для бинарных** cobalt по умолчанию печатает **сырую разницу долей**, а не SMD (`female`: `r round(bal.tab(m1, un = TRUE)$Balance["female", "Diff.Un"], 3)` против `r round(summary(m0)$sum.all["female", "Std. Mean Diff."], 3)` в `summary()`); `binary = "std"` выравнивает. `M.Threshold` — прошла ли переменная порог; ниже — сводка и худшая переменная
+:::
+:::
+
+### Код
+
+```{r}
+#| eval: false
+bal.tab(m1, un = TRUE, thresholds = c(m = .1, v = 2))   # m — средние, v — дисперсии
+bal.tab(m1, stats = c("m", "v", "ks"), binary = "std", int = TRUE)  # + КС, взаимодействия
+```
+:::
+
+## `cobalt::love.plot()`
+
+```{r}
+#| fig-height: 4
+#| fig-width: 10
+love.plot(m1, stars = "std", abs = TRUE, drop.distance = TRUE, var.order = "unadjusted",
+          thresholds = c(m = .1), sample.names = c("до", "после PS 1:1"))
+```
+
+`stars = "std"` помечает звёздочкой переменные со **стандартизированной** разницей (непрерывные); у бинарных — сырая разница долей. Подпись оси надо пояснить в тексте.
+
+## `cobalt::bal.plot()`: одна переменная целиком
+
+```{r}
+#| eval: false
+bal.plot(m1, var.name = "distance", which = "both", type = "histogram", mirror = TRUE)
+bal.plot(m1, var.name = "age", which = "both")        # which = "both": до и после
+```
+
+::: {.panel-tabset}
+### PS до и после
+
+```{r}
+#| echo: false
+#| fig-height: 2.8
+#| fig-width: 10
+bal.plot(m1, var.name = "distance", which = "both", type = "histogram", mirror = TRUE)
+```
+
+После мэтчинга гистограммы PS совпадают — так и должно быть при PS-мэтчинге, это **не проверка** баланса ковариат.
+
+### Возраст
+
+```{r}
+#| echo: false
+#| fig-height: 2.8
+#| fig-width: 10
+bal.plot(m1, var.name = "age", which = "both")
+```
+
+Плотности возраста после мэтчинга по-прежнему расходятся — то, что показал SMD = `r round(summary(m1, un = FALSE)$sum.matched["age", "Std. Mean Diff."], 2)`.
+:::
+
+## Шаг 4 → снова шаг 3: калипер не лечит
+
+```{r}
+cal <- map(c(0.2, 0.05, 0.01), \(w) matchit(f_ps, data = tr, method = "nearest", caliper = w))
+bind_rows(bal_row(m1), map(cal, bal_row)) |>
+  mutate(`калипер, SD PS` = c("нет", "0.2", "0.05", "0.01"), .before = 1)
+```
+
+-   Чем уже калипер, тем **меньше обработанных** — и баланс не улучшается: пары и так совпадают по PS, но не по возрасту
+-   Это аргумент King & Nielsen (2019): сужение PS-калипера может даже ухудшать баланс ковариат. Нужен другой **способ измерять расстояние**
+
+## Махаланобис: расстояние по ковариатам
+
+```{r}
+m_maha <- map(1:4, \(k) matchit(f_ps, data = tr, method = "nearest",
+                                distance = "mahalanobis", ratio = k))
+bind_rows(map(m_maha, bal_row)) |> mutate(`контролей на обученного` = 1:4, .before = 1)
+```
+
+-   Пары теперь близки по **всем** $X$ сразу: max |SMD| падает с `r bal_row(m1)[["max |SMD|"]]` до `r bal_row(m_maha[[1]])[["max |SMD|"]]`, взаимодействия тоже в норме
+-   1:2 удваивает ESS почти без потери баланса; 1:4 уже хуже — четвёртый сосед далеко. **Выбираем 1:2**
+
+```{r}
+#| include: false
+m_final <- m_maha[[2]]
+```
+
+## Другие ручки: exact, с заменой, optimal
+
+```{r}
+m_ex  <- matchit(f_ps, data = tr, method = "nearest", caliper = 0.2,
+                 exact = ~ female + occ)                           # точно по полу и профессии
+m_r3  <- matchit(f_ps, data = tr, method = "nearest", ratio = 3, replace = TRUE)
+```
+
+```{r}
+#| label: heavy-opt
+#| cache: true
+m_opt <- matchit(f_ps, data = tr, method = "optimal")              # optmatch, ~10 сек
+```
+
+```{r}
+#| echo: false
+bind_rows(bal_row(m_ex), bal_row(m_r3), bal_row(m_opt)) |>
+  mutate(`спецификация` = c("PS + exact (пол, профессия) + калипер", "PS 1:3 с заменой",
+                             "optimal PS 1:1"), .before = 1)
+```
+
+Optimal минимизирует **сумму расстояний по PS** — а не дисбаланс ковариат, поэтому не обязан быть лучше жадного.
+
+## Полный мэтчинг и подклассификация
+
+```{r}
+#| label: heavy-full
+#| cache: true
+m_full_ate <- matchit(f_ps, data = tr, method = "full", estimand = "ATE")
+m_sub      <- matchit(f_ps, data = tr, method = "subclass", subclass = 10)
+```
+
+```{r}
+#| echo: false
+bind_rows(bal_row(m_full), bal_row(m_full_ate), bal_row(m_sub)) |>
+  mutate(`спецификация` = c("full, ATT", "full, ATE", "подклассы по PS, 10"), .before = 1)
+```
+
+-   **Full** держит всех; веса делают работу. Для ATE баланс нужен с **обеих** сторон — здесь он хуже
+-   **Подклассы**: `subclass = 6` по умолчанию — произвольное число; пробуйте больше. `summary(m_sub, subclass = TRUE)` — баланс внутри каждого подкласса
+
+## CEM: огрубить и сравнивать точно
+
+::: {.panel-tabset}
+### По умолчанию
+
+```{r}
+m_cem <- matchit(f_ps, data = tr, method = "cem")          # границы по правилу Стёрджеса
+summary(m_cem)$nn
+```
+
+Проклятие размерности: из `r sum(tr$treat)` обученных пару нашли только `r summary(m_cem)$nn["Matched", "Treated"]`.
+
+### Свои границы
+
+```{r}
+m_cem2 <- matchit(f_ps, data = tr, method = "cem",
+                  cutpoints = list(log_wage_prev = 8, age = 6, tenure = c(2, 5, 10),
+                                   years_educ = c(11.5, 13.5, 15.5)),       # число или границы
+                  grouping = list(ind = list(c("пром", "торг", "прочее"),
+                                             c("образ", "здрав", "госупр"))))
+summary(m_cem2)$nn
+```
+
+Грубее ячейки → больше пар, но внутри ячейки люди менее похожи: `r bal_row(m_cem2)[["обраб."]]` обученных, max |SMD| = `r bal_row(m_cem2)[["max |SMD|"]]`.
+:::
+
+## Генетический мэтчинг
+
+```{r}
+#| label: heavy-gen
+#| cache: true
+set.seed(5)
+m_gen <- matchit(f_ps, data = tr, method = "genetic", distance = "glm",
+                 pop.size = 50)              # Matching + rgenoud; ~2 мин, на практике pop.size ≥ 200
+```
+
+```{r}
+bal_row(m_gen)
+```
+
+-   Генетический алгоритм подбирает **веса ковариат** в обобщённом расстоянии Махаланобиса (плюс PS), максимизируя баланс (по умолчанию — наименьшее p-значение тестов баланса)
+-   Баланс почти идеальный, но это самый медленный метод; при большом `pop.size` — минуты и часы
+
+## Сравнение спецификаций
+
+```{r}
+#| include: false
+specs <- list(
+  "PS 1:1"                       = list(m1, "ATT"),
+  "PS 1:1, калипер 0.2"          = list(cal[[1]], "ATM"),
+  "PS + exact + калипер"         = list(m_ex, "ATM"),
+  "PS 1:3 с заменой"             = list(m_r3, "ATT"),
+  "optimal PS 1:1"               = list(m_opt, "ATT"),
+  "Махаланобис 1:1"              = list(m_maha[[1]], "ATT"),
+  "Махаланобис 1:2 ★"            = list(m_final, "ATT"),
+  "генетический 1:1"             = list(m_gen, "ATT"),
+  "full"                         = list(m_full, "ATT"),
+  "full"                         = list(m_full_ate, "ATE"),
+  "подклассы, 10"                = list(m_sub, "ATT"),
+  "CEM по умолчанию"             = list(m_cem, "ATM"),
+  "CEM, свои границы"            = list(m_cem2, "ATM"))
+cmp_tab <- imap(unname(specs), \(s, i) {
+  att <- if (identical(s[[1]], m_cem)) "мало данных" else ci_txt(att_est(s[[1]]))
+  bind_cols(tibble(`спецификация` = names(specs)[i], `эстим.` = s[[2]]), bal_row(s[[1]]),
+            tibble(`эффект [95% ДИ]` = att))
+}) |> bind_rows()
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+cmp_tab
+```
+
+### Код
+
+```{r}
+#| eval: false
+specs <- list("PS 1:1" = list(m1, "ATT"), "Махаланобис 1:2 ★" = list(m_final, "ATT"),
+              ...)                              # все объекты matchit с предыдущих слайдов
+imap(unname(specs), \(s, i) bind_cols(tibble(`спецификация` = names(specs)[i]),
+                                      bal_row(s[[1]]),          # баланс: summary() без исхода
+                                      tibble(`эффект` = ci_txt(att_est(s[[1]]))))) |> bind_rows()
+```
+:::
+
+## Как читать таблицу сравнения
+
+::: {.cards .c3}
+::: {.card .tint}
+[выбор — слева]{.k}
+
+Спецификацию выбираем по столбцам **баланса** и ESS — они посчитаны без исхода. Столбец эффекта на этом этапе закрыт; здесь он открыт только ради урока
+:::
+::: {.card}
+[баланс vs размер]{.k}
+
+Махаланобис 1:2 и генетический дают лучший баланс при сохранении **всех** обработанных; full и подклассы — больше ESS, но хуже взаимодействия
+:::
+::: {.card .warn}
+[эстиманд]{.k}
+
+Калипер, exact и CEM выбросили обработанных → **ATM**: эффект для «сопоставимых», а не всех обученных. CEM по умолчанию оставил так мало, что оценивать нечего
+:::
+:::
+
+::: {.thesis}
+Три лучше всего сбалансированные спецификации (Махаланобис 1:1 и 1:2, генетический) дают эффект от `r round(min(map_dbl(list(m_maha[[1]], m_final, m_gen), \(m) att_est(m)$estimate)), 3)` до `r round(max(map_dbl(list(m_maha[[1]], m_final, m_gen), \(m) att_est(m)$estimate)), 3)` лога, и все ДИ накрывают ноль. Устойчивость к выбору метода — хороший знак; разброс между **плохо** сбалансированными — плохой.
+:::
+
+## Love plot: спецификации рядом
+
+```{r}
+#| fig-height: 5.1
+#| fig-width: 10
+love.plot(f_ps, data = tr, binary = "std", abs = TRUE, thresholds = c(m = .1),
+          weights = list(ps = m1, maha = m_final, full = m_full, gen = m_gen),
+          var.order = "unadjusted", position = "right",
+          colors = unname(pal[c("charcoal", "coral", "indigo", "sage", "lavender")]),
+          sample.names = c("до", "PS 1:1", "Махаланобис 1:2", "full", "генетический"))
+```
+
+## Кого выбросили
+
+CEM со своими границами потерял `r sum(tr$treat) - summary(m_cem2)$nn["Matched", "Treated"]` обученных. Кто они?
+
+```{r}
+tr |> mutate(matched = m_cem2$weights > 0) |> filter(treat == 1) |>
+  group_by(matched) |>
+  summarise(n = n(), female = mean(female), years_educ = mean(years_educ),
+            wage_prev = mean(log_wage_prev), state = mean(state_owned),
+            urban = mean(urban), tenure = mean(tenure))
+```
+
+-   Выпадают люди с редкими сочетаниями признаков — для них нет похожих контролей в той же ячейке
+-   Эффект после CEM — для **сопоставимых** обученных; о выброшенных данные молчат, и это надо написать
+
+## Шаг 5. Оценка эффекта: стандартный случай
+
+```{r}
+md <- match.data(m_final)                             # 276 обученных + 552 контроля
+fit <- lm(log_wage ~ treat * (log_wage_prev + female + age + years_educ + urban +
+                                official + state_owned + tenure + occ + ind),
+          data = md, weights = weights)               # коэффициенты НЕ читаем
+att <- avg_comparisons(fit, variables = "treat",      # g-computation по treat
+                       vcov = ~subclass,              # кластеры = пары
+                       newdata = subset(md, treat == 1),  # усредняем по обработанным → ATT
+                       wts = "weights")               # с весами мэтчинга
+print(att)
+```
+
+## Как читать вывод `avg_comparisons()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+print(att)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Term / Contrast]{.k}
+
+`treat`, `1 - 0`: для каждого обработанного предсказание при `treat = 1` минус при `treat = 0`, усреднённое с весами
+:::
+::: {.card .tint}
+[2 · Estimate]{.k}
+
+ATT в единицах исхода: `r round(att$estimate, 3)` лога ≈ `r round(100 * (exp(att$estimate) - 1), 1)`% к зарплате ($e^{b} - 1$)
+:::
+::: {.card}
+[3 · Std. Error]{.k}
+
+Дельта-метод с кластерной ковариацией по `subclass` (паре): `r round(att$std.error, 3)`
+:::
+::: {.card}
+[4 · z, Pr(>|z|), S]{.k}
+
+Нормальная аппроксимация. S = $-\log_2 p$ — «бит информации против нуля»: `r round(att$s.value, 1)` бита — как `r round(att$s.value)` орла подряд у честной монеты
+:::
+::: {.card .tint}
+[5 · 2.5 % / 97.5 %]{.k}
+
+95% ДИ: [`r round(att$conf.low, 3)`; `r round(att$conf.high, 3)`]. Сообщаем его, а не звёздочки
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Нет `newdata` → среднее по всей выборке, не ATT. Нет `wts` → веса потеряны. Нет `vcov` → обычные SE. Интерпретация коэффициентов `lm()` — «ошибка второй таблицы»
+:::
+:::
+:::
+
+## Потенциальные исходы: `avg_predictions()`
+
+```{r}
+avg_predictions(fit, variables = "treat", vcov = ~subclass,
+                newdata = subset(md, treat == 1), wts = "weights") |> print()
+```
+
+-   Строка `treat = 1`: средний предсказанный log зарплаты обученных — **с** обучением; `treat = 0` — их же контрфакт **без** обучения
+-   Разность строк = ATT с предыдущего слайда. Так корректно только если **все** ковариаты взаимодействуют с `treat` в модели исхода
+
+## Какие ошибки и почему
+
+```{r}
+se_tab <- map(list(`обычные (как частотные веса)` = TRUE, `робастные HC3` = "HC3",
+                   `кластерные по паре` = ~subclass),
+              \(v) avg_comparisons(fit, variables = "treat", vcov = v,
+                                   newdata = subset(md, treat == 1), wts = "weights"))
+imap_dfr(se_tab, \(a, n) tibble(`ошибки` = n, se = a$std.error, `95% ДИ` = ci_txt(a)))
+```
+
+-   Партнёры по паре похожи по $X$, а значит и по исходу — наблюдения **не независимы**. Abadie & Spiess (2022): кластерные по паре ошибки после мэтчинга без возвращения корректны
+-   При весах ≠ 1 «обычные» ошибки `lm()` неверны всегда: они считают веса частотами
+
+## Поправки к стандартному случаю
+
+::: {.panel-tabset}
+### Таблица
+
+| Ситуация | Данные | vcov | newdata |
+|----------|--------|----------|-------------|
+| пары без возвращения (nearest, optimal, genetic, 1:k) | `match.data()` | `~subclass` | обработанные |
+| **с возвращением** (`replace = TRUE`) | `get_matches()` | `~subclass + id` | обработанные |
+| full matching | `match.data()` | `~subclass` | обработанные |
+| CEM, exact, подклассы (веса) | `match.data()` | `"HC3"` | обработанные |
+| любой метод для **ATE** | как выше | как выше | не указывать (вся выборка) |
+
+Бинарный исход: `glm(..., family = quasibinomial())`, дальше тот же `avg_comparisons()` — получится разность рисков; `comparison = "lnratioavg", transform = "exp"` — отношение рисков.
+
+### Код: с возвращением
+
+```{r}
+gm <- get_matches(m_r3)            # строка = единица × пара: контроль повторяется
+c(строк = nrow(gm), уникальных = n_distinct(gm$id))
+fit_r3 <- lm(f_y, data = gm, weights = weights)
+avg_comparisons(fit_r3, variables = "treat", vcov = ~subclass + id,  # пара + человек
+                newdata = subset(gm, treat == 1), wts = "weights") |> print()
+```
+
+### Код: веса
+
+```{r}
+#| eval: false
+md_sub <- match.data(m_sub)                                 # подклассы: кластеров мало
+fit_sub <- lm(f_y, data = md_sub, weights = weights)
+avg_comparisons(fit_sub, variables = "treat", vcov = "HC3",
+                newdata = subset(md_sub, treat == 1), wts = "weights")
+
+md_ate <- match.data(m_full_ate)                            # full для ATE: newdata не нужен
+fit_ate <- lm(f_y, data = md_ate, weights = weights)
+avg_comparisons(fit_ate, variables = "treat", vcov = ~subclass, wts = "weights")
+```
+:::
+
+## Лестница оценок
+
+```{r}
+#| echo: false
+naive <- tidy(feols(log_wage ~ treat, tr, vcov = "hetero")) |> filter(term == "treat")
+reg <- tidy(feols(log_wage ~ treat + log_wage_prev + female + age + years_educ + urban +
+                    official + state_owned + tenure | occ + ind, tr, vcov = "hetero")) |>
+  filter(term == "treat")
+ladder <- bind_rows(
+  tibble(`метод` = "наивная разница", est = naive$estimate, se = naive$std.error),
+  tibble(`метод` = "регрессия с контролями", est = reg$estimate, se = reg$std.error),
+  att_est(m1, log_wage ~ treat) |> as_tibble() |>
+    transmute(`метод` = "PS 1:1, разница средних", est = estimate, se = std.error),
+  att_est(m1) |> as_tibble() |>
+    transmute(`метод` = "PS 1:1 + g-computation", est = estimate, se = std.error),
+  att_est(m_final, log_wage ~ treat) |> as_tibble() |>
+    transmute(`метод` = "Махаланобис 1:2, разница средних", est = estimate, se = std.error),
+  tibble(`метод` = "Махаланобис 1:2 + g-computation ★", est = att$estimate, se = att$std.error))
+ladder |> mutate(`95% ДИ` = sprintf("[%.3f; %.3f]", est - 1.96 * se, est + 1.96 * se),
+                 across(c(est, se), ~ round(.x, 3)))
+```
+
+::: {.thesis .smaller}
+Наивные `r round(naive$estimate, 2)` лога превращаются в `r round(att$estimate, 3)`: большая часть «эффекта обучения» — это то, что учатся люди, которые и так зарабатывали больше. Ковариаты в модели исхода сдвигают обе мэтчинг-оценки вниз: даже после Махаланобиса по самому сильному предиктору — прошлой зарплате — остались SMD = `r round(summary(m_final, un = FALSE)$sum.matched["log_wage_prev", "Std. Mean Diff."], 3)` и Var. Ratio = `r round(summary(m_final, un = FALSE)$sum.matched["log_wage_prev", "Var. Ratio"], 2)`. Регрессия по всей выборке (`r round(reg$estimate, 3)`) усредняет сравнения с другими весами (лекция 4) и опирается на линейную экстраполяцию.
+:::
+
+## Кого мы сравниваем: тройки
+
+```{r}
+md |> filter(subclass %in% levels(subclass)[1:2]) |> arrange(subclass, desc(treat)) |>
+  select(subclass, treat, female, age, years_educ, occ, ind, tenure, log_wage_prev, log_wage) |>
+  mutate(across(c(log_wage_prev, log_wage), ~ round(.x, 2)))
+```
+
+::: {.callout-note appearance="minimal"}
+Прозрачность мэтчинга: любую тройку можно показать и обсудить. У регрессии такого «списка сравнений» нет. Пол и профессия совпали без `exact` — Махаланобис сам этого добивается.
+:::
+
+```{r}
+#| include: false
+s_fin  <- summary(m_final, un = FALSE, pair.dist = FALSE)
+si_fin <- summary(m_final, un = FALSE, pair.dist = FALSE, interactions = TRUE)$sum.matched
+max_smd_fin <- max(abs(s_fin$sum.matched[, "Std. Mean Diff."]))
+max_int_fin <- max(abs(si_fin[, "Std. Mean Diff."]), na.rm = TRUE)
+```
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«Для оценки среднего эффекта профобучения на прошедших его (ATT) использован мэтчинг ближайшего соседа 2:1 без возвращения по расстоянию Махаланобиса по 10 ковариатам, измеренным до обучения, включая log зарплаты в 2018 г. (`MatchIt` `r packageVersion("MatchIt")`). Сохранены все `r s_fin$nn["Matched", "Treated"]` обученных и `r s_fin$nn["Matched", "Control"]` контролей; после мэтчинга все |SMD| ≤ `r round(max_smd_fin, 3)`, для квадратов и попарных взаимодействий — ≤ `r round(max_int_fin, 3)`. Эффект оценён g-computation по линейной модели с взаимодействиями воздействия и ковариат, с весами мэтчинга и кластерными по тройкам ошибками (`marginaleffects::avg_comparisons`). ATT = **`r round(att$estimate, 3)`** (s.e. `r round(att$std.error, 3)`; 95% ДИ [`r round(att$conf.low, 3)`; `r round(att$conf.high, 3)`]), т.е. около `r round(100 * (exp(att$estimate) - 1))`% к зарплате; ДИ включает ноль. Наивная разница — `r round(naive$estimate, 3)`.»
+:::
+
+-   Обязательно назвать: эстиманд, допущение (отбор только по наблюдаемым), какие спецификации пробовали и почему выбрана эта, тип ошибок
+-   Не писать «обучение не влияет на зарплату»: ДИ допускает и ноль, и эффект порядка `r round(100 * (exp(att$conf.high) - 1))`%
+
+## Что показать в статье
+
+::: {.cards .c3}
+::: {.card .tint}
+[1 · спецификация]{.k}
+
+Вывод `print(m)`: метод, расстояние (как оценён PS), калипер, `exact`, `ratio`, `replace`, `discard`. Какие ещё пробовали и почему отказались
+:::
+::: {.card}
+[2 · таблица баланса]{.k}
+
+До/после: средние, SMD, Var. Ratio, eCDF Max по каждой ковариате (`summary()` или `bal.tab()`). Отдельной строкой — max |SMD| по квадратам и взаимодействиям
+:::
+::: {.card}
+[3 · Love plot]{.k}
+
+`love.plot()` с порогом 0.1; при нескольких спецификациях — на одном графике. Для ключевых переменных — `bal.plot()`
+:::
+::: {.card}
+[4 · размеры выборок]{.k}
+
+All / Matched / Unmatched / Discarded и ESS; если выброшены обработанные — кто они и как меняется эстиманд
+:::
+::: {.card .tint}
+[5 · оценка]{.k}
+
+Модель исхода, g-computation, тип ошибок (кластеры по паре), пакеты и функции. ATT, s.e., 95% ДИ
+:::
+::: {.card .warn}
+[6 · чего не делать]{.k}
+
+Не показывать коэффициенты ковариат модели исхода; не давать p-значения баланса; не прятать, сколько спецификаций перепробовано
+:::
+:::
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Ошибки в дизайне
+
+::: {.flips}
+::: {.flip}
+[ошибка 1]{.k}
+
+### Баланс по p-значениям
+
+---
+
+**Как правильно:** SMD, Var. Ratio, eCDF. t-тест после мэтчинга «не отвергает» просто потому, что $n$ уменьшилось
+:::
+::: {.flip}
+[ошибка 2]{.k}
+
+### Смотреть на эффект при выборе метода
+
+---
+
+**Как правильно:** выбирать по балансу и ESS; исход открыть один раз. Перебор до «значимости» — p-hacking
+:::
+::: {.flip}
+[ошибка 3]{.k}
+
+### Мэтчинг на переменных после воздействия
+
+---
+
+**Как правильно:** только до воздействия (лекция 3, «плохие контроли»). Зарплата 2019 г. или должность после курса — нельзя
+:::
+::: {.flip}
+[ошибка 4]{.k}
+
+### «Баланс по PS идеален — значит, всё хорошо»
+
+---
+
+**Как правильно:** PS сбалансируется почти при любом PS-мэтчинге. Проверять ковариаты, их квадраты и взаимодействия
+:::
+:::
+
+## Ошибки в оценке
+
+::: {.flips}
+::: {.flip}
+[ошибка 5]{.k}
+
+### Забыть веса
+
+---
+
+**Как правильно:** `weights = weights` в `lm()` и `wts = "weights"` в `avg_comparisons()` — всегда, даже при 1:1. Для full, CEM, подклассов, 1:k и замены без них мэтчинга просто нет
+:::
+::: {.flip}
+[ошибка 6]{.k}
+
+### Обычные ошибки `lm()`
+
+---
+
+**Как правильно:** `vcov = ~subclass`; с возвращением — `get_matches()` и `~subclass + id`; CEM и подклассы — `"HC3"`
+:::
+::: {.flip}
+[ошибка 7]{.k}
+
+### Коэффициент при `treat` = ATT
+
+---
+
+**Как правильно:** при взаимодействиях это эффект при $X = 0$. Только g-computation с `newdata` = обработанные
+:::
+::: {.flip}
+[ошибка 8]{.k}
+
+### Молча выбросить обработанных
+
+---
+
+**Как правильно:** калипер, `discard`, CEM меняют эстиманд на ATM. Показать, сколько и кого потеряли
+:::
+:::
+
+## Чек-лист {.smaller}
+
+-   [ ] Эстиманд (ATT / ATC / ATE) назван **до** мэтчинга; ковариаты — из DAG, все до воздействия, есть предшествующий исход
+-   [ ] Исходный дисбаланс: `matchit(method = NULL)` + `summary()`; общая поддержка — `bal.plot(distance)` / `type = "jitter"`
+-   [ ] Перепробовано несколько спецификаций (расстояние, `ratio`, калипер, full, CEM); выбор — по балансу и ESS, без исхода
+-   [ ] $|SMD| < 0.1$ (0.05 для сильных предикторов), Var. Ratio 0.5–2, eCDF; квадраты и взаимодействия; графики ключевых переменных
+-   [ ] Размеры выборок и ESS; если выброшены обработанные — кто они
+-   [ ] Оценка: g-computation, веса, взаимодействия с `treat`, кластерные ошибки по паре
+-   [ ] Анализ чувствительности к скрытому конфаундеру (лекция 17)
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Повторите весь рабочий процесс (шаги 2–5) для 2016 или 2023 года. Какая спецификация выигрывает по балансу? Устойчив ли ATT?
+2.  Уберите `log_wage_prev` из формулы, но проверьте баланс по нему через `addlvariables`. Что произошло с балансом и с оценкой?
+3.  Добавьте к Махаланобису 1:2 калипер на прошлую зарплату: `caliper = c(log_wage_prev = 0.1)`. Ушёл ли Var. Ratio ≈ 1.5? Чем пришлось заплатить? Затем PS на шкале логита: `link = "linear.logit", caliper = 0.2, m.order = "closest"` — добавьте обе строки в таблицу сравнения
+4.  Полный мэтчинг для ATE: что меняется в `avg_comparisons()`? Почему ATE и ATT здесь могут различаться?
+5.  Найдите границы CEM, при которых сохраняется не меньше 250 обученных и max |SMD| < 0.1
+6.  Оцените эффект **курения** (`smokes`) на `poor_health` (2019). Нарисуйте love plot, напишите результат по шаблону и объясните, почему это всё ещё не причинный эффект
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать {.smaller}
+
+-   Greifer N. Виньетки `MatchIt` 4.5: «Getting Started», «Matching Methods», «Assessing Balance», «Estimating Effects» — `vignette(package = "MatchIt")`; `cobalt`: «cobalt», «love.plot». **Основа этой лекции**
+-   Ho D., Imai K., King G., Stuart E. (2007). Matching as Nonparametric Preprocessing for Reducing Model Dependence in Parametric Causal Inference. *Political Analysis* 15(3)
+-   Ho D., Imai K., King G., Stuart E. (2011). MatchIt: Nonparametric Preprocessing for Parametric Causal Inference. *Journal of Statistical Software* 42(8)
+-   Stuart E. (2010). Matching Methods for Causal Inference: A Review and a Look Forward. *Statistical Science* 25(1)
+-   Greifer N., Stuart E. (2021). Matching Methods for Confounder Adjustment: An Addition to the Epidemiologist's Toolbox. *Epidemiologic Reviews* 43(1)
+-   Rosenbaum P., Rubin D. (1983). The Central Role of the Propensity Score in Observational Studies. *Biometrika*
+-   King G., Nielsen R. (2019). Why Propensity Scores Should Not Be Used for Matching. *Political Analysis*
+-   Abadie A., Spiess J. (2022). Robust Post-Matching Inference. *JASA* — почему кластерные ошибки по паре
+-   Cunningham S. *The Mixtape*, гл. 5 «Matching and Subclassification»

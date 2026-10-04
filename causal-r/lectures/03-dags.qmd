@@ -1,0 +1,516 @@
+---
+title: "Лекция 3. DAG: язык причинных графов"
+subtitle: "Блок 0. Данные и язык причинности"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+library(dagitty); library(ggdag)
+theme_dag_course <- function() list(          # тема и палитра курса для графов
+  theme_dag(base_size = 14),
+  scale_colour_manual(values = unname(pal), na.value = pal[["charcoal"]], breaks = \(x) x[!is.na(x)]),
+  scale_fill_manual(values = unname(pal), na.value = pal[["charcoal"]], breaks = \(x) x[!is.na(x)]))
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Вопрос, на который не отвечают данные
+
+На прошлой лекции курильщики были заняты «так же», а внутри каждого пола — «реже». Какая цифра правильная?
+
+::: {.thesis}
+Данные не могут решить, что включать в регрессию. Это решает **структура причин** — то, что мы *предполагаем* о мире. DAG — способ записать эти предположения так, чтобы из них можно было **вывести**, за что контролировать, а за что нельзя.
+:::
+
+-   DAG = directed acyclic graph: стрелки = «влияет на», без циклов
+-   Нарисовали граф → алгоритм выдаёт **набор корректировки** (adjustment set)
+-   Один и тот же контроль может убрать смещение в одном графе и создать его в другом
+
+## План занятия
+
+1.  Три строительных блока: цепь, развилка, коллайдер
+2.  Backdoor-критерий: что контролировать
+3.  Плохие контроли: медиаторы, коллайдеры, потомки воздействия
+4.  `dagitty` и `ggdag`: граф → набор корректировки
+5.  Проверяемые следствия графа на RLMS
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Три структуры, из которых состоит всё
+
+```{r}
+#| echo: false
+#| fig-height: 2.8
+#| fig-width: 10
+coords <- list(x = c(D = 0, M = 1, Y = 2), y = c(D = 0, M = 1, Y = 0))
+chain <- dagify(M ~ D, Y ~ M, coords = coords)
+fork  <- dagify(D ~ M, Y ~ M, coords = coords)
+coll  <- dagify(M ~ D, M ~ Y, coords = coords)
+p <- function(g, t) ggplot(tidy_dagitty(g), aes(x, y, xend = xend, yend = yend)) +
+  geom_dag_edges() + geom_dag_point(colour = pal[["indigo"]], size = 14) +
+  geom_dag_text(size = 5) + theme_dag_course() + ggtitle(t)
+patchwork::wrap_plots(p(chain, "Цепь: M — медиатор"), p(fork, "Развилка: M — конфаундер"),
+                      p(coll, "Коллайдер: стрелки сходятся в M"), ncol = 3)
+```
+
+::: {.cards .c3}
+::: {.card}
+[цепь D → M → Y]{.k}
+
+Без контроля связь D и Y **есть** (причинная). Если условиться на M — **исчезает**: мы «перекрыли» механизм
+:::
+::: {.card .tint}
+[развилка D ← M → Y]{.k}
+
+Без контроля связь D и Y **есть** (ложная). Если условиться на M — **исчезает**: конфаундер убран
+:::
+::: {.card .warn}
+[коллайдер D → M ← Y]{.k}
+
+Без контроля связи D и Y **нет**. Если условиться на M — **появляется**: ложная связь создана
+:::
+:::
+
+## Коллайдер: как условие создаёт связь
+
+Талант и внешность не связаны. Но в кино попадают те, у кого есть хотя бы одно. Среди актёров талантливые — в среднем менее красивы:
+
+```{r}
+#| fig-height: 3.4
+set.seed(3)
+actors <- tibble(talent = rnorm(3000), looks = rnorm(3000),
+                 star = talent + looks + rnorm(3000, 0, 0.5) > 1.5)
+bind_rows(actors |> summarise(выборка = "все", корреляция = cor(talent, looks)),
+          actors |> filter(star) |> summarise(выборка = "только звёзды", корреляция = cor(talent, looks)))
+```
+
+::: {.callout-important appearance="minimal"}
+Коллайдер — главный источник «неочевидных» ошибок: отбор в выборку (только занятые, только ответившие, только выжившие) — это условие на коллайдер.
+:::
+
+## Backdoor-критерий
+
+Набор $Z$ достаточен для оценки эффекта $D \to Y$, если:
+
+1.  $Z$ **блокирует все backdoor-пути** — пути из $D$ в $Y$, начинающиеся стрелкой *в* $D$
+2.  $Z$ **не содержит потомков** $D$
+
+Путь заблокирован, если на нём есть **конфаундер или медиатор, на который мы условились**, или **коллайдер, на который мы не условились** (и ни на одного его потомка).
+
+::: {.thesis}
+Всё, что делает регрессия с контролями, мэтчинг и взвешивание (лекции 4–6) — реализуют backdoor-корректировку. Разница только в технике, допущение одно.
+:::
+
+## Четыре вида плохих контролей
+
+Что добавили — и что получили (нажмите на карточку):
+
+::: {.flips}
+::: {.flip}
+[медиатор]{.k}
+
+### Профессию
+
+…в регрессию зарплаты на образование
+
+---
+
+**D → M → Y:** «прямой» эффект вместо полного; плюс открыли коллайдер, если у M есть свои причины
+:::
+::: {.flip}
+[коллайдер]{.k}
+
+### Только занятых
+
+…при оценке эффекта здоровья на зарплату
+
+---
+
+**Здоровье → занятость ← мотивация → зарплата:** ложная связь
+:::
+::: {.flip}
+[потомок D]{.k}
+
+### Зарплату *после* программы
+
+…как контроль для эффекта на часы работы
+
+---
+
+**Потомок D:** часть эффекта «съедена»
+:::
+::: {.flip}
+[M-bias]{.k}
+
+### Переменную, измеренную до D
+
+…но являющуюся коллайдером скрытых причин
+
+---
+
+**M-bias:** открыли путь, которого не было
+:::
+:::
+
+::: {.callout-tip appearance="minimal"}
+Правило большого пальца: контроль должен быть **причиной D или Y, измеренной до D**, и не быть следствием D. Остальное — думать по графу.
+:::
+
+## Table 2 fallacy
+
+В регрессии $\log w = \beta_1 \text{educ} + \beta_2 \text{female} + \beta_3 \text{age} + \ldots$ только $\beta_1$ — эффект, для которого подобран набор корректировки.
+
+-   $\beta_2$ — **не** «эффект пола»: для него нужен свой набор, и образование для него — медиатор
+-   $\beta_3$ — не «эффект возраста»
+-   Westreich & Greenland (2013): «Table 2» с интерпретацией всех коэффициентов — систематическая ошибка эпидемиологии и социологии
+
+::: {.thesis}
+Одна регрессия — один причинный коэффициент. Остальные — вспомогательные.
+:::
+
+## Чего DAG не делает
+
+-   Не говорит о **величине** и форме эффектов — только о структуре
+-   Не берётся из данных: стрелки — это **предположения из теории**; данные могут лишь опровергнуть граф (через условные независимости, которых в данных нет), но не подтвердить
+-   Не решает проблему **неизмеренных** конфаундеров — только показывает, где они. Для них нужны другие дизайны: панель (лекция 7), естественные эксперименты (10–13)
+-   Паттерны IV и front-door — тоже графы: инструмент $Z \to D \to Y$ без пути $Z \to Y$ в обход $D$
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Граф «образование → зарплата»
+
+```{r}
+#| include: false
+make_edu_dag <- function(latent = "ability") dagify(
+  wage  ~ educ + ability + age + female + urban + parents + occup,
+  educ  ~ ability + parents + urban + female + age,
+  occup ~ educ + ability,
+  parents ~ urban,
+  exposure = "educ", outcome = "wage", latent = latent,
+  labels = c(wage = "зарплата", educ = "образование", ability = "способности",
+             age = "возраст", female = "пол", urban = "город", parents = "родители",
+             occup = "профессия"),
+  coords = list(x = c(educ = 0, wage = 4, ability = 2, parents = 0, urban = 1, female = 3,
+                      age = 4, occup = 2),
+                y = c(educ = 0, wage = 0, ability = 2, parents = 2, urban = 3, female = 3,
+                      age = 2, occup = -1.5)))
+edu_dag <- make_edu_dag()
+```
+
+::: {.panel-tabset}
+### Граф
+
+```{r}
+#| echo: false
+#| fig-height: 4.1
+#| fig-width: 10
+ggdag_status(edu_dag, use_labels = "label", text = FALSE, node_size = 16) +
+  theme_dag_course() + theme(legend.position = "bottom")
+```
+
+### Код
+
+```{r}
+#| eval: false
+make_edu_dag <- function(latent = "ability") dagify(
+  wage  ~ educ + ability + age + female + urban + parents + occup,
+  educ  ~ ability + parents + urban + female + age,
+  occup ~ educ + ability,
+  parents ~ urban,
+  exposure = "educ", outcome = "wage", latent = latent,
+  labels = c(wage = "зарплата", educ = "образование", ability = "способности",
+             age = "возраст", female = "пол", urban = "город", parents = "родители",
+             occup = "профессия"),
+  coords = list(x = c(educ = 0, wage = 4, ability = 2, parents = 0, urban = 1, female = 3,
+                      age = 4, occup = 2),
+                y = c(educ = 0, wage = 0, ability = 2, parents = 2, urban = 3, female = 3,
+                      age = 2, occup = -1.5)))
+edu_dag <- make_edu_dag()
+ggdag_status(edu_dag, use_labels = "label", text = FALSE, node_size = 16) +
+  theme_dag_course() + theme(legend.position = "bottom")
+```
+:::
+
+## Что контролировать: `adjustmentSets()`
+
+```{r}
+sets <- adjustmentSets(edu_dag, exposure = "educ", outcome = "wage", type = "minimal")
+length(sets)                                     # сколько наборов найдено
+```
+
+-   `dagitty` перебирает пути и находит минимальные наборы, блокирующие все backdoor-пути
+-   Способности помечены как **ненаблюдаемые** (`latent`), поэтому набор из наблюдаемых переменных не существует — алгоритм честно отвечает «ноль наборов»
+-   Это и есть формальная версия вывода лекции 1: без способностей (или дизайна, который их обходит) полный эффект образования по этому графу не идентифицируется
+
+## Если бы способности были измерены
+
+```{r}
+edu_dag2 <- make_edu_dag(latent = NULL)          # способности наблюдаемы
+adjustmentSets(edu_dag2, exposure = "educ", outcome = "wage", type = "minimal")
+```
+
+```{r}
+#| echo: false
+#| fig-height: 3.8
+ggdag_adjustment_set(edu_dag2, text = TRUE, text_size = 3.2, node_size = 15, shadow = TRUE) +
+  theme_dag_course() + theme(legend.position = "bottom")
+```
+
+Профессия (`occup`) в набор не входит — она **после** образования.
+
+## Как читать вывод `adjustmentSets()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| collapse: true
+adjustmentSets(edu_dag)                              # способности ненаблюдаемы
+adjustmentSets(edu_dag2)                             # способности измерены
+adjustmentSets(edu_dag2, effect = "direct")          # прямой эффект, без медиатора
+adjustmentSets(dagitty("dag{ x -> y }"), exposure = "x", outcome = "y")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card .tint}
+[1 · `{ a, b, c }`]{.k}
+
+Одна строка — **один** достаточный набор: контролировать нужно все переменные в скобках вместе
+:::
+::: {.card}
+[2 · несколько строк]{.k}
+
+Альтернативные наборы: любой из них закрывает все backdoor-пути. Берите тот, что лучше измерен в данных
+:::
+::: {.card .warn}
+[3 · пустой вывод]{.k}
+
+Не напечатано **ничего** — набора нет: эффект по этому графу через контроль не идентифицируется (здесь мешают `latent`-способности)
+:::
+::: {.card .good}
+[4 · `{}`]{.k}
+
+Пустые скобки — противоположный случай: набор есть, и он пуст. Контролировать ничего не нужно. Не путайте с п. 3
+:::
+::: {.card}
+[5 · аргументы]{.k}
+
+`effect = "total"` (умолчание) или `"direct"` — для прямого эффекта в набор входит медиатор `occup`. `type`: `"minimal"` (умолчание), `"canonical"`, `"all"`
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Набора нет, а регрессию всё равно запускают; в наборе переменная, измеренная **после** воздействия (проверьте стрелки); набор требует того, чего нет в данных
+:::
+:::
+:::
+
+## Профессия — медиатор, а не контроль
+
+```{r}
+work <- adults |> filter(employed == 1, age >= 25, !is.na(log_wage), !is.na(higher_ed))
+m_total  <- feols(log_wage ~ higher_ed + female + age + I(age^2) + urban | year,
+                  data = work, cluster = ~psu)
+m_direct <- feols(log_wage ~ higher_ed + female + age + I(age^2) + urban + occup_group | year,
+                  data = work, cluster = ~psu)
+etable(m_total, m_direct, keep = "higher_ed", depvar = FALSE, drop.section = "fixef",
+       fitstat = ~ n, headers = c("без профессии", "+ профессия"))
+```
+
+::: {.thesis .smaller}
+С профессией коэффициент падает на треть: мы выключили главный механизм (диплом → должность → зарплата). Для **полного** эффекта профессию включать нельзя; для **прямого** — можно, но тогда сама профессия должна быть «как случайная» при данном образовании.
+:::
+
+## Коллайдер в RLMS: условие на занятость
+
+Хотим эффект **здоровья** на зарплату. Зарплата есть только у занятых — а занятость зависит и от здоровья, и от многого другого:
+
+```{r}
+#| include: false
+sel_dag <- dagify(wage ~ health + motiv, employed ~ health + motiv,
+                  exposure = "health", outcome = "wage", latent = "motiv",
+                  labels = c(wage = "зарплата", health = "здоровье", motiv = "мотивация",
+                             employed = "занят"),
+                  coords = list(x = c(health = 0, wage = 2, motiv = 2, employed = 1),
+                                y = c(health = 0, wage = 0, motiv = 1.5, employed = 1)))
+```
+
+::: {.panel-tabset}
+### Граф
+
+```{r}
+#| echo: false
+#| fig-height: 3.6
+#| fig-width: 10
+ggdag_collider(sel_dag, use_labels = "label", text = FALSE, node_size = 18,
+               label_size = 4) + theme_dag_course() + theme(legend.position = "bottom")
+```
+
+### Код
+
+```{r}
+#| eval: false
+sel_dag <- dagify(wage ~ health + motiv, employed ~ health + motiv,
+                  exposure = "health", outcome = "wage", latent = "motiv",
+                  labels = c(wage = "зарплата", health = "здоровье", motiv = "мотивация",
+                             employed = "занят"),
+                  coords = list(x = c(health = 0, wage = 2, motiv = 2, employed = 1),
+                                y = c(health = 0, wage = 0, motiv = 1.5, employed = 1)))
+ggdag_collider(sel_dag, use_labels = "label", text = FALSE, node_size = 18,
+               label_size = 4) + theme_dag_course() + theme(legend.position = "bottom")
+```
+:::
+
+## Коллайдер в RLMS: что получается в числах
+
+Внутри занятых здоровье и (ненаблюдаемая) мотивация связаны отрицательно — больные работают, только если очень мотивированы. Симулируем ровно этот мир:
+
+```{r}
+set.seed(11)
+sim <- tibble(health = rnorm(20000), motiv = rnorm(20000)) |>
+  mutate(employed = health + motiv + rnorm(n()) > 0.3,
+         wage = 10 + 0.10 * health + 0.30 * motiv + rnorm(n(), 0, 0.5))   # эффект = 0.10
+c(`все`         = coef(lm(wage ~ health, sim))["health"],
+  `только занятые` = coef(lm(wage ~ health, sim |> filter(employed)))["health"])
+```
+
+-   Среди занятых эффект здоровья **занижен**: отбор создал отрицательную связь здоровья с мотивацией
+-   В RLMS мотивацию не измерить — значит, вопрос о зарплате всегда задаётся **вместе** с вопросом о занятости (лекция 17: границы, модели отбора)
+
+## Проверяемые следствия графа
+
+Граф утверждает условные независимости. Их можно проверить — и опровергнуть граф:
+
+```{r}
+small_dag <- dagify(wage ~ educ + female + age + urban, educ ~ female + urban + age,
+                    smokes ~ female + age, exposure = "educ", outcome = "wage")
+impliedConditionalIndependencies(small_dag)
+```
+
+## Проверяем следствия на RLMS 2019
+
+```{r}
+cs <- work |> filter(year == 2019) |>
+  select(wage = log_wage, educ = years_educ, female, age, urban, smokes) |> drop_na()
+lt <- localTests(small_dag, data = cs, type = "cis", abbreviate.names = FALSE)
+round(lt, 3)
+```
+
+`estimate` — частная корреляция, которая по графу должна быть нулём.
+
+## Как читать вывод `localTests()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+round(lt, 3)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · строка]{.k}
+
+`A _||_ B | C` — следствие графа: «A и B независимы при данных C». Тот же список печатает `impliedConditionalIndependencies()` (там имена сокращены: `smks`, `feml`)
+:::
+::: {.card .tint}
+[2 · estimate]{.k}
+
+При `type = "cis"` — **частная корреляция** A и B после линейного учёта C. По графу должна быть 0. Это размер нарушения, шкала от −1 до 1
+:::
+::: {.card}
+[3 · p.value]{.k}
+
+Тест $H_0$: корреляция = 0. Малое p — следствие отвергнуто: неверен граф **или** линейность (для категорий — `"cis.chisq"`, `"cis.pillai"`)
+:::
+::: {.card .tint}
+[4 · 2.5 % и 97.5 %]{.k}
+
+95 %-й интервал для корреляции. Смотрите на **величину**: при $n$ = `r format(nrow(cs), big.mark = " ")` «значимыми» становятся и корреляции порядка 0.03
+:::
+::: {.card}
+[5 · что не напечатано]{.k}
+
+N в выводе нет: проверьте `nrow(data)`. Пропуски убирайте заранее — как `drop_na()` в коде выше
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Крупная |estimate| (здесь `educ`–`smokes`); отвергнуто много следствий сразу. И обратное: «не отвергнуто» ≠ «граф верен»
+:::
+:::
+:::
+
+## Что тесты говорят о графе
+
+-   `educ ⟂ smokes | age, female`: по графу образование и курение при данных возрасте и поле не связаны. Частная корреляция `r round(lt["educ _||_ smokes | age, female", "estimate"], 2)` → граф **неверен**: нужна стрелка `educ → smokes` (или общая причина)
+-   `smokes ⟂ wage | age, female`: отвергается слабо (`r round(lt["smokes _||_ wage | age, female", "estimate"], 2)`). После добавления стрелки `educ → smokes` это следствие исчезнет: образование станет конфаундером связи курения и зарплаты
+-   `female ⟂ urban`, `smokes ⟂ urban`: не отвергнуты — но это **не доказывает** граф: мощность теста и неизмеренные переменные остаются
+-   Слабые, но «значимые» нарушения (`age ⟂ female`, `r round(lt["age _||_ female", "estimate"], 2)`) при $n$ = `r format(nrow(cs), big.mark = " ")` — повод подумать, а не переделывать граф
+
+::: {.callout-tip appearance="minimal"}
+Рисуйте граф **до** анализа, проверяйте следствия, исправляйте, записывайте, что изменили. Это и есть «прозрачные допущения».
+:::
+
+## M-bias: вред от контроля «до»
+
+```{r}
+set.seed(4)
+mb <- tibble(u1 = rnorm(20000), u2 = rnorm(20000)) |>
+  mutate(m = u1 + u2 + rnorm(n()),                 # коллайдер скрытых причин, измерен до D
+         d = u1 + rnorm(n()) > 0,
+         y = 0.5 * u2 + rnorm(n()))                 # истинный эффект D на Y = 0
+c(`без контроля` = coef(lm(y ~ d, mb))["dTRUE"],
+  `с контролем m` = coef(lm(y ~ d + m, mb))["dTRUE"])
+```
+
+-   Без контроля смещения нет: единственный путь от D к Y через `m` закрыт коллайдером
+-   Контроль за «предшествующей» переменной открыл путь `d ← u1 → m ← u2 → y`
+-   На практике M-bias обычно мал, но правило «контролируй всё, что измерено до воздействия» — не абсолютно
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Шесть ошибок с контролями
+
+1.  **Кухонная раковина**: «включили всё, что было в данных» — медиаторы и коллайдеры в том числе
+2.  **Контроль за следствием воздействия**: профессия, доход, здоровье *после* программы
+3.  **Отбор по исходу**: анализ только тех, кто «успешен», «занят», «ответил на все вопросы»
+4.  **Интерпретация всех коэффициентов** (Table 2 fallacy)
+5.  **Граф, подогнанный под результат**: стрелки меняются, пока коэффициент не станет «правильным»
+6.  **Граф без неизмеренных узлов**: если способности не нарисованы, они не исчезли
+
+## Чек-лист перед выбором контролей
+
+-   [ ] Граф нарисован **до** оценок, с латентными узлами
+-   [ ] Воздействие и исход отмечены; для них найден набор корректировки
+-   [ ] Ни один контроль не является потомком воздействия
+-   [ ] Выборка не отобрана по переменной, лежащей на пути D → Y или являющейся общим следствием
+-   [ ] Проверены хотя бы 2–3 следствия графа на данных
+-   [ ] Интерпретируется **только** коэффициент при воздействии
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Нарисуйте DAG для вопроса «курение → зарплата» с не менее чем 7 узлами, включая хотя бы один латентный и один коллайдер. Получите наборы корректировки в `dagitty`
+2.  Найдите в своём графе переменную, контроль за которой **создаёт** смещение. Покажите это симуляцией на 10 000 наблюдений
+3.  Проверьте три следствия своего графа на RLMS 2019 с помощью `localTests()`. Какие стрелки пришлось добавить?
+4.  Объясните в трёх предложениях, почему «эффект пола» из регрессии зарплаты на образование — не эффект пола
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+-   Pearl J., Glymour M., Jewell N. (2016). *Causal Inference in Statistics: A Primer* — гл. 2–3
+-   Cunningham S. *The Mixtape*, гл. 3 «Directed Acyclic Graphs» — коллайдеры и backdoor без формул
+-   Huntington-Klein N. *The Effect*, гл. 6–8 — рисование графов, пути, «хорошие и плохие контроли»
+-   Cinelli C., Forney A., Pearl J. (2022). A Crash Course in Good and Bad Controls. *Sociological Methods & Research*
+-   Westreich D., Greenland S. (2013). The Table 2 Fallacy. *American Journal of Epidemiology*
+-   Пакеты: [`dagitty`](https://dagitty.net/) (есть и браузерный редактор), [`ggdag`](https://r-causal.github.io/ggdag/)

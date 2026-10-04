@@ -1,0 +1,455 @@
+---
+title: "Лекция 8. Event study по индивидуальным событиям"
+subtitle: "Блок 2. Панель RLMS"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+ev <- rlms |>
+  filter(!is.na(first_birth_year), first_birth_year >= 2002, first_birth_year <= 2022,
+         age >= 18, age <= 55) |>
+  mutate(et = year - first_birth_year, age_at_birth = first_birth_year - birth_year) |>
+  filter(age_at_birth >= 18, age_at_birth <= 45, et >= -5, et <= 10) |>
+  mutate(earn  = ifelse(employed == 1, coalesce(wage_real, 0), 0),     # заработок, 0 у незанятых
+         hours = ifelse(employed == 1, coalesce(hours_week, 0), 0))
+women <- ev |> filter(female == 1); men <- ev |> filter(female == 0)
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## От «до/после» к траектории
+
+FE (лекция 7) даёт одно число: средний сдвиг исхода, когда $D$ меняется. Но:
+
+::: {.cards .c3}
+::: {.card}
+[динамика]{.k}
+
+### Нарастает или затухает
+
+Эффект может **нарастать** или **затухать** — одно число это скрывает
+:::
+::: {.card .warn}
+[предтренд]{.k}
+
+### Изменения до события
+
+Исход может меняться **до** события — тогда «эффект» был трендом ещё до воздействия
+:::
+::: {.card .tint}
+[политика]{.k}
+
+### Вопрос про время
+
+Через сколько лет матери возвращаются на рынок труда?
+:::
+:::
+
+::: {.thesis}
+**Event study** — регрессия исхода на набор индикаторов «$k$ лет до/после события». Коэффициенты рисуют траекторию относительно базового года; годы *до* события — встроенная проверка допущений.
+:::
+
+## Пример занятия: child penalty
+
+::: {.tiles}
+::: {.tile .navy}
+[`r format(n_distinct(women$idind), big.mark = " ")`]{.v} [матерей: окно −5…+10 лет от первого рождения]{.l}
+:::
+::: {.tile}
+[`r format(n_distinct(men$idind), big.mark = " ")`]{.v} [отцов в том же окне]{.l}
+:::
+::: {.tile}
+[20–60 %]{.v} [долгосрочный штраф для женщин у Kleven et al.]{.l}
+:::
+:::
+
+::: {.cards}
+::: {.card}
+[Kleven, Landais, Søgaard 2019]{.k}
+
+### Штраф за материнство
+
+Рождение первого ребёнка снижает заработки женщин на 20–60 % в долгую, у мужчин — не меняет ничего. Это объясняет большую часть гендерного разрыва
+:::
+::: {.card .tint}
+[RLMS]{.k}
+
+### Повторяем дизайн для России
+
+Год рождения первого ребёнка — из ростера домохозяйства (лекция 0). Исходы: занятость, заработок (с нулями у незанятых), часы
+:::
+:::
+
+```{r}
+ev |> group_by(sex) |> summarise(человек = n_distinct(idind), наблюдений = n(),
+                                   `возраст при рождении` = mean(age_at_birth))
+```
+
+## План занятия
+
+1.  Спецификация: индикаторы событийного времени, базовый период, биннинг
+2.  Child penalty для женщин и мужчин
+3.  Как читать: предтренды, антиципация, долгосрочный эффект
+4.  Та же техника для брака (мужчины) и потери работы
+5.  Что event study не умеет
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Спецификация
+
+Для человека $i$, события в году $E_i$ и календарного года $t$, событийное время $k = t - E_i$:
+
+$$y_{it} = \sum_{k \neq -1} \alpha_k \, \mathbb{1}[t - E_i = k] + \lambda_t + \delta_{\text{age}} + \varepsilon_{it}$$
+
+-   $\alpha_k$ — разница исхода в год $k$ относительно года **перед** событием ($k = -1$, базовый)
+-   $\lambda_t$ — год, $\delta_{\text{age}}$ — возраст: отделяем событие от карьерного профиля и календарных шоков; с индивидуальными FE один из них убираем (коллинеарны внутри человека)
+-   Kleven et al. выражают $\alpha_k$ в долях контрфактического уровня: $P_k = \alpha_k / E[\tilde y_{it} \mid k]$
+
+## Что должно быть верно
+
+| Допущение | Проверка |
+|-----------|----------|
+| **Нет антиципации**: до события исход не реагирует | коэффициенты при $k < -1$ ≈ 0 |
+| **Параллельные тренды**: без события траектория продолжилась бы как «до» | те же предкоэффициенты + правдоподобие |
+| **Нет отбора по времени события** (беременность не планируют под карьерный провал) | тест: событие не предсказывается прошлыми изменениями исхода |
+| **Общая динамика** одинакова для ранних и поздних «когорт» событий | гетерогенность по когортам (лекция 10) |
+
+::: {.callout-important appearance="minimal"}
+Плоские предтренды — необходимое, но не достаточное условие. Их отсутствие — почти всегда приговор.
+:::
+
+## Биннинг концов
+
+-   Для каждого $k$ нужны люди, наблюдаемые ровно в этот год. Крайние $k$ держатся на единицах → шумные коэффициенты
+-   Решение: **собрать** хвосты в бины: «$\le -5$», «$\ge +10$». Коэффициент бина — среднее по хвосту
+-   Без биннинга и с несбалансированной панелью крайние точки рисуют «эффекты», которых нет
+-   Эталон: показывать окно, где **каждый** $k$ опирается на достаточно наблюдений, и честно отмечать, что хвосты — бины
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Занятость женщин вокруг первого рождения
+
+```{r}
+es_w <- feols(employed ~ i(et, ref = -1) | year + age, data = women, cluster = ~idind)
+coeftable(es_w)[1:6, ] |> round(3)
+```
+
+`i(et, ref = -1)` создаёт индикатор для каждого значения `et`, кроме базового. Выпишем все на графике:
+
+## График event study
+
+```{r}
+#| fig-height: 4.4
+iplot(es_w, main = "Занятость женщин: отклонение от года перед первым рождением",
+      xlab = "лет от рождения первого ребёнка", ylab = "доля занятых относительно года −1",
+      col = pal["indigo"], ci.lty = 1, ci.width = 0)
+```
+
+## Как читать вывод `feols()` с `i()`
+
+```{r}
+#| include: false
+pre_w <- wald(es_w, keep = "et::-", print = FALSE)            # совместный тест предпериодов
+es_w3 <- feols(employed ~ i(et, ref = -3) | year + age, data = women, cluster = ~idind)
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| eval: false
+summary(es_w)
+wald(es_w, keep = "et::-")              # H0: все коэффициенты до события = 0
+```
+
+::: {style="font-size: 0.85em"}
+```{r}
+#| echo: false
+out <- capture.output(summary(es_w))
+cat(c(out[1:12], "   …", out[20], out[23:24], ""), sep = "\n")
+wald(es_w, keep = "et::-")
+```
+:::
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+**Fixed-effects: year, age** — сравниваем женщин одного возраста в одном году. Ошибки — **Clustered (idind)**: `r format(fitstat(es_w, "g")[[1]], big.mark = " ")` женщин
+:::
+::: {.card .tint}
+[2 · строки `et::k`]{.k}
+
+Занятость через $k$ лет после рождения **относительно года −1**, в долях: `et::1` = `r round(coef(es_w)["et::1"], 3)` → на `r round(-100 * coef(es_w)["et::1"])` п.п. ниже
+:::
+::: {.card}
+[3 · нет `et::-1`]{.k}
+
+Базовый год (`ref = -1`): коэффициент 0 по построению. На `iplot()` — точка на нуле без интервала. Все числа — разницы с ним
+:::
+::: {.card}
+[4 · `et::-5` … `et::-2`]{.k}
+
+Предкоэффициенты: была ли разница **до** события. Смотрим на них вместе, а не по звёздочкам каждого
+:::
+::: {.card .tint}
+[5 · Wald test]{.k}
+
+$H_0$: все предкоэффициенты = 0. **stat** — F, `r pre_w$df1` и `r format(pre_w$df2, big.mark = " ")` степеней свободы (G − 1). p = `r format(signif(pre_w$p, 2), scientific = FALSE)`. От выбора базового года тест не зависит
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Здесь тест **отвергает**: в годы −4…−2 занятость на `r paste(round(100 * range(coef(es_w)[c("et::-4", "et::-3", "et::-2")])), collapse = "–")` п.п. выше, чем в −1. Базовый год, вероятно, уже затронут беременностью — антиципация. Сменить базу и сообщить
+:::
+:::
+:::
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«По сравнению с годом, предшествующим рождению первого ребёнка, занятость матерей через год после рождения ниже на **`r round(-100 * coef(es_w)["et::1"], 1)` п.п.** (95 % ДИ от `r sprintf("%.1f", -100 * confint(es_w)["et::1", 2])` до `r sprintf("%.1f", -100 * confint(es_w)["et::1", 1])`) и через 5–10 лет остаётся ниже в среднем на `r round(-100 * mean(coef(es_w)[paste0("et::", 5:10)]), 1)` п.п. (event study с фиксированными эффектами года и возраста, ошибки кластеризованы по женщинам, `r format(nobs(es_w), big.mark = " ")` наблюдений). Предкоэффициенты совместно отличны от нуля (F = `r round(pre_w$stat, 2)`, p = `r format(signif(pre_w$p, 2), scientific = FALSE)`): занятость снижается уже в год −1; с базовым годом −3 падение через год после рождения — `r round(-100 * coef(es_w3)["et::1"], 1)` п.п.»
+:::
+
+-   Обязательно: базовый год, контрольные эффекты, тип ошибок, совместный тест предтрендов — и что он показал
+-   Не писать «предтрендов нет», глядя на отдельные звёздочки; не прятать отвергнутый тест — показать, как меняется оценка при другой базе
+
+## Женщины и мужчины на одном графике
+
+```{r}
+#| fig-height: 4.4
+es_m <- feols(employed ~ i(et, ref = -1) | year + age, data = men, cluster = ~idind)
+iplot(list(women = es_w, men = es_m), main = "Занятость: матери против отцов",
+      xlab = "лет от рождения первого ребёнка", ylab = "доля занятых относительно года −1",
+      col = c(pal["coral"], pal["indigo"]), pt.join = TRUE, ci.width = 0)
+legend("bottomleft", legend = c("женщины", "мужчины"), col = c(pal["coral"], pal["indigo"]),
+       pch = 16, lty = 1, bty = "n")
+```
+
+## Заработок с нулями: главный исход Kleven
+
+```{r}
+#| include: false
+es_earn <- list(
+  женщины = feols(earn ~ i(et, ref = -1) | year + age, data = women, cluster = ~idind),
+  мужчины = feols(earn ~ i(et, ref = -1) | year + age, data = men,   cluster = ~idind))
+base_w <- mean(women$earn[women$et == -1]); base_m <- mean(men$earn[men$et == -1])
+pen <- imap_dfr(es_earn, ~ tidy(.x, conf.int = TRUE) |>
+                  mutate(k = as.numeric(str_remove(term, "et::")), пол = .y)) |>
+  mutate(base = ifelse(пол == "женщины", base_w, base_m),
+         across(c(estimate, conf.low, conf.high), ~ .x / base))
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.9
+ggplot(pen, aes(k, estimate, colour = пол)) +
+  geom_hline(yintercept = 0, colour = "grey50") + geom_vline(xintercept = -0.5, linetype = 2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = пол), alpha = 0.15, colour = NA) +
+  geom_line(linewidth = 1.1) + geom_point(size = 2) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x = "лет от рождения первого ребёнка", y = "заработок относительно\nуровня в год −1",
+       colour = NULL, fill = NULL)
+```
+
+### Код
+
+```{r}
+#| eval: false
+es_earn <- list(
+  женщины = feols(earn ~ i(et, ref = -1) | year + age, data = women, cluster = ~idind),
+  мужчины = feols(earn ~ i(et, ref = -1) | year + age, data = men,   cluster = ~idind))
+base_w <- mean(women$earn[women$et == -1]); base_m <- mean(men$earn[men$et == -1])
+pen <- imap_dfr(es_earn, ~ tidy(.x, conf.int = TRUE) |>
+                  mutate(k = as.numeric(str_remove(term, "et::")), пол = .y)) |>
+  mutate(base = ifelse(пол == "женщины", base_w, base_m),
+         across(c(estimate, conf.low, conf.high), ~ .x / base))
+
+ggplot(pen, aes(k, estimate, colour = пол)) +
+  geom_hline(yintercept = 0, colour = "grey50") + geom_vline(xintercept = -0.5, linetype = 2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = пол), alpha = 0.15, colour = NA) +
+  geom_line(linewidth = 1.1) + geom_point(size = 2) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x = "лет от рождения первого ребёнка", y = "заработок относительно\nуровня в год −1",
+       colour = NULL, fill = NULL)
+```
+:::
+
+## Долгосрочный штраф
+
+```{r}
+pen |> filter(k >= 5) |> group_by(пол) |>
+  summarise(`средний эффект, годы 5–10` = mean(estimate)) |>
+  mutate(`штраф (разрыв между полами)` = `средний эффект, годы 5–10` -
+           `средний эффект, годы 5–10`[пол == "мужчины"])
+```
+
+::: {.thesis .smaller}
+Через 5–10 лет после первого рождения заработок матерей ниже уровня «до» примерно на треть; у отцов — не ниже. Это **разница между полами**, не объяснимая возрастом и годом, при допущении о параллельных трендах. Предкоэффициенты у женщин близки к нулю — антиципации не видно.
+:::
+
+## Биннинг: что меняется на краях
+
+```{r}
+#| output-location: slide
+women_long <- rlms |>
+  filter(female == 1, !is.na(first_birth_year), first_birth_year >= 2002, first_birth_year <= 2022,
+         age >= 18, age <= 55) |>
+  mutate(et = year - first_birth_year, et_b = pmin(pmax(et, -5), 10))   # бины: ≤ −5 и ≥ 10
+es_raw <- feols(employed ~ i(et, ref = -1) | year + age, data = women_long, cluster = ~idind)
+es_bin <- feols(employed ~ i(et_b, ref = -1) | year + age, data = women_long, cluster = ~idind)
+women_long |> count(et) |> filter(et %in% c(-12, -9, -6, -5, 10, 13, 16, 20)) |>
+  mutate(`без биннинга` = coef(es_raw)[paste0("et::", et)],
+         `бин` = coef(es_bin)[paste0("et_b::", pmin(pmax(et, -5), 10))]) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+```
+
+## Чтение таблицы биннинга
+
+-   Слева от окна наблюдений мало ($k = -12$: 43 наблюдения); справа — особая выборка: те, кого RLMS видит 15–20 лет после рождения, — родившие рано и не выбывшие из панели
+-   Бин усредняет хвост одним коэффициентом вместо десятка шумных; внутри окна −5…+10 коэффициенты не меняются
+-   Правило: окно — там, где на каждый $k$ есть сотни наблюдений и состав выборки не дрейфует
+
+## Та же техника: брак у мужчин
+
+В лекции 7 FE дал премию за брак 5 %. Что происходит с зарплатой **вокруг** свадьбы?
+
+```{r}
+#| include: false
+mar <- rlms |> filter(female == 0, age >= 20, age <= 50, !is.na(married)) |>
+  arrange(idind, year) |> group_by(idind) |>
+  mutate(was_single = lag(cumany(married == 0), default = FALSE),        # уже видели холостым
+         first_mar = ifelse(married == 1 & was_single, year, NA),
+         mar_year = suppressWarnings(min(first_mar, na.rm = TRUE))) |> ungroup() |>
+  filter(is.finite(mar_year), employed == 1, !is.na(log_wage)) |>
+  mutate(et = pmin(pmax(year - mar_year, -4), 6))
+es_mar <- feols(log_wage ~ i(et, ref = -1) | idind + year, data = mar, cluster = ~idind)
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.3
+iplot(es_mar, main = "log зарплаты мужчин вокруг первого брака (с индивидуальными FE)",
+      xlab = "лет от брака", col = pal["teal"], ci.width = 0)
+```
+
+### Код
+
+```{r}
+#| eval: false
+mar <- rlms |> filter(female == 0, age >= 20, age <= 50, !is.na(married)) |>
+  arrange(idind, year) |> group_by(idind) |>
+  mutate(was_single = lag(cumany(married == 0), default = FALSE),        # уже видели холостым
+         first_mar = ifelse(married == 1 & was_single, year, NA),
+         mar_year = suppressWarnings(min(first_mar, na.rm = TRUE))) |> ungroup() |>
+  filter(is.finite(mar_year), employed == 1, !is.na(log_wage)) |>
+  mutate(et = pmin(pmax(year - mar_year, -4), 6))
+es_mar <- feols(log_wage ~ i(et, ref = -1) | idind + year, data = mar, cluster = ~idind)
+iplot(es_mar, main = "log зарплаты мужчин вокруг первого брака (с индивидуальными FE)",
+      xlab = "лет от брака", col = pal["teal"], ci.width = 0)
+```
+:::
+
+## Чтение графика брака
+
+-   Зарплата растёт **до** брака: часть «премии» из FE — это тренд, на котором женятся, а не следствие брака
+-   После брака траектория продолжается без скачка → event study делает FE-оценку скромнее
+-   Общий вывод для любого «воздействия, которое люди выбирают сами»: сначала посмотрите, что происходило **до**
+
+## Потеря работы и здоровье
+
+```{r}
+#| include: false
+job <- rlms |> filter(age >= 25, age <= 55, !is.na(health_score)) |>
+  arrange(idind, year) |> group_by(idind) |>
+  mutate(lost = employed == 0 & lag(employed) == 1 & lag(year) == year - 1,
+         loss_year = suppressWarnings(min(year[lost], na.rm = TRUE))) |> ungroup() |>
+  filter(is.finite(loss_year)) |>
+  mutate(et = pmin(pmax(year - loss_year, -3), 4))
+es_job <- feols(health_score ~ i(et, ref = -1) | idind + year, data = job, cluster = ~idind)
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.9
+iplot(es_job, main = "Самооценка здоровья вокруг потери работы", xlab = "лет от потери работы",
+      col = pal["coral"], ci.width = 0)
+```
+
+### Код
+
+```{r}
+#| eval: false
+job <- rlms |> filter(age >= 25, age <= 55, !is.na(health_score)) |>
+  arrange(idind, year) |> group_by(idind) |>
+  mutate(lost = employed == 0 & lag(employed) == 1 & lag(year) == year - 1,
+         loss_year = suppressWarnings(min(year[lost], na.rm = TRUE))) |> ungroup() |>
+  filter(is.finite(loss_year)) |>
+  mutate(et = pmin(pmax(year - loss_year, -3), 4))
+es_job <- feols(health_score ~ i(et, ref = -1) | idind + year, data = job, cluster = ~idind)
+iplot(es_job, main = "Самооценка здоровья вокруг потери работы", xlab = "лет от потери работы",
+      col = pal["coral"], ci.width = 0)
+```
+:::
+
+## Чтение графика потери работы
+
+-   Предтренды плоские: за 2–3 года до потери работы самооценка здоровья не менялась
+-   В год потери — минус 0.05 балла, и за четыре года восстановления нет
+-   Но $k = 0$ — **тот же год**, что и увольнение: годовые данные не различают «заболел → уволили» и «уволили → заболел». Лекция 1 показала, что первое направление существует
+-   Чтобы разделить, нужны события, которые человек не выбирает: закрытие предприятия, массовые сокращения — следующий блок
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Шесть ошибок с event study
+
+1.  Нет базового периода или базовый — последний год (тогда предтренды рисуются относительно «после»)
+2.  Крайние $k$ без биннинга, на десятках наблюдений, — и выводы по ним
+3.  Предтренд есть, но «мы учитываем это линейным трендом» — без обоснования
+4.  Событие выбирается самим человеком, а порядок «исход → событие» не проверен
+5.  Разные события (ранние/поздние когорты) с разной динамикой свалены в один TWFE — лекция 10
+6.  Нет контрольной группы «без события», а эффект объявлен абсолютным, а не относительным к $k = -1$
+
+## Чек-лист
+
+-   [ ] Событие определено по данным однозначно (первый год, когда …), с датой
+-   [ ] Окно и биннинг объявлены; показано число наблюдений на каждый $k$
+-   [ ] Базовый период $k = -1$; возраст и год (или индивидуальные FE) учтены
+-   [ ] Предкоэффициенты показаны и обсуждены
+-   [ ] Эффект переведён в проценты от контрфактического уровня
+-   [ ] Кластер по человеку
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Постройте child penalty по **часам работы** (`hours`) и по **официальному оформлению** среди занятых. Где штраф больше?
+2.  Разбейте женщин по образованию (высшее / нет) и постройте два графика. У кого штраф глубже и дольше? Предложите два объяснения
+3.  Повторите event study брака для **женщин**. Есть ли предтренд? Что происходит после?
+4.  Для события «выход на пенсию» (`pension` переходит 0 → 1) постройте траекторию занятости и самооценки здоровья. Нужна ли здесь группа сравнения — и какая?
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+-   Kleven H., Landais C., Søgaard J. (2019). Children and Gender Inequality: Evidence from Denmark. *AEJ: Applied* — исходный дизайн
+-   Kleven H. et al. (2019). Child Penalties across Countries. *AEA P&P* — сравнение стран
+-   Miller D., Johnson S., Shenhav N. (2023). Confronting Selection in Event Studies — отбор по времени события
+-   Huntington-Klein N. *The Effect*, гл. 17 «Event Studies»
+-   Schmidheiny K., Siegloch S. (2023). On Event Studies and Distributed-Lag Models. *J. Applied Econometrics* — биннинг и нормализация
+-   `fixest`: [виньетка про `i()` и `iplot()`](https://lrberge.github.io/fixest/articles/fixest_walkthrough.html)

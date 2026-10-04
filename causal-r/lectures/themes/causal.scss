@@ -1,0 +1,253 @@
+/*-- scss:defaults --*/
+$navy: #0d366b;
+$navy2: #104281;
+$bluemid: #1c5cab;
+$blue: #2a78d6;
+$blue-bg: #f2f7fd;
+$blue-bg2: #e4eefb;
+$line: #d9e5f4;
+$ink: #101828;
+$ink2: #475467;
+$mute: #98a2b3;
+$ochre: #c7861e;
+$coral: #d9534f;
+
+$body-bg: #ffffff;
+$body-color: $ink;
+$link-color: $blue;
+$presentation-font-size-root: 27px;
+$presentation-heading-font: "IBM Plex Sans", sans-serif;
+$presentation-heading-color: $navy;
+$presentation-heading-font-weight: 700;
+$presentation-heading-letter-spacing: -0.01em;
+$presentation-heading-text-transform: none;
+$font-family-sans-serif: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+$font-family-monospace: "IBM Plex Mono", monospace;
+$code-block-font-size: 0.6em;
+$code-block-bg: #f6f9fd;
+$code-block-border-color: $line;
+$code-color: $navy2;
+$selection-bg: $blue;
+
+/*-- scss:rules --*/
+:root { --navy:#0d366b; --navy2:#104281; --bluemid:#1c5cab; --blue:#2a78d6; --blue-bg:#f2f7fd; --blue-bg2:#e4eefb;
+  --line:#d9e5f4; --ink:#101828; --ink2:#475467; --mute:#98a2b3; --ochre:#c7861e; --coral:#d9534f; --teal:#0f8a7e; }
+
+.reveal { font-family: "IBM Plex Sans", sans-serif; color: var(--ink); }
+.reveal .slides { text-align: left; }
+.reveal .slides section { padding-top: 0; }
+.reveal p, .reveal li { line-height: 1.45; }
+.reveal strong, .reveal b { color: var(--navy); font-weight: 700; }
+.reveal em { color: var(--ink2); }
+.reveal a { color: var(--blue); text-decoration: none; border-bottom: 1px solid var(--line); }
+
+/* ── шапка слайда: кикер + заголовок + линейка ───────────────── */
+.reveal .kick { display: block; font-size: 0.5em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--blue); margin: 0 0 0.35em 0; line-height: 1.2; }
+.reveal .kick .stage { display: inline-block; background: var(--navy2); color: #fff; border-radius: 5px;
+  padding: 0.12em 0.55em; margin-right: 0.6em; letter-spacing: 0.1em; }
+.reveal .slides section.level2 > h2 { font-size: 1.36em; line-height: 1.14; font-weight: 700; color: var(--navy);
+  margin: 0 0 0.75em 0; padding: 0; position: relative; letter-spacing: -0.012em; }
+.reveal .slides section.level2 > h2::after { content: ""; display: block; width: 2.2em; height: 4px; border-radius: 2px;
+  background: var(--blue); margin-top: 0.42em; }
+.reveal h2 code { background: none !important; color: var(--blue) !important; font-size: 0.9em; padding: 0 !important; }
+.reveal h3 { font-size: 0.86em; color: var(--navy); font-weight: 700; margin: 0 0 0.45em 0; }
+
+/* ── списки: маркированные ── */
+.reveal ul { list-style: none; margin-left: 0; padding-left: 0; }
+.reveal ul > li { position: relative; padding-left: 1.15em; margin-bottom: 0.5em; }
+.reveal ul > li::before { content: ""; position: absolute; left: 0.2em; top: 0.62em; width: 0.38em; height: 0.38em;
+  border-radius: 50%; background: var(--blue); }
+.reveal ul.task-list > li::before, .reveal ul > li.task-list-item::before { display: none; }
+.reveal ul > li.task-list-item { padding-left: 0; }
+.reveal ul > li > ul > li::before { background: none; border: 2px solid var(--blue); width: 0.3em; height: 0.3em; }
+
+/* ── списки: нумерованные → кружки ── */
+.reveal ol, .reveal .slides ol { list-style: none !important; list-style-type: none !important; counter-reset: npt; margin-left: 0; padding-left: 0; }
+.reveal ol > li, .reveal ul > li { list-style: none !important; }
+.reveal ol > li::marker, .reveal ul > li::marker { content: ""; }
+.reveal ol > li { counter-increment: npt; position: relative; padding-left: 2.05em; margin-bottom: 0.55em; min-height: 1.5em; }
+.reveal ol > li::before { content: counter(npt); position: absolute; left: 0; top: 0.02em; width: 1.42em; height: 1.42em;
+  border-radius: 50%; background: var(--blue-bg2); color: var(--navy2); font-weight: 700; font-size: 0.85em;
+  display: flex; align-items: center; justify-content: center; }
+
+/* ── чек-листы ── */
+.reveal input[type="checkbox"] { accent-color: var(--blue); width: 0.8em; height: 0.8em; margin-right: 0.5em; vertical-align: -0.05em; }
+.reveal ul > li.task-list-item, .reveal ul.task-list > li { background: #fff; border: 1px solid var(--line); border-radius: 10px;
+  padding: 0.35em 0.7em; margin-bottom: 0.4em; list-style: none; }
+
+/* ── тезис → полоса «Главное» ── */
+.reveal .thesis { display: grid; grid-template-columns: 6.2em 1fr; margin: 0.8em 0 0.4em; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 10px 26px rgba(13,54,107,.13); font-size: 0.9em; background: none; border: 0; padding: 0; }
+.reveal .thesis::before { content: "Главное"; background: linear-gradient(160deg, #0d366b 0%, #1c5cab 100%); color: #fff;
+  font-weight: 700; font-size: 0.64em; letter-spacing: 0.12em; text-transform: uppercase; display: flex; align-items: center;
+  justify-content: center; text-align: center; padding: 0.7em 0.4em; }
+.reveal .thesis > p, .reveal .thesis > div { margin: 0; background: var(--blue-bg2); border: 2px solid var(--bluemid); border-left: 0;
+  border-radius: 0 14px 14px 0; color: var(--navy); font-weight: 500; padding: 0.65em 1em; line-height: 1.42; }
+.reveal .thesis.smaller { font-size: 0.76em; }
+.reveal .thesis .katex { color: inherit; }
+
+/* ── callout → лента ── */
+.reveal div.callout { border: 1px solid var(--line) !important; border-left: 4px solid var(--bluemid) !important;
+  background: var(--blue-bg) !important; border-radius: 10px !important; font-size: 0.78em; box-shadow: none; margin: 0.7em 0; }
+.reveal div.callout-important { border-left-color: var(--coral) !important; background: #fdf3f2 !important; }
+.reveal div.callout-warning { border-left-color: var(--ochre) !important; background: #fdf7ec !important; }
+.reveal div.callout .callout-icon-container { display: none; }
+.reveal div.callout.callout-titled .callout-header { background: transparent !important; border: 0 !important; }
+
+/* ── карточки и сетки (для qmd: ::: {.cards} / ::: {.card}) ── */
+.reveal .cards, .reveal .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8em; margin: 0.5em 0; }
+.reveal .cards.c3, .reveal .grid3 { grid-template-columns: repeat(3, 1fr); }
+.reveal .cards.c4 { grid-template-columns: repeat(4, 1fr); }
+.reveal .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 0.7em 0.85em; font-size: 0.78em;
+  line-height: 1.42; color: var(--ink2); transition: box-shadow .15s, border-color .15s; }
+.reveal .card:hover { border-color: var(--blue); box-shadow: 0 8px 22px rgba(13,54,107,.08); }
+.reveal .card p { margin: 0 0 0.4em 0; }
+.reveal .card p:last-child { margin-bottom: 0; }
+.reveal .card h3, .reveal .card .h3 { font-size: 1.12em; color: var(--navy); margin: 0 0 0.4em 0; }
+.reveal .k { display: block; font-size: 0.5em; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--blue); margin-bottom: 0.3em; }
+.reveal .card .k { display: block; font-size: 0.72em; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--blue); margin-bottom: 0.35em; }
+.reveal .card.tint { background: var(--blue-bg); }
+.reveal .card.navy { background: var(--navy2); border-color: var(--navy2); color: #dbe8fb; }
+.reveal .card.navy h3, .reveal .card.navy strong, .reveal .card.navy .k { color: #fff; }
+.reveal .card.warn { background: #fdf3f2; border-color: #f3c8c4; }
+.reveal .card.warn .k, .reveal .card.warn h3 { color: var(--coral); }
+.reveal .card.good { background: #eef8f6; border-color: #bfe3dd; }
+.reveal .card.good .k, .reveal .card.good h3 { color: var(--teal); }
+.reveal .card ul > li, .reveal .card ol > li { margin-bottom: 0.3em; }
+
+/* ── плитки с числами: ::: {.tiles} / ::: {.tile} [0.27]{.v} [подпись]{.l} ── */
+.reveal .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5em, 1fr)); gap: 0.6em; margin: 0.5em 0 0.7em; }
+.reveal .tile { background: var(--blue-bg); border: 1px solid var(--line); border-radius: 14px; padding: 0.55em 0.75em; }
+.reveal .tile p { margin: 0; }
+.reveal .tile .v { display: block; font-size: 1.45em; font-weight: 700; color: var(--navy); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.reveal .tile .l { display: block; font-size: 0.6em; color: var(--ink2); margin-top: 0.35em; line-height: 1.3; }
+.reveal .tile.navy { background: var(--navy2); border-color: var(--navy2); }
+.reveal .tile.navy .v { color: #fff; } .reveal .tile.navy .l { color: #cde2fb; }
+
+/* ── шаги процесса: ::: {.steps} с абзацами ── */
+.reveal .steps { display: flex; gap: 0.5em; align-items: stretch; margin: 0.5em 0; counter-reset: st; }
+.reveal .steps > div, .reveal .steps > p { flex: 1; counter-increment: st; background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  padding: 0.6em 0.75em; font-size: 0.72em; color: var(--ink2); position: relative; margin: 0; }
+.reveal .steps > div::before, .reveal .steps > p::before { content: counter(st); display: flex; width: 1.7em; height: 1.7em; border-radius: 9px;
+  background: var(--navy2); color: #fff; font-weight: 700; align-items: center; justify-content: center; margin-bottom: 0.45em; }
+
+/* ── флип-карточки: ::: {.flip} (первый блок — лицо, второй — оборот) ── */
+.reveal .flips { display: grid; grid-template-columns: repeat(auto-fit, minmax(6em, 1fr)); gap: 0.6em; margin: 0.5em 0; }
+.reveal .flip { perspective: 900px; cursor: pointer; min-height: 12.5em; position: relative; font-size: 0.8em; }
+.reveal .flip .k { font-size: 0.72em; }
+.reveal .flip h3 { font-size: 1.1em; margin: 0 0 0.4em; }
+.reveal .flip .flip-in { position: relative; width: 100%; height: 100%; min-height: 12.5em; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.4,.1,.2,1); }
+.reveal .flip.on .flip-in { transform: rotateY(180deg); }
+.reveal .flip .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 1px solid var(--line);
+  border-radius: 14px; background: #fff; padding: 0.75em 0.85em; display: flex; flex-direction: column; color: var(--ink2); }
+.reveal .flip .face p { margin: 0 0 0.35em; }
+.reveal .flip .face.back { transform: rotateY(180deg); background: var(--blue-bg); color: var(--navy2); }
+.reveal .flip .face.front::after { content: "нажмите, чтобы перевернуть ↻"; margin-top: auto; font-size: 0.7em; color: var(--blue); font-weight: 600; }
+.reveal .flip:hover .face { box-shadow: 0 10px 26px rgba(13,54,107,.1); }
+
+/* ── вкладки: ::: {.panel-tabset} → сегментированные кнопки ── */
+.reveal .panel-tabset { margin-top: 0.2em; }
+.reveal .panel-tabset ul.panel-tabset-tabby { display: inline-flex !important; width: max-content; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: #fff;
+  margin: 0 0 0.55em 0; padding: 0; list-style: none; }
+.reveal .panel-tabset ul.panel-tabset-tabby > li { margin: 0; padding: 0; border-right: 1px solid var(--line); }
+.reveal .panel-tabset ul.panel-tabset-tabby > li:last-child { border-right: 0; }
+.reveal .panel-tabset ul.panel-tabset-tabby > li::before { display: none; }
+.reveal .panel-tabset ul.panel-tabset-tabby a { display: block; border: 0; color: var(--ink2); font-size: 0.58em; padding: 0.5em 1.15em; font-weight: 500;
+  background: transparent; transition: background .15s, color .15s; }
+.reveal .panel-tabset ul.panel-tabset-tabby a:hover { background: var(--blue-bg); color: var(--navy); }
+.reveal .panel-tabset ul.panel-tabset-tabby a[aria-selected="true"] { background: var(--navy2); color: #fff; font-weight: 700; }
+.reveal .panel-tabset .tab-content { border: 0; padding: 0; }
+
+/* ── чипы ── */
+.reveal .chip { display: inline-flex; align-items: center; gap: 0.35em; border: 1.5px solid var(--line); background: #fff; border-radius: 999px;
+  padding: 0.12em 0.65em; font-size: 0.62em; color: var(--ink2); font-weight: 500; }
+.reveal .chip.on { background: var(--blue-bg2); border-color: var(--blue); color: var(--navy); font-weight: 700; }
+.reveal .pill { display: inline-block; font-size: 0.6em; font-weight: 700; border-radius: 6px; padding: 0.08em 0.5em; background: var(--blue-bg2); color: var(--navy2); vertical-align: 0.12em; }
+.reveal .pill.navy { background: var(--navy2); color: #fff; }
+.reveal .pill.warn { background: #fdecea; color: var(--coral); }
+
+/* ── код ── */
+.reveal div.sourceCode { background: #f6f9fd !important; border: 1px solid var(--line); border-radius: 12px; margin: 0.45em 0; overflow: hidden; }
+.reveal div.sourceCode pre, .reveal pre.sourceCode { background: transparent !important; }
+.reveal pre { box-shadow: none; margin: 0.45em 0; width: 100%; }
+.reveal pre code { font-family: "IBM Plex Mono", monospace; line-height: 1.5; padding: 0.75em 1em; max-height: none; }
+.reveal p code, .reveal li code, .reveal td code { background: var(--blue-bg2); color: var(--navy2); padding: 0.04em 0.32em; border-radius: 5px; font-size: 0.86em; }
+.reveal .cell-output pre, .reveal .cell-output-stdout pre { background: transparent !important; }
+.reveal .cell-output pre code, .reveal .cell-output-stdout pre code { background: #fff; color: #344054; border: 1px dashed var(--line2, #c6d5ea);
+  border-radius: 12px; font-size: 0.95em; }
+.reveal .cell-output-display { font-size: 0.74em; }
+.reveal .sourceCode .kw, .reveal .sourceCode .fu { color: #1c5cab !important; }
+.reveal .sourceCode .st { color: #0f8a7e !important; }
+.reveal .sourceCode .co { color: #98a2b3 !important; font-style: normal; }
+.reveal .sourceCode .dv, .reveal .sourceCode .fl { color: #c7861e !important; }
+.reveal .sourceCode .at { color: #6941c6 !important; }
+.reveal .sourceCode .ot, .reveal .sourceCode .op { color: #475467 !important; }
+.reveal .code-copy-button { opacity: 0.45; }
+
+/* ── таблицы ── */
+.reveal table { border-collapse: separate; border-spacing: 0; font-size: 0.68em; margin: 0.5em auto; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.reveal table th { background: var(--navy2); color: #fff; font-weight: 600; padding: 0.5em 0.8em; text-align: left; border: 0; }
+.reveal table td { padding: 0.42em 0.8em; border: 0; border-top: 1px solid var(--line); }
+.reveal table tr:nth-child(even) td { background: var(--blue-bg); }
+.reveal table td code { white-space: nowrap; }
+
+/* ── формулы ── */
+.reveal .katex { font-size: 1.04em; color: var(--navy); }
+.reveal .katex-display { background: var(--blue-bg); border-radius: 12px; padding: 0.5em 0; margin: 0.5em 0 0.7em; }
+
+/* ── рисунки ── */
+.reveal .cell-output-display img, .reveal img.r-stretch { border-radius: 10px; }
+
+/* ── титульный слайд ── */
+.reveal .slides section.quarto-title-block { text-align: left; padding: 0.4em 0.2em 0; }
+.reveal .slides section.quarto-title-block .ct-top { position: absolute; top: -2.2em; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 0.56em; color: var(--ink2); margin-bottom: 2.6em; }
+.reveal .slides section.quarto-title-block .ct-top b { color: var(--navy2); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
+.reveal .slides section.quarto-title-block .ct-lec { display: inline-block; font-size: 0.56em; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: #fff; background: var(--navy2); border-radius: 6px; padding: 0.2em 0.7em; margin-bottom: 0.9em; }
+.reveal .slides section.quarto-title-block .title { font-family: "IBM Plex Serif", Georgia, serif; font-size: 1.95em; line-height: 1.12; font-weight: 600;
+  color: var(--navy); text-align: left; margin: 0 0 0.35em; max-width: 92%; }
+.reveal .slides section.quarto-title-block .subtitle { font-size: 0.86em; color: var(--bluemid); text-align: left; font-weight: 500; font-style: normal; margin: 0; }
+.reveal .slides section.quarto-title-block .subtitle::after { content: ""; display: block; width: 3.4em; height: 4px; border-radius: 2px; background: var(--blue); margin-top: 0.9em; }
+.reveal .slides section.quarto-title-block .quarto-title-authors { justify-content: flex-start !important; margin-top: 2.2em; text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author { padding-left: 0; text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author-name { font-weight: 700; color: var(--navy); font-size: 0.68em; text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-affiliation { color: var(--mute); font-size: 0.56em; margin: 0.15em 0 0; text-align: left; }
+.reveal .slides section.quarto-title-block::after { content: ""; position: absolute; right: -4%; top: -10%; width: 46%; height: 120%; z-index: -1;
+  background: radial-gradient(circle at 70% 40%, rgba(42,120,214,.13) 0%, rgba(42,120,214,.05) 38%, rgba(255,255,255,0) 66%); pointer-events: none; }
+
+/* ── разделители частей ── */
+.reveal .slides section.level1.title-slide { text-align: left; color: #fff; }
+.reveal .slides section.level1 .div-wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 1.6em; align-items: center; width: 100%; }
+.reveal .slides section.level1 .div-num { font-family: "IBM Plex Mono", monospace; font-size: 0.6em; letter-spacing: 0.2em; color: #9cc3f2; margin-bottom: 0.6em; font-weight: 500; }
+.reveal .slides section.level1 h1 { font-family: "IBM Plex Serif", Georgia, serif; font-size: 2.7em; font-weight: 600; color: #fff; line-height: 1; margin: 0;
+  letter-spacing: -0.01em; text-shadow: none; text-transform: none; }
+.reveal .slides section.level1 .div-rule { width: 2.6em; height: 5px; border-radius: 3px; background: #5aa2f0; margin-top: 0.7em; }
+.reveal .slides section.level1 .div-sub { font-size: 0.66em; color: #b9d1f3; margin-top: 0.9em; line-height: 1.4; }
+.reveal .slides section.level1 .div-toc { list-style: none; margin: 0; padding: 0; counter-reset: dt; border-left: 1px solid rgba(255,255,255,.18); padding-left: 1em; }
+.reveal .slides section.level1 .div-toc li { counter-increment: dt; font-size: 0.6em; color: #dbe8fb; padding: 0.32em 0 0.32em 2.1em; margin: 0; position: relative; line-height: 1.3; }
+.reveal .slides section.level1 .div-toc li::before { content: counter(dt, decimal-leading-zero); position: absolute; left: 0; top: 0.32em; font-family: "IBM Plex Mono", monospace;
+  color: #7fb3ee; font-size: 0.9em; width: auto; height: auto; background: none; border-radius: 0; display: block; }
+
+/* ── служебное ── */
+.reveal .footer { font-size: 0.4em; color: var(--mute); letter-spacing: 0.03em; }
+.reveal .slide-number { font-family: "IBM Plex Mono", monospace; font-size: 0.42em; color: var(--mute) !important; background: transparent !important; }
+.reveal .progress { color: var(--blue); height: 4px; }
+.reveal .controls { color: var(--blue); }
+.reveal .slide-menu-button { color: var(--navy2); }
+.reveal .slides section.smaller { font-size: 0.86em; }
+.reveal .slides section.smaller h2 { font-size: 1.36em; }
+
+/* появление */
+.reveal .fragment.fade-up { transform: translate(0, 18px); }
+.reveal .fragment.fade-up.visible { transform: none; }
+.center { text-align: center; }
+.smaller { font-size: 0.8em; }
+.tiny { font-size: 0.65em; }
+.muted { color: var(--mute); }
+.columns { display: flex; gap: 1em; }
+.column { flex: 1; }
+.reveal .card.navy .katex, .reveal .tile.navy .katex, .reveal .card.navy .katex * { color: #fff !important; }
+.reveal .slides section.level1 .div-toc .katex, .reveal .slides section.level1 .div-toc .katex * { color: #dbe8fb !important; font-size: 1em; }
+.reveal .slides section.level1 .div-toc code { background: rgba(255,255,255,.12); color: #fff; padding: 0 .3em; border-radius: 4px; }

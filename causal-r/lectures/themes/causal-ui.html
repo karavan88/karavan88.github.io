@@ -1,0 +1,104 @@
+<script>
+(function () {
+  const PARTS = {
+    "Зачем":          { sub: "Мотивация, вопрос и пример занятия", c1: "#0d366b", c2: "#1c5cab" },
+    "Идея":           { sub: "Интуиция, допущения, что оцениваем", c1: "#0b3a73", c2: "#2a6fc4" },
+    "Код":            { sub: "Живой код на данных RLMS-HSE",       c1: "#0a2a52", c2: "#104281" },
+    "Как ошибаются":  { sub: "Типичные ошибки и чек-лист",         c1: "#5c1a26", c2: "#a33a3a" },
+    "Мини-задача":    { sub: "Задание к следующему занятию",        c1: "#0c4a47", c2: "#13807a" },
+    "Литература":     { sub: "Что прочитать",                       c1: "#101828", c2: "#344054" }
+  };
+  function txt(el) {
+    if (!el) return "";
+    const c = el.cloneNode(true);
+    c.querySelectorAll("annotation, .katex-html").forEach(n => n.remove());
+    return c.textContent.replace(/\s+/g, " ").trim();
+  }
+
+  function decorate() {
+    const all = Array.from(document.querySelectorAll(".reveal .slides section.slide, .reveal .slides section.quarto-title-block"));
+    const parts = all.filter(s => s.classList.contains("level1"));
+    let current = null, idx = 0;
+
+    // титул
+    const tb = document.querySelector(".reveal .slides section.quarto-title-block");
+    if (tb && !tb.dataset.decorated) {
+      tb.dataset.decorated = 1;
+      const t = tb.querySelector(".title");
+      const top = document.createElement("div"); top.className = "ct-top";
+      top.innerHTML = "<b>Каузальный анализ в R</b><span>данные RLMS-HSE · " + parts.length + " частей</span>";
+      tb.insertBefore(top, tb.firstChild);
+      if (t) {
+        const m = t.textContent.match(/^\s*(Лекция\s+\d+)\.\s*(.*)$/);
+        if (m) {
+          const lec = document.createElement("div"); lec.className = "ct-lec"; lec.textContent = m[1];
+          t.parentNode.insertBefore(lec, t); t.textContent = m[2];
+        }
+      }
+    }
+
+    all.forEach(s => {
+      if (s.classList.contains("level1")) {
+        idx += 1; current = s;
+        if (s.dataset.decorated) return; s.dataset.decorated = 1;
+        const h1 = s.querySelector("h1"); const name = txt(h1);
+        const p = PARTS[name] || { sub: "", c1: "#0d366b", c2: "#1c5cab" };
+        s.dataset.partName = name;
+        // оглавление части
+        const titles = []; let n = all.indexOf(s) + 1;
+        while (n < all.length && !all[n].classList.contains("level1")) {
+          const h2 = all[n].querySelector(":scope > h2"); const tt = txt(h2);
+          if (tt && (titles.length === 0 || titles[titles.length - 1].t !== tt)) {
+            const c = h2.cloneNode(true); c.querySelectorAll("a.anchorjs-link, .quarto-section-identifier").forEach(x => x.remove());
+            titles.push({ t: tt, html: c.innerHTML });
+          }
+          n++;
+        }
+        const wrap = document.createElement("div"); wrap.className = "div-wrap";
+        const left = document.createElement("div");
+        left.innerHTML = '<div class="div-num">ЧАСТЬ ' + String(idx).padStart(2, "0") + " / " + String(parts.length).padStart(2, "0") + "</div>";
+        left.appendChild(h1);
+        left.insertAdjacentHTML("beforeend", '<div class="div-rule"></div>' + (p.sub ? '<div class="div-sub">' + p.sub + "</div>" : ""));
+        wrap.appendChild(left);
+        if (titles.length) {
+          const ol = document.createElement("ol"); ol.className = "div-toc";
+          titles.slice(0, 9).forEach(tt => { const li = document.createElement("li"); li.innerHTML = tt.html; ol.appendChild(li); });
+          wrap.appendChild(ol);
+        }
+        s.innerHTML = ""; s.appendChild(wrap);
+        s.dataset.c1 = p.c1; s.dataset.c2 = p.c2;
+      } else if (s.classList.contains("level2") && current) {
+        if (s.dataset.decorated) return; s.dataset.decorated = 1;
+        const h2 = s.querySelector(":scope > h2");
+        if (h2 && !s.querySelector(":scope > .kick")) {
+          const k = document.createElement("span"); k.className = "kick";
+          k.textContent = String(idx).padStart(2, "0") + " · " + (current.dataset.partName || "");
+          s.insertBefore(k, h2);
+        }
+      }
+    });
+
+    // флип-карточки
+    document.querySelectorAll(".reveal .flip").forEach(f => {
+      if (f.dataset.decorated) return; f.dataset.decorated = 1;
+      const kids = Array.from(f.children);
+      const inner = document.createElement("div"); inner.className = "flip-in";
+      const front = document.createElement("div"); front.className = "face front";
+      const back = document.createElement("div"); back.className = "face back";
+      const blocks = kids.filter(k => !k.matches("h3"));
+      const h3s = kids.filter(k => k.matches("h3"));
+      // лицо: всё до разделителя <hr>, оборот: после
+      let target = front;
+      kids.forEach(k => { if (k.tagName === "HR") { target = back; k.remove(); return; } target.appendChild(k); });
+      inner.appendChild(front); inner.appendChild(back); f.appendChild(inner);
+      f.addEventListener("click", () => f.classList.toggle("on"));
+    });
+  }
+
+  function run() { decorate(); if (window.Reveal && Reveal.isReady && Reveal.isReady()) Reveal.layout(); }
+  if (window.Reveal && Reveal.isReady && Reveal.isReady()) run();
+  else if (window.Reveal && Reveal.on) Reveal.on("ready", run);
+  else window.addEventListener("load", run);
+  window.addEventListener("load", () => setTimeout(run, 50));
+})();
+</script>

@@ -1,0 +1,1441 @@
+---
+title: "Лекция 7. Фиксированные эффекты"
+subtitle: "Блок 2. Панель RLMS"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+suppressPackageStartupMessages({
+  library(plm)        # маскирует dplyr::lag/lead/between — ниже используем dplyr:: явно
+  library(lmtest)
+  library(bife)
+  library(survival)
+})
+f3  <- function(x, d = 3) formatC(x, format = "f", digits = d)
+big <- function(x) format(x, big.mark = " ", scientific = FALSE)
+pc  <- function(x, d = 0) paste0(formatC(100 * x, format = "f", digits = d), "%")
+
+# Мужчины 25–50, работающие, с зарплатой: премия за брак
+men <- rlms |>
+  filter(female == 0, age >= 25, age <= 50, employed == 1, !is.na(log_wage), !is.na(married)) |>
+  mutate(age2 = age^2)
+men_sw <- men |> group_by(idind) |> summarise(T = n(), sw = n_distinct(married) > 1)
+
+# Женщины 20–45: дети до 3 лет и занятость (бинарный исход)
+wm <- rlms |>
+  filter(female == 1, age >= 20, age <= 45, !is.na(work_status),
+         !in_university %in% 1, !in_school %in% 1) |>
+  mutate(yk = year - pmax(child1_birth_year, child2_birth_year, child3_birth_year, na.rm = TRUE),
+         kid_u3 = as.integer(!is.na(yk) & yk >= 0 & yk < 3),
+         married = coalesce(married, 0L))
+wm_var <- wm |> group_by(idind) |> filter(n() > 1) |>
+  summarise(vy = n_distinct(employed) > 1, vx = n_distinct(kid_u3) > 1)
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Главный козырь панели
+
+::: {.cards}
+::: {.card}
+[блок 1]{.k}
+
+### «Мы видим все конфаундеры»
+
+Всё стояло на одном допущении: мы **видим** всё, от чего зависит отбор. В RLMS мы не видим способности, мотивацию, семейный капитал, здоровье в детстве.
+:::
+::: {.card .tint}
+[панель]{.k}
+
+### «Ненаблюдаемые постоянны во времени»
+
+Другой тип допущения. Цена: эффект оценивается только по тем, у кого воздействие **менялось**, и только по вариации **внутри** человека.
+:::
+:::
+
+::: {.thesis}
+Панель позволяет сравнить человека **с самим собой** в разные годы. Всё, что в человеке **не меняется** — измеренное или нет — выпадает из сравнения автоматически.
+:::
+
+## Пример занятия
+
+::: {.tiles}
+::: {.tile .navy}
+[`r big(nrow(men))`]{.v} [наблюдений: работающие мужчины 25–50, 2000–2025]{.l}
+:::
+::: {.tile}
+[`r big(nrow(men_sw))`]{.v} [мужчин в этой панели]{.l}
+:::
+::: {.tile}
+[`r pc(mean(men_sw$sw))`]{.v} [из них женились или развелись на глазах RLMS]{.l}
+:::
+::: {.tile}
+[`r big(nrow(wm))`]{.v} [наблюдений: женщины 20–45 (бинарный исход)]{.l}
+:::
+:::
+
+::: {.cards}
+::: {.card}
+[вопрос 1 · линейная FE]{.k}
+
+### Премия за брак
+
+Растёт ли зарплата **того же** мужчины, когда он женится? `fixest` и `plm`, тест Хаусмана, Мундлак.
+:::
+::: {.card .tint}
+[вопрос 2 · бинарный исход]{.k}
+
+### Ребёнок до 3 лет и занятость
+
+Теряет ли **та же** женщина работу, когда у неё маленький ребёнок? LPM, FE-логит, `bife`, `clogit`, предельные эффекты.
+:::
+:::
+
+## План занятия
+
+::: {.callout-important appearance="minimal"}
+Лекция рассчитана на **сдвоенное занятие** (2 пары): часть 1 — линейные FE, часть 2 — бинарные исходы и диагностика.
+:::
+
+::: {.cards}
+::: {.card}
+[пара 1]{.k}
+
+### Линейные FE
+
+1.  Модель и within-преобразование; что FE убирает
+2.  `fixest`: синтаксис, вывод, ошибки, `^`, `[ ]`, `i()`, `csw()`, `fixef()`, `etable()`
+3.  `plm`: синтаксис, вывод, тесты; совпадение с `fixest`
+4.  FE или RE: тест Хаусмана, робастная версия, Мундлак
+:::
+::: {.card .tint}
+[пара 2]{.k}
+
+### Бинарные исходы и проверки
+
+5.  LPM с FE против FE-логита; проблема инцидентных параметров
+6.  `feglm`, `bife` + поправка, `clogit`; отношения шансов
+7.  Предельные эффекты: `avg_slopes()` и `get_APEs()`
+8.  Диагностика: вариация, коллинеарность, синглтоны, автокорреляция
+:::
+:::
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Модель
+
+$$y_{it} = \tau D_{it} + x_{it}'\beta + \alpha_i + \lambda_t + \varepsilon_{it}$$
+
+-   $\alpha_i$ — всё постоянное в человеке $i$: способности, характер, семья, место рождения
+-   $\lambda_t$ — всё общее для всех в году $t$: инфляция, кризис, ковид
+-   $D_{it}$ может быть связан с $\alpha_i$ сколь угодно сильно — это не мешает
+
+**Within-преобразование**: вычитаем из каждой переменной её среднее по человеку:
+
+$$y_{it} - \bar y_i = \tau (D_{it} - \bar D_i) + (x_{it} - \bar x_i)'\beta + (\varepsilon_{it} - \bar\varepsilon_i)$$
+
+$\alpha_i$ исчез. Регрессия на отклонениях = регрессия с дамми на каждого человека.
+
+## Что FE убирает и что нет
+
+| Источник смещения | Убирает? |
+|-------------------|----------|
+| Постоянные ненаблюдаемые (способности, семья) | **да** |
+| Общие шоки по годам (с year FE) | **да** |
+| Ненаблюдаемые, **меняющиеся** во времени (шок здоровья → увольнение и → зарплата) | нет |
+| Обратная причинность внутри человека (зарплата упала → развод) | нет |
+| Ошибки измерения в $D$ | нет — **усиливает** |
+| Эффекты постоянных признаков (пол, место рождения) | не оцениваются вовсе |
+
+::: {.callout-important appearance="minimal"}
+FE отвечает на вопрос «что происходит с зарплатой того же человека, **когда** меняется D». Если D меняется не случайно — скажем, человек женится, когда карьера пошла вверх — смещение остаётся.
+:::
+
+## Кто идентифицирует эффект
+
+-   Коэффициент при $D$ в FE-модели опирается только на **переключателей** — тех, у кого $D$ менялось в наблюдаемые годы
+-   Если переключателей 10 % выборки, это они определяют оценку, и к ним надо присматриваться: кто завершает вуз в 30 лет? кто переходит в неформальный сектор?
+-   Внутри-человеческая вариация часто мала → стандартные ошибки большие, оценка близка к нулю «по дизайну», а не по сути
+
+::: {.thesis}
+Перед FE-регрессией: посчитать переключателей и описать их. После: не сравнивать «эффект упал с 0.2 до 0.05» без вопроса, **у кого** он упал.
+:::
+
+## FE, RE или Мундлак?
+
+::: {.cards .c3}
+::: {.card}
+[RE]{.k}
+
+### Случайные эффекты
+
+$\alpha_i$ — случайный шум, **не связанный** с $X$. Эффективнее, позволяет оценивать постоянные признаки
+:::
+::: {.card .tint}
+[FE]{.k}
+
+### Фиксированные эффекты
+
+$\alpha_i$ может быть как угодно связан с $X$. Постоянные признаки не оцениваются
+:::
+::: {.card}
+[Mundlak]{.k}
+
+### Correlated RE
+
+RE (или МНК) + средние по человеку $\bar x_i$ как регрессоры. Коэффициенты при $x_{it}$ = FE, а постоянные признаки остаются в модели
+:::
+:::
+
+-   **Тест Хаусмана** сравнивает FE и RE: если оценки расходятся сильнее, чем допускает шум, допущение RE отвергается
+-   Классическая версия требует iid-ошибок — в панели их не бывает. Рабочая версия — **тест Мундлака** с кластерными ошибками
+-   Для причинных вопросов — FE по умолчанию; RE/Мундлак — когда нужны постоянные признаки или прогноз
+
+## Бинарный исход: почему логит с FE — особый случай
+
+::: {.cards .c3}
+::: {.card}
+[LPM]{.k}
+
+### Линейная модель вероятности
+
+`feols(y ~ x | id + year)` — всё как для зарплаты. Коэффициент = п. п. Прогнозы могут выйти за [0, 1]
+:::
+::: {.card .warn}
+[безусловный FE-логит]{.k}
+
+### Оцениваем $\alpha_i$ дамми
+
+`feglm`, `bife`. При малом $T$ каждый $\hat\alpha_i$ шумный, и этот шум **смещает** $\hat\beta$: проблема инцидентных параметров (Neyman, Scott 1948)
+:::
+::: {.card .good}
+[условный логит]{.k}
+
+### $\alpha_i$ исключается точно
+
+`clogit`. Условие на $\sum_t y_{it}$ убирает $\alpha_i$ из правдоподобия (Chamberlain 1980). Состоятелен при любом $T$
+:::
+:::
+
+-   Люди, у которых $y$ не менялся (всегда работали / никогда), ничего не говорят о $\beta$: в логите с FE они **выбрасываются**
+-   Для пробита условного трюка нет → аналитическая поправка смещения (Fernández-Val, Weidner 2016; `bife::bias_corr`)
+-   Альтернатива без FE: RE-логит/пробит (`lme4::glmer(y ~ x + (1 | idind), family = binomial)`) — снова требует, чтобы $\alpha_i$ не зависел от $X$; спасает тот же приём Мундлака
+
+## Технические вопросы, которые решают всё
+
+-   **Кластеризация** по человеку: наблюдения одного человека коррелированы; `vcov = ~idind` — минимум
+-   **Несбалансированная панель**: FE работает, но истощение не случайно → спросить, кто выпадает (лекция 0)
+-   **Двусторонние FE** (`| idind + year`) — стандарт; с разновременными воздействиями у них есть проблемы (лекция 10)
+-   **Лаги исхода** + FE = смещение Никелла при коротких панелях; либо не включать, либо Arellano–Bond
+-   **Первые разности** — альтернатива FE; совпадают при $T = 2$, иначе разные веса по времени
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Премия за брак: срез против панели
+
+Женатые мужчины зарабатывают больше. Брак делает продуктивнее — или женятся те, кто и так успешен?
+
+```{r}
+m_pool <- feols(log_wage ~ married + age + age2 + i(educ_level) + urban | year,
+                data = men, vcov = ~idind)
+m_fe   <- feols(log_wage ~ married + age + age2 | idind + year, data = men, vcov = ~idind)
+etable(m_pool, m_fe, keep = "married", depvar = FALSE, fitstat = ~ n,
+       headers = c("срез с контролями", "FE"))
+```
+
+::: {.thesis .smaller}
+`r f3(coef(m_pool)["married"], 2)` → `r f3(coef(m_fe)["married"], 2)`. Большая часть «премии» — постоянные различия между теми, кто женится, и теми, кто нет. Остаток — то, что меняется в зарплате **того же** мужчины после брака (или перед ним — об этом event study, лекция 8).
+:::
+
+## Анатомия `feols()`
+
+```{r}
+#| eval: false
+m_fe <- feols(
+  log_wage ~ married + age + age2   # исход ~ регрессоры (должны меняться внутри человека)
+  | idind + year,                   # после «|» — фиксированные эффекты: человек и год
+  data     = men,
+  vcov     = ~idind,                # ошибки, кластеризованные по человеку (синоним: cluster = ~idind)
+  panel.id = ~idind + year          # «кто» и «когда»: нужен для l(), f(), d() и vcov = "NW"/"DK"
+)
+```
+
+::: {.cards .c4}
+::: {.card}
+[1 · до «|»]{.k}
+
+Обычная формула. Постоянные признаки (`female`, `birth_year`) писать бессмысленно — их съест `idind`
+:::
+::: {.card .tint}
+[2 · после «|»]{.k}
+
+FE не оцениваются как дамми, а «вычитаются» (демининг) — поэтому 8 000 человек считаются за доли секунды
+:::
+::: {.card}
+[3 · vcov]{.k}
+
+`"iid"`, `"hetero"`, `~idind`, `~psu`, `"twoway"` (по двум первым FE). **По умолчанию — iid** (с `fixest` 0.13)
+:::
+::: {.card}
+[4 · panel.id]{.k}
+
+В курсе задан глобально в `load_panel.R`: `setFixest_estimation(panel.id = ~idind + year)`
+:::
+:::
+
+## Как читать вывод `summary(feols)`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+summary(m_fe)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+**Observations** — после удаления пропусков и синглтонов (`r big(nrow(men))` → `r big(nobs(m_fe))`). **Fixed-effects** — сколько людей и лет реально в модели
+:::
+::: {.card}
+[2 · Standard-errors]{.k}
+
+Тип ошибок. Должно быть **Clustered (idind)**; надпись IID в панели — сигнал, что `vcov` забыли
+:::
+::: {.card .tint}
+[3 · коэффициенты]{.k}
+
+`married` = `r f3(coef(m_fe)["married"])`: в год брака лог-зарплата **того же** мужчины выше на столько (≈ `r pc(coef(m_fe)["married"], 1)`) при тех же годовых шоках
+:::
+::: {.card}
+[4 · RMSE, Adj. R2]{.k}
+
+R² **с** вкладом FE (`r f3(fitstat(m_fe, ~ar2)[[1]], 2)`): высок, потому что люди сильно различаются уровнем. Ничего не говорит о качестве идентификации
+:::
+::: {.card .tint}
+[5 · Within R2]{.k}
+
+Доля **внутри-человеческой** дисперсии, объяснённой $X$: `r f3(fitstat(m_fe, ~wr2)[[1]], 4)`. Малое значение нормально: брак объясняет мало колебаний зарплаты
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+IID при панельных данных; Observations сильно меньше строк данных; строка «variables removed because of collinearity»; огромная ошибка при малом числе переключателей
+:::
+:::
+:::
+
+## Стандартные ошибки без переоценки модели
+
+```{r}
+vc <- list(iid = "iid", hetero = "hetero", `~idind` = ~idind, `~psu` = ~psu, twoway = "twoway")
+map_dfc(vc, \(v) round(se(summary(m_fe, vcov = v))[["married"]], 4))   # s.e. при married
+```
+
+-   `summary(m, vcov = ...)`, `se(m, vcov = ...)`, `etable(..., vcov = ...)` **пересчитывают только ошибки**: коэффициенты те же, модель не переоценивается
+
+::: {.cards .c3}
+::: {.card}
+[idind]{.k}
+
+Стандарт для панели: остатки человека коррелированы по годам
+:::
+::: {.card .tint}
+[psu]{.k}
+
+Если воздействие назначается на уровне площадки или важен дизайн выборки RLMS
+:::
+::: {.card .warn}
+[twoway]{.k}
+
+Лет всего 26 → кластеров по времени мало; $t$-распределение с 25 df, осторожно
+:::
+:::
+
+## Гибкие эффекты: `^` и `[ ]`
+
+```{r}
+#| include: false
+m_reg  <- feols(log_wage ~ married + age + age2 | idind + site_code^year, men, vcov = ~idind)
+m_tr   <- feols(log_wage ~ married + age2 | idind[age] + year, men, vcov = ~idind)
+```
+
+::: {.panel-tabset}
+### Код
+
+```{r}
+#| eval: false
+m_reg  <- feols(log_wage ~ married + age + age2 | idind + site_code^year, men, vcov = ~idind)
+m_tr   <- feols(log_wage ~ married + age2 | idind[age] + year, men, vcov = ~idind)
+etable(m_fe, m_reg, m_tr, keep = "married", depvar = FALSE, fitstat = ~ n, drop.section = "slopes",
+       headers = c("idind + year", "+ площадка × год", "+ свой тренд по возрасту"))
+```
+
+### Результат
+
+```{r}
+#| echo: false
+etable(m_fe, m_reg, m_tr, keep = "married", depvar = FALSE, fitstat = ~ n, drop.section = "slopes",
+       headers = c("idind + year", "+ площадка × год", "+ свой тренд по возрасту"))
+```
+:::
+
+-   `site_code^year` — свой эффект для **каждой площадки в каждом году**: региональные шоки
+-   `idind[age]` — у каждого мужчины **свой наклон** по возрасту; `age` из регрессоров убираем
+-   С индивидуальными трендами премия падает до `r f3(coef(m_tr)["married"])`: часть «эффекта брака» — то, что женятся мужчины на более крутой траектории
+
+## `i()`: эффект брака по уровню образования
+
+```{r}
+m_i <- feols(log_wage ~ i(educ_level, married) + age + age2 | idind + year, men, vcov = ~idind)
+coeftable(m_i)[1:4, 1:3] |> as.data.frame() |> rownames_to_column("термин") |>
+  mutate(термин = str_remove(термин, "educ_level::"), across(where(is.numeric), \(x) round(x, 3)))
+```
+
+-   `i(f, x)` — переменная `x`, умноженная на дамми **каждого** уровня фактора `f`: отдельная премия для каждой группы
+-   `i(f)` — просто дамми фактора (как в срезе выше: `i(educ_level)`); `i(year, x, ref = 2000)` — эффект по годам (лекция 8)
+-   Различие групп проверяем тестом, а не «на глаз»: `wald(m_i, keep = "married")` — совместно ≠ 0, но не «равны ли»
+
+## Много моделей одной командой
+
+::: {.panel-tabset}
+### `csw0()`: добавляем контроли
+
+```{r}
+m_csw <- feols(log_wage ~ married + csw0(age + age2, urban) | idind + year, men, vcov = ~idind)
+etable(m_csw, depvar = FALSE, fitstat = ~ n + wr2, headers = c("без контролей", "+ возраст", "+ urban"))
+```
+
+### `sw()`: меняем FE
+
+```{r}
+m_sw <- feols(log_wage ~ married + age + age2 | sw(year, idind + year), men, vcov = ~idind)
+etable(m_sw, keep = "married", depvar = FALSE, fitstat = ~ n + r2, drop.section = NULL)
+```
+
+### `fsplit`: по подвыборкам
+
+```{r}
+m_spl <- feols(log_wage ~ married + age + age2 | idind + year, men, vcov = ~idind, fsplit = ~higher_ed)
+etable(m_spl, keep = "married", depvar = FALSE, fitstat = ~ n)
+```
+:::
+
+`csw0(a, b)` → модели «без», «+a», «+a+b»; `sw(a, b)` → «a» и «b» по очереди; `split`/`fsplit` → отдельно по значениям переменной (`fsplit` добавляет полную выборку)
+
+## `fixef()`: достаём сами эффекты
+
+```{r}
+#| include: false
+fe_m  <- fixef(m_fe)
+alpha <- tibble(idind = as.numeric(names(fe_m$idind)), alpha = fe_m$idind) |>
+  left_join(men |> group_by(idind) |> summarise(T = n(), mbar = mean(married)), by = "idind")
+```
+
+::: {.panel-tabset}
+### `summary(fixef(m))`
+
+```{r}
+#| echo: false
+summary(fe_m)
+```
+
+### Распределение $\hat\alpha_i$
+
+```{r}
+#| echo: false
+#| fig-height: 2.2
+ggplot(alpha, aes(alpha)) + geom_histogram(bins = 60, fill = pal["indigo"], alpha = .8) +
+  labs(x = expression(hat(alpha)[i] ~ "— постоянный уровень лог-зарплаты"), y = "мужчин")
+```
+
+### Код
+
+```{r}
+#| eval: false
+fe_m  <- fixef(m_fe)                       # список: $idind, $year
+alpha <- tibble(idind = as.numeric(names(fe_m$idind)), alpha = fe_m$idind) |>
+  left_join(men |> group_by(idind) |> summarise(T = n(), mbar = mean(married)), by = "idind")
+cor(alpha$alpha, alpha$mbar)               # связь «типа человека» с долей лет в браке
+```
+:::
+
+-   Эффект 2000 года = 0 — **референтный** (`Number of references`); $\hat\alpha_i$ отсчитаны от него
+-   corr($\hat\alpha_i$, доля лет в браке) = `r f3(cor(alpha$alpha, alpha$mbar), 2)`. При $T_i$ = 2–3 $\hat\alpha_i$ очень шумны — не делайте из них переменную
+
+## Как читать вывод `etable()`
+
+```{r}
+#| include: false
+et <- etable(m_pool, m_fe, keep = c("%married", "%^age"),
+             dict = c(married = "married (женат)", age = "age (возраст)", age2 = "age2 (возраст²)"),
+             headers = c("Pooled", "FE"), fitstat = ~ n + r2 + wr2, drop.section = NULL)
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+et
+```
+
+### Код
+
+```{r}
+#| eval: false
+etable(m_pool, m_fe,
+       keep    = c("%married", "%^age"),       # «%» — фильтр по исходным именам, до dict
+       dict    = c(married = "married (женат)", age = "age (возраст)", age2 = "age2 (возраст²)"),
+       headers = c("Pooled", "FE"),            # заголовки столбцов
+       fitstat = ~ n + r2 + wr2,               # N, R², within R²
+       drop.section = NULL)                    # показать блок Fixed-Effects (в курсе скрыт)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · коэффициенты]{.k}
+
+Оценка, в скобках — **стандартная ошибка** (не $t$), звёзды — уровни значимости
+:::
+::: {.card}
+[2 · Fixed-Effects]{.k}
+
+Yes/No по каждому FE: читатель сразу видит, внутри чего идёт сравнение
+:::
+::: {.card .tint}
+[3 · S.E. type]{.k}
+
+Должно совпадать во всех столбцах, иначе сравнение ошибок некорректно
+:::
+::: {.card}
+[4 · Observations]{.k}
+
+В FE-столбце меньше: синглтоны выброшены. Разное N = разные выборки
+:::
+::: {.card .tint}
+[5 · R2 и Within R2]{.k}
+
+R² растёт от FE, within R² падает: в FE мерило — объяснённые **изменения**
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Пропавшая строка переменной (коллинеарность), разный S.E. type, сильный скачок N
+:::
+:::
+:::
+
+## Within-преобразование руками
+
+```{r}
+m_fe1 <- feols(log_wage ~ married + age + age2 | idind, data = men)   # только индивидуальные FE
+men_w <- men |>
+  group_by(idind) |>
+  mutate(across(c(log_wage, married, age, age2), ~ .x - mean(.x), .names = "{.col}_dm")) |>
+  ungroup()
+
+c(`feols с | idind` = unname(coef(m_fe1)["married"]),
+  `регрессия на отклонениях` = unname(coef(lm(log_wage_dm ~ married_dm + age_dm + age2_dm,
+                                                data = men_w))["married_dm"]))
+```
+
+::: {.callout-note appearance="minimal"}
+Ровно то же число. `| idind` в `fixest` — это демининг, сделанный быстро и с правильными степенями свободы.
+:::
+
+## Кто переключатели
+
+```{r}
+sw <- men |> group_by(idind) |>
+  summarise(n_waves = n(), switcher = n_distinct(married) > 1,
+            age_first = min(age), educ = first(educ_level))
+sw |> group_by(switcher) |>
+  summarise(людей = n(), `волн на человека` = mean(n_waves),
+            `возраст в 1-й волне` = mean(age_first), `доля с высшим` = mean(educ == "Высшее", na.rm = TRUE))
+```
+
+-   Эффект идентифицируют `r big(sum(sw$switcher))` мужчин из `r big(nrow(sw))` — те, кто женился или развёлся на глазах у RLMS
+-   Они моложе и наблюдаются дольше. FE-оценка — про них, а не про «всех женатых»
+
+## Отдача от образования: FE почти молчит
+
+```{r}
+ed <- rlms |> filter(age >= 22, age <= 60, employed == 1, !is.na(log_wage), !is.na(higher_ed))
+m_ed_pool <- feols(log_wage ~ higher_ed + age + I(age^2) + female | year, ed, vcov = ~idind)
+m_ed_fe   <- feols(log_wage ~ higher_ed + age + I(age^2) | idind + year, ed, vcov = ~idind)
+etable(m_ed_pool, m_ed_fe, keep = "higher_ed", depvar = FALSE, fitstat = ~ n, headers = c("срез", "FE"))
+```
+
+```{r}
+ed_sw <- ed |> group_by(idind) |> summarise(sw = n_distinct(higher_ed) > 1, age0 = min(age))
+ed_sw |> summarise(переключателей = sum(sw), всего = n(), `их возраст в 1-й волне` = mean(age0[sw]))
+```
+
+## Почему `r f3(coef(m_ed_fe)["higher_ed"], 2)` — не «отдача от диплома»
+
+::: {.tiles}
+::: {.tile .navy}
+[`r f3(coef(m_ed_pool)["higher_ed"], 2)` → `r f3(coef(m_ed_fe)["higher_ed"], 2)`]{.v} [срез → FE]{.l}
+:::
+::: {.tile}
+[`r big(sum(ed_sw$sw))`]{.v} [переключателей]{.l}
+:::
+::: {.tile}
+[`r round(mean(ed_sw$age0[ed_sw$sw]))` лет]{.v} [их средний возраст в 1-й волне]{.l}
+:::
+::: {.tile}
+[`r pc(mean(!ed_sw$sw))`]{.v} [людей с неизменным дипломом]{.l}
+:::
+:::
+
+-   Переключатели — только что получившие диплом. FE сравнивает их первую зарплату «с дипломом» с зарплатой студента-подработчика — это эффект **первого года после выпуска**, а не карьерная отдача
+-   Диплом не меняется у `r pc(mean(!ed_sw$sw))` людей — панель для этого вопроса почти бесполезна. Нужен другой источник вариации: инструменты (лекция 12)
+
+## Курение и здоровье внутри человека
+
+```{r}
+#| include: false
+h <- rlms |> filter(age >= 25, age <= 60, !is.na(smokes), !is.na(health_score))
+m_h_pool <- feols(health_score ~ smokes + age + I(age^2) + female | year, h, vcov = ~idind)
+m_h_fe   <- feols(health_score ~ smokes + age + I(age^2) | idind + year, h, vcov = ~idind)
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+etable(m_h_pool, m_h_fe, keep = "smokes", depvar = FALSE, fitstat = ~ n, headers = c("срез", "FE"))
+```
+
+### Код
+
+```{r}
+#| eval: false
+h <- rlms |> filter(age >= 25, age <= 60, !is.na(smokes), !is.na(health_score))
+m_h_pool <- feols(health_score ~ smokes + age + I(age^2) + female | year, h, vcov = ~idind)
+m_h_fe   <- feols(health_score ~ smokes + age + I(age^2) | idind + year, h, vcov = ~idind)
+etable(m_h_pool, m_h_fe, keep = "smokes", depvar = FALSE, fitstat = ~ n, headers = c("срез", "FE"))
+```
+:::
+
+-   В срезе курильщики оценивают здоровье хуже на `r f3(-coef(m_h_pool)["smokes"], 2)` балла; внутри человека — `r f3(coef(m_h_fe)["smokes"], 3)` (s.e. `r f3(se(m_h_fe)["smokes"], 3)`): эффекта нет
+-   Два объяснения, и FE их не различает — нужен порядок во времени (лекция 8):
+
+::: {.cards}
+::: {.card}
+[а · «тип человека»]{.k}
+
+Различия курящих и некурящих постоянны
+:::
+::: {.card .warn}
+[б · обратная причинность]{.k}
+
+Бросают курить **из-за** ухудшения здоровья — внутри человека
+:::
+:::
+
+## Анатомия `plm()`
+
+```{r}
+pmen <- pdata.frame(men, index = c("idind", "year"))   # 1-й индекс — единица, 2-й — время
+pdim(pmen)                                             # сбалансирована ли, n, T, N
+fe_plm <- plm(log_wage ~ married + age + age2, data = pmen,
+              model  = "within",     # FE; другие: "random", "pooling", "fd", "between"
+              effect = "twoways")    # "individual" (по умолчанию), "time", "twoways"
+```
+
+::: {.cards .c4}
+::: {.card}
+[pdata.frame]{.k}
+
+Данные «знают» панельную структуру; дубликаты пары (id, год) — ошибка, проверьте заранее
+:::
+::: {.card .tint}
+[model]{.k}
+
+`within` = FE, `random` = RE (GLS), `pooling` = МНК, `fd` = первые разности
+:::
+::: {.card}
+[effect]{.k}
+
+`twoways` = `| idind + year` в `fixest`; `individual` = только `| idind`
+:::
+::: {.card .warn}
+[ошибки]{.k}
+
+`summary()` по умолчанию даёт **iid**. Кластер — через `vcovHC()` (ниже)
+:::
+:::
+
+## Как читать вывод `summary(plm)`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+cat(capture.output(summary(fe_plm))[c(1, 7, 13:17, 21:25)], sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+**Twoways effects Within Model**: FE по человеку и году. Проверьте, что это та модель, которую вы хотели
+:::
+::: {.card}
+[2 · Unbalanced Panel]{.k}
+
+**n** = людей, **T** = от 1 до 26 волн на человека, **N** = всего наблюдений. Balanced = все люди во всех волнах
+:::
+::: {.card .tint}
+[3 · Coefficients]{.k}
+
+Те же оценки, что в `feols`. Std. Error здесь — **iid**, для статьи не годятся
+:::
+::: {.card}
+[4 · R-Squared]{.k}
+
+Это **within R²** (= `Within R2` в `fixest`). Adj. R² отрицателен из-за штрафа за тысячи FE — нормально
+:::
+::: {.card}
+[5 · F-statistic]{.k}
+
+Тест «все $X$ = 0» с iid-ошибками. Не тест на наличие FE (это `pFtest`)
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+N ≠ числу строк без пропусков; `T = 1-1`; ошибки iid в таблице статьи
+:::
+:::
+:::
+
+## `plm` и `fixest`: одно число, разные ошибки
+
+```{r}
+#| include: false
+v_plm <- vcovHC(fe_plm, method = "arellano", cluster = "group")   # кластер по человеку
+cmp <- tibble(
+  `оценка` = c("fixest, vcov = 'iid'", "plm, summary() (iid)", "fixest, vcov = ~idind",
+               "plm, vcovHC(arellano, group)", "fixest, ~idind, ssc(K.fixef = 'none', G.adj = FALSE)"),
+  married  = c(coef(m_fe)["married"], coef(fe_plm)["married"], coef(m_fe)["married"],
+               coef(fe_plm)["married"], coef(m_fe)["married"]),
+  se = c(se(m_fe, vcov = "iid")["married"], sqrt(diag(vcov(fe_plm)))["married"],
+         se(m_fe)["married"], sqrt(diag(v_plm))["married"],
+         se(m_fe, vcov = ~idind, ssc = ssc(K.fixef = "none", G.adj = FALSE))["married"]))
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+cmp |> mutate(married = formatC(married, format = "f", digits = 6), se = formatC(se, format = "f", digits = 6))
+```
+
+### Код
+
+```{r}
+#| eval: false
+v_plm <- vcovHC(fe_plm, method = "arellano", cluster = "group")   # кластер по человеку
+cmp <- tibble(
+  `оценка` = c("fixest, vcov = 'iid'", "plm, summary() (iid)", "fixest, vcov = ~idind",
+               "plm, vcovHC(arellano, group)", "fixest, ~idind, ssc(K.fixef = 'none', G.adj = FALSE)"),
+  married  = c(coef(m_fe)["married"], coef(fe_plm)["married"], coef(m_fe)["married"],
+               coef(fe_plm)["married"], coef(m_fe)["married"]),
+  se = c(se(m_fe, vcov = "iid")["married"], sqrt(diag(vcov(fe_plm)))["married"],
+         se(m_fe)["married"], sqrt(diag(v_plm))["married"],
+         se(m_fe, vcov = ~idind, ssc = ssc(K.fixef = "none", G.adj = FALSE))["married"]))
+```
+:::
+
+-   Коэффициенты **совпадают** до последнего знака. Кластерные ошибки различаются в 4–5-м знаке: `fixest` (как Stata `xtreg`) умножает на поправку малой выборки ($\frac{G}{G-1}$, $\frac{N-1}{N-K}$), `plm` — нет
+-   Отключив поправки через `ssc(K.fixef = "none", G.adj = FALSE)`, получаем почти число `plm`. Остаток — синглтоны, которых `plm` не удаляет
+
+## Как сообщить кластерные ошибки в `plm`
+
+```{r}
+coeftest(fe_plm, vcov = vcovHC(fe_plm, method = "arellano", cluster = "group"))
+```
+
+-   `method = "arellano"` — устойчиво к гетероскедастичности **и** автокорреляции внутри человека; `cluster = "group"` — по первому индексу (`idind`), `"time"` — по году
+-   Таблицу для статьи из `plm` собирают через `modelsummary(fe_plm, vcov = \(x) vcovHC(x, method = "arellano"))`
+
+## Тесты на наличие эффектов и автокорреляцию
+
+```{r}
+#| include: false
+f_h    <- log_wage ~ married + age + age2
+fe_i   <- plm(f_h, data = pmen, model = "within")    # только индивидуальные FE
+re_i   <- plm(f_h, data = pmen, model = "random")
+pool_i <- plm(f_h, data = pmen, model = "pooling")
+```
+
+::: {.panel-tabset}
+### `pFtest`: FE против МНК
+
+```{r}
+pFtest(fe_i, pool_i)
+```
+
+$H_0$: все $\alpha_i$ равны (хватает обычного МНК). F = `r round(pFtest(fe_i, pool_i)$statistic)` на (`r big(pFtest(fe_i, pool_i)$parameter[1])`, `r big(pFtest(fe_i, pool_i)$parameter[2])`) df — индивидуальные различия огромны
+
+### `plmtest`: есть ли RE
+
+```{r}
+plmtest(pool_i, type = "bp")
+```
+
+Лагранжев тест Бройша–Пагана: $H_0$ — дисперсия $\alpha_i$ = 0. Отвергается → МНК без учёта панели неприемлем; но это **не** выбор между FE и RE
+
+### `pbgtest` / `pwartest`
+
+```{r}
+#| eval: false
+pbgtest(fe_i, order = 1)              # Бройш–Годфри/Вулдридж: автокорреляция остатков
+pwartest(f_h, data = pmen)            # тест Вулдриджа для FE-моделей
+```
+
+```{r}
+#| echo: false
+list(pbgtest = pbgtest(fe_i, order = 1), pwartest = pwartest(f_h, data = pmen)) |>
+  map_dfr(\(t) tibble(статистика = names(t$statistic), значение = round(unname(t$statistic), 1),
+                      p = format.pval(t$p.value, digits = 2)), .id = "тест")
+```
+
+Обе нулевые гипотезы «нет автокорреляции» отвергнуты (p < 0.001) → iid-ошибки занижены, кластер по человеку **обязателен**
+:::
+
+## Тест Хаусмана: логика
+
+::: {.cards}
+::: {.card .good}
+[$H_0$]{.k}
+
+### $\alpha_i$ не связаны с $X$
+
+FE и RE обе состоятельны, RE эффективнее → оценки должны быть **близки**
+:::
+::: {.card .warn}
+[$H_1$]{.k}
+
+### $\alpha_i$ связаны с $X$
+
+FE состоятельна, RE — нет → оценки **расходятся**
+:::
+:::
+
+$$H = (\hat\beta_{FE} - \hat\beta_{RE})'\,[\hat V_{FE} - \hat V_{RE}]^{-1}\,(\hat\beta_{FE} - \hat\beta_{RE}) \sim \chi^2_k$$
+
+```{r}
+#| eval: false
+fe_i <- plm(log_wage ~ married + age + age2, data = pmen, model = "within")
+re_i <- plm(log_wage ~ married + age + age2, data = pmen, model = "random")
+phtest(fe_i, re_i)
+```
+
+-   Формула $\hat V_{FE} - \hat V_{RE}$ верна, **только если RE полностью эффективна**: iid-ошибки, нормальные $\alpha_i$. В панели с автокорреляцией это ложно
+
+## Как читать вывод `phtest()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+h_cl <- phtest(fe_i, re_i)
+h_cl
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · data]{.k}
+
+Формула, по которой сравнивали. Оба объекта должны иметь одинаковые $X$ и выборку
+:::
+::: {.card .tint}
+[2 · chisq]{.k}
+
+Статистика $H$ = `r big(round(h_cl$statistic))`. Чем больше, тем сильнее расходятся FE и RE относительно шума
+:::
+::: {.card}
+[3 · df]{.k}
+
+Число **сравниваемых** коэффициентов (только меняющиеся во времени): здесь `r h_cl$parameter`
+:::
+::: {.card .tint}
+[4 · p-value]{.k}
+
+$p$ < 0.05 → RE отвергнута. Не «FE верна»: FE — поддерживаемая гипотеза, тест её не проверяет
+:::
+::: {.card}
+[5 · alternative]{.k}
+
+«one model is inconsistent» — какая именно, тест не говорит; по построению это RE
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Отрицательная $\chi^2$ (матрица $V_{FE} - V_{RE}$ не положительна); классический тест при кластерных ошибках; N в сотни тысяч → отвергает всегда
+:::
+:::
+:::
+
+## Что именно отвергнуто
+
+```{r}
+b_fe <- coef(fe_i); b_re <- coef(re_i)[names(b_fe)]
+V_d  <- vcov(fe_i) - vcov(re_i)[names(b_fe), names(b_fe)]
+tibble(term = names(b_fe), FE = b_fe, RE = b_re, `разница` = b_fe - b_re,
+       z = (b_fe - b_re) / sqrt(diag(V_d))) |> mutate(across(-term, \(x) formatC(x, digits = 3, format = "g")))
+```
+
+-   Тест **совместный**. Покоэффициентно: `married` в FE и RE почти одинаков ($z$ = `r f3(((b_fe - b_re) / sqrt(diag(V_d)))["married"], 2)`), а отвержение даёт **возрастной профиль**
+-   RE-оценка брака близка к FE не потому, что RE верна: $\hat\theta$ в среднем `r f3(mean(ercomp(re_i)$theta), 2)` — RE почти целиком внутри-человеческая
+
+## Робастный тест Хаусмана в `plm`
+
+```{r}
+#| cache: true
+h_rob <- phtest(log_wage ~ married + age + age2, data = pmen, method = "aux",
+                vcov = function(x) vcovHC(x, method = "arellano"))
+h_rob
+```
+
+-   `method = "aux"` — регрессионная версия (Wooldridge 2010, §10.7.3): RE-регрессия + within-отклонения $X$; проверяем, что их коэффициенты = 0
+-   Только её можно сделать робастной: `vcov =` принимает **функцию** от модели. Здесь вывод тот же ($\chi^2$ = `r big(round(h_rob$statistic))` против `r big(round(h_cl$statistic))`), но так бывает не всегда
+
+## Мундлак: тест Хаусмана руками
+
+```{r}
+men_m <- men |> group_by(idind) |>
+  mutate(married_bar = mean(married), age_bar = mean(age), age2_bar = mean(age2)) |> ungroup()
+m_mund <- feols(log_wage ~ married + age + age2 + married_bar + age_bar + age2_bar,
+                data = men_m, vcov = ~idind)
+w_mund <- wald(m_mund, keep = "_bar", print = FALSE)
+coeftable(m_mund)[c("married", "married_bar"), 1:3] |> round(3)
+```
+
+::: {.cards .c3}
+::: {.card .tint}
+[married]{.k}
+
+`r f3(coef(m_mund)["married"], 4)` — **ровно** FE с `| idind` (`r f3(coef(m_fe1)["married"], 4)`)
+:::
+::: {.card}
+[married_bar]{.k}
+
+`r f3(coef(m_mund)["married_bar"], 2)`: те, кто чаще женат, имеют выше **постоянную** зарплату — это селекция
+:::
+::: {.card .navy}
+[wald(…, keep = "_bar")]{.k}
+
+$F$(`r w_mund$df1`, `r big(w_mund$df2)`) = `r round(w_mund$stat)`, кластер по idind → RE отвергнута
+:::
+:::
+
+## Как писать результат: FE или RE
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«Робастный тест Хаусмана в форме Мундлака (Wooldridge 2010, §10.7.3; ошибки кластеризованы по индивиду) отвергает допущение модели случайных эффектов: средние по индивиду совместно значимы, *F*(`r w_mund$df1`, `r big(w_mund$df2)`) = `r round(w_mund$stat)`, *p* < 0.001. Мужчины, которые чаще состоят в браке, имеют более высокий постоянный уровень заработков (коэффициент при средней = `r f3(coef(m_mund)["married_bar"], 2)`). Поэтому основная спецификация — модель с фиксированными эффектами индивида и года: вступление в брак связано с ростом заработной платы на **`r f3(100 * coef(m_fe)["married"], 1)`%** (s.e. = `r f3(100 * se(m_fe)["married"], 1)` п. п.).»
+:::
+
+-   Называйте **версию** теста и тип ошибок. «Тест Хаусмана показал, что нужна FE» без деталей — недостаточно
+-   Не пишите «FE-модель верна»: тест отвергает RE, а не подтверждает отсутствие меняющихся во времени конфаундеров
+
+## Дети до 3 лет и занятость: данные
+
+```{r}
+#| eval: false
+wm <- rlms |>
+  filter(female == 1, age >= 20, age <= 45, !is.na(work_status),
+         !in_university %in% 1, !in_school %in% 1) |>
+  mutate(yk = year - pmax(child1_birth_year, child2_birth_year, child3_birth_year, na.rm = TRUE),
+         kid_u3  = as.integer(!is.na(yk) & yk >= 0 & yk < 3),   # младшему ребёнку < 3 лет
+         married = coalesce(married, 0L))
+```
+
+::: {.tiles}
+::: {.tile .navy}
+[`r pc(mean(wm$employed))`]{.v} [наблюдений: есть работа (включая декрет)]{.l}
+:::
+::: {.tile}
+[`r pc(mean(wm$kid_u3))`]{.v} [наблюдений: ребёнок до 3 лет]{.l}
+:::
+::: {.tile}
+[`r pc(mean(wm_var$vy))`]{.v} [женщин (≥ 2 волн): занятость менялась]{.l}
+:::
+::: {.tile}
+[`r pc(mean(wm_var$vx))`]{.v} [женщин (≥ 2 волн): `kid_u3` менялся]{.l}
+:::
+:::
+
+-   `employed` = 1 при `j1` = 1–4: работает **или в отпуске**, в т. ч. декретном. Вопрос — о потере работы, а не о выходе в декрет
+
+## Линейная модель вероятности с FE
+
+```{r}
+lpm <- feols(employed ~ kid_u3 + married | idind + year, data = wm, vcov = ~idind)
+summary(lpm)
+```
+
+-   Коэффициент `kid_u3` = `r f3(coef(lpm)["kid_u3"])`: когда у женщины появляется ребёнок до 3 лет, вероятность иметь работу ниже на **`r f3(-100 * coef(lpm)["kid_u3"], 1)` п. п.**
+-   Плюсы: те же FE и ошибки, что для зарплаты; интерпретация прямо в п. п. Минус: линейность, прогнозы вне [0, 1]
+
+## FE-логит в `fixest`: `feglm()`
+
+```{r}
+lgt <- feglm(employed ~ kid_u3 + married | idind + year, data = wm,
+             family = binomial("logit"), vcov = ~idind)
+```
+
+::: {.tiles}
+::: {.tile}
+[`r big(lgt$nobs_origin)`]{.v} [наблюдений на входе]{.l}
+:::
+::: {.tile .navy}
+[`r big(nobs(lgt))`]{.v} [осталось в модели]{.l}
+:::
+::: {.tile}
+[`r big(length(lgt$fixef_removed$idind))`]{.v} [женщин выброшено: $y$ не менялся (или 1 волна)]{.l}
+:::
+:::
+
+-   Если женщина всегда работала, $\hat\alpha_i \to +\infty$ объясняет всё, и она ничего не говорит о $\beta$. `fixest` удаляет такие FE сам (`fixef.rm = "perfect_fit"`); список — в `lgt$fixef_removed`
+-   Это **не потеря данных**, а честная граница: оценка — про `r big(nobs(lgt))` наблюдений женщин, чья занятость менялась
+
+## Как читать вывод `summary(feglm)`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+summary(lgt)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+**GLM, binomial**; Observations — **после** удаления женщин без вариации $y$. Fixed-effects — сколько женщин осталось
+:::
+::: {.card .tint}
+[2 · Estimate]{.k}
+
+Лог-шансы: `kid_u3` = `r f3(coef(lgt)["kid_u3"])`. Не п. п.! Отношение шансов: $e^{\hat\beta}$ = `r f3(exp(coef(lgt)["kid_u3"]), 2)`
+:::
+::: {.card}
+[3 · z value]{.k}
+
+Асимптотическая нормальность; ошибки кластеризованы по idind (мы указали `vcov`)
+:::
+::: {.card}
+[4 · Log-Likelihood, BIC]{.k}
+
+Для сравнения вложенных моделей на **одной** выборке
+:::
+::: {.card}
+[5 · Pseudo R2, Squared Cor.]{.k}
+
+Описательные меры подгонки, к идентификации отношения не имеют
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Безусловный ML: при малом $T$ коэффициент **смещён от нуля**. Нужна поправка или `clogit` (дальше)
+:::
+:::
+:::
+
+## Инцидентные параметры: `bife` и поправка
+
+```{r}
+#| cache: true
+bf    <- bife(employed ~ kid_u3 + married + factor(year) | idind, data = wm, model = "logit")
+bf_bc <- bias_corr(bf)            # аналитическая поправка Fernández-Val, Weidner (2016)
+```
+
+```{r}
+#| echo: false
+tibble(модель = c("feglm (fixest)", "bife, без поправки", "bife + bias_corr()"),
+       kid_u3 = c(coef(lgt)["kid_u3"], coef(bf)["kid_u3"], coef(bf_bc)["kid_u3"]),
+       married = c(coef(lgt)["married"], coef(bf)["married"], coef(bf_bc)["married"])) |>
+  mutate(across(-модель, \(x) round(x, 3)))
+```
+
+-   `feglm` и `bife` — **одна и та же** оценка (безусловный ML с дамми на человека); `bife` знает только один FE, годы — дамми `factor(year)`
+-   Поправка сдвигает коэффициент к нулю на `r pc(1 - coef(bf_bc)["kid_u3"] / coef(bf)["kid_u3"])`: при среднем $T$ ≈ `r round(nobs(lgt) / length(fixef(lgt)$idind), 1)` волн смещение заметное
+
+## Как читать вывод `bife`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+cat(capture.output(summary(bf_bc))[c(1, 3, 5:8, 34, 37:41, 45)], sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+`binomial - logit link` и формула: FE — после `|`, только **один**
+:::
+::: {.card .tint}
+[2 · Estimates]{.k}
+
+Лог-шансы **после** поправки (если печатаем `bias_corr`-объект). Ошибки не кластеризованы
+:::
+::: {.card}
+[3 · n и N]{.k}
+
+**n** = наблюдений в оценке, **N** = женщин. Совпадают с `feglm`
+:::
+::: {.card}
+[4 · perfect classification]{.k}
+
+Сколько наблюдений выброшено: женщины с постоянным $y$ (и с одной волной)
+:::
+::: {.card}
+[5 · Average individual FE]{.k}
+
+Средний $\hat\alpha_i$; сам по себе не интерпретируется
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Поправка меняет оценку на десятки процентов → $T$ мал, доверяйте `clogit`; много итераций / нет сходимости
+:::
+:::
+:::
+
+## Условный логит: `clogit()`
+
+```{r}
+#| cache: true
+cl <- clogit(employed ~ kid_u3 + married + factor(year) + strata(idind), data = wm, method = "exact")
+```
+
+```{r}
+#| echo: false
+b_tab <- tibble(
+  модель = c("feglm / bife (безусловный ML)", "bife + bias_corr()", "clogit (условный ML)"),
+  kid_u3 = c(coef(lgt)["kid_u3"], coef(bf_bc)["kid_u3"], coef(cl)["kid_u3"]),
+  se     = c(se(lgt)["kid_u3"], sqrt(diag(vcov(bf_bc)))[1], sqrt(diag(vcov(cl)))["kid_u3"]),
+  `отношение шансов` = exp(kid_u3))
+b_tab |> mutate(across(-модель, \(x) round(x, 3)))
+```
+
+-   `strata(idind)` — условие на число единиц у каждой женщины: $\alpha_i$ исключается **точно**, без оценки. Женщины без вариации $y$ не вносят вклада сами
+-   Поправленный `bife` почти совпал с `clogit`; безусловный ML завышает эффект по модулю. Ошибки `clogit` — модельные (не кластерные)
+
+## Отношения шансов
+
+```{r}
+or_cl <- exp(coef(cl)["kid_u3"]); ci_cl <- exp(confint(cl)["kid_u3", ])
+round(c(OR = unname(or_cl), `2.5%` = unname(ci_cl[1]), `97.5%` = unname(ci_cl[2])), 3)
+```
+
+-   $e^{\hat\beta}$ = `r f3(or_cl, 2)` (`clogit`): при ребёнке до 3 лет **шансы** иметь работу, p / (1 − p), умножаются на `r f3(or_cl, 2)`, т. е. ниже на `r pc(1 - or_cl)`
+-   Шансы ≠ вероятность: при $p$ = 0.9 падение шансов на `r pc(1 - or_cl)` — это одно число п. п., при $p$ = 0.5 — другое. Для п. п. нужны предельные эффекты
+-   Доверительный интервал считаем на шкале коэффициента и **потом** экспонируем (как `confint()` выше)
+
+## От коэффициентов к вероятностям
+
+```{r}
+#| cache: true
+me_lgt <- avg_slopes(lgt, variables = "kid_u3")      # marginaleffects: среднее по выборке модели
+ape_bc <- get_APEs(bf_bc)                             # bife: APE с поправкой смещения
+lpm_mv <- feols(employed ~ kid_u3 + married | idind + year, data = wm[obs(lgt), ], vcov = ~idind)
+```
+
+```{r}
+#| echo: false
+ape0 <- get_APEs(bf)
+ape_tab <- tibble(
+  оценка = c("LPM, все женщины", "LPM, только с вариацией y", "FE-логит: avg_slopes()",
+             "bife: get_APEs()", "bife + bias_corr: get_APEs()"),
+  `эффект, п. п.` = 100 * c(coef(lpm)["kid_u3"], coef(lpm_mv)["kid_u3"], me_lgt$estimate,
+                            ape0$delta["kid_u3"], ape_bc$delta["kid_u3"]),
+  `над кем усредняем` = c(big(nobs(lpm)), big(nobs(lpm_mv)), big(nobs(lgt)),
+                          paste(big(bf$nobs[["nobs_full"]]), "(у неподвижных 0)"), paste(big(bf$nobs[["nobs_full"]]), "(у неподвижных 0)")))
+ape_tab |> mutate(`эффект, п. п.` = round(`эффект, п. п.`, 1))
+```
+
+-   `avg_slopes(m, variables = "x")`: для бинарного `x` — $\hat p(x{=}1) - \hat p(x{=}0)$ для каждого наблюдения **выборки модели**, затем среднее; s.e. дельта-методом по `vcov` модели (у нас кластер). В FE-логите $\hat p$ включает $\hat\alpha_i$
+-   `get_APEs()` — то же в `bife` (после `bias_corr()` — с поправкой), но делит на **все** `r big(bf$nobs[["nobs_full"]])` наблюдений, включая синглтоны и «неподвижных»; ошибки не кластерные
+
+## Над кем усредняем — главный вопрос
+
+::: {.cards .c3}
+::: {.card}
+[avg_slopes(feglm)]{.k}
+
+### Только «подвижные»
+
+Среднее по `r big(nobs(lgt))` наблюдениям женщин с меняющейся занятостью. Использует $\hat\alpha_i$ — а они смещены при малом $T$
+:::
+::: {.card .tint}
+[get_APEs(bife)]{.k}
+
+### Все, у неподвижных — 0
+
+Для женщин с постоянным $y$ модель полагает $\alpha_i = \pm\infty$ и эффект 0. Это **допущение модели**, а не данные
+:::
+::: {.card}
+[LPM]{.k}
+
+### Взвешенное среднее
+
+Коэффициент — среднее с весами по within-дисперсии `kid_u3`, без предположения о форме связи
+:::
+:::
+
+::: {.thesis .smaller}
+На одной выборке LPM и FE-логит дают почти одно и то же (`r f3(100 * coef(lpm_mv)["kid_u3"], 1)` и `r f3(100 * me_lgt$estimate, 1)` п. п.). Различия в таблице — в основном **разные популяции**, а не разные модели. Всегда пишите, по кому усреднён эффект.
+:::
+
+## Как писать результат: бинарный исход
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«В модели с фиксированными эффектами индивида и года наличие ребёнка младше 3 лет связано со снижением вероятности иметь работу на **`r f3(-100 * coef(lpm)["kid_u3"], 1)` п. п.** (линейная модель вероятности, s.e. = `r f3(100 * se(lpm)["kid_u3"], 1)`, ошибки кластеризованы по индивиду). Условный логит даёт отношение шансов `r f3(or_cl, 2)` (95% ДИ `r f3(ci_cl[1], 2)`–`r f3(ci_cl[2], 2)`); эффект идентифицирован по `r big(nobs(lgt))` наблюдениям `r big(length(fixef(lgt)$idind))` женщин, чья занятость менялась за период наблюдения. Для них средний предельный эффект — снижение на `r f3(-100 * me_lgt$estimate, 1)` п. п.»
+:::
+
+-   Обязательно: какая модель главная, **по кому** усреднён эффект, сколько единиц выброшено и почему
+-   Не пишите «шансы ниже на `r pc(1 - or_cl)`» как «вероятность ниже на `r pc(1 - or_cl)`»
+
+## Диагностика 1: есть ли вариация внутри человека
+
+```{r}
+#| include: false
+within_check <- function(d, vars, id = "idind") {
+  map_dfr(vars, \(v) {
+    x  <- d[[v]]; g <- d[[id]]; ok <- !is.na(x)
+    xd <- x[ok] - ave(x[ok], g[ok])                        # отклонение от среднего по человеку
+    n_i <- tapply(x[ok], g[ok], length); ch <- tapply(x[ok], g[ok], \(z) length(unique(z)) > 1)
+    tibble(переменная = v,
+           `доля людей (≥ 2 волн) с изменением` = mean(ch[n_i > 1]),
+           `within SD / общее SD` = sd(xd) / sd(x[ok]))
+  })
+}
+within_check(men, c("married", "higher_ed", "urban", "official", "state_owned")) |>
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+within_check(men, c("married", "higher_ed", "urban", "official", "state_owned")) |>
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+
+### Код функции
+
+```{r}
+#| eval: false
+within_check <- function(d, vars, id = "idind") {
+  map_dfr(vars, \(v) {
+    x  <- d[[v]]; g <- d[[id]]; ok <- !is.na(x)
+    xd <- x[ok] - ave(x[ok], g[ok])                        # отклонение от среднего по человеку
+    n_i <- tapply(x[ok], g[ok], length); ch <- tapply(x[ok], g[ok], \(z) length(unique(z)) > 1)
+    tibble(переменная = v,
+           `доля людей (≥ 2 волн) с изменением` = mean(ch[n_i > 1]),
+           `within SD / общее SD` = sd(xd) / sd(x[ok]))
+  })
+}
+within_check(men, c("married", "higher_ed", "urban", "official", "state_owned")) |>
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
+```
+:::
+
+-   Доля людей с изменением — кто вообще даёт информацию для FE; within SD / общее SD — какая часть разброса остаётся после вычитания средних по человеку
+-   Мало вариации → FE держится на горстке людей и на **ошибках кодирования**; `urban` почти не меняется — в FE неинформативен
+
+## Диагностика 2: коллинеарность с FE
+
+```{r}
+m_col <- feols(log_wage ~ married + I(year - birth_year) + birth_year | idind + year,
+               data = men, vcov = ~idind)
+m_col$collin.var          # что выброшено молча
+```
+
+-   `birth_year` постоянен → поглощён `idind`. `year − birth_year` = год − константа → поглощён `idind + year`. `fixest` удаляет их и пишет об этом в `summary()`
+-   А `age` в нашей модели выжил: он записан на дату интервью и отличается от `year − birth_year` у `r pc(mean(men$age != men$year - men$birth_year))` наблюдений. Коэффициент при `age` держится только на этом — **не интерпретируйте** его
+
+::: {.callout-important appearance="minimal"}
+Если коллинеарна **интересующая** переменная, модель неверно поставлена. Автоматическое удаление — для контролей (Bergé, «On collinearity»).
+:::
+
+## Диагностика 3: синглтоны и `fixef.rm`
+
+```{r}
+m_none <- feols(log_wage ~ married + age + age2 | idind + year, men, vcov = ~idind, fixef.rm = "none")
+tibble(fixef.rm = c('"perfect_fit" (по умолч.)', '"none"'), N = c(nobs(m_fe), nobs(m_none)),
+       married = c(coef(m_fe)["married"], coef(m_none)["married"]),
+       se = c(se(m_fe)["married"], se(m_none)["married"])) |> mutate(across(c(married, se), \(x) round(x, 5)))
+```
+
+-   Синглтон — человек с одной волной: его $\alpha_i$ объясняет наблюдение полностью. Удаление **не меняет** коэффициенты, только N и (слегка) ошибки
+-   Сообщайте N **после** удаления и сколько выброшено: `nobs(m)`, `m$nobs_origin`, `m$fixef_removed`
+
+## Ошибки измерения: FE делает хуже
+
+```{r}
+set.seed(7)
+sim <- expand_grid(id = 1:3000, t = 1:5) |>
+  group_by(id) |> mutate(alpha = rnorm(1), d_true = rbinom(5, 1, 0.5)) |> ungroup() |>
+  mutate(y = 1 + 0.5 * d_true + alpha + rnorm(n()),
+         d_obs = ifelse(runif(n()) < 0.15, 1 - d_true, d_true))       # 15 % ответов ошибочны
+c(`OLS, D без ошибок` = coef(feols(y ~ d_true, sim))["d_true"],
+  `OLS, D с ошибками` = coef(feols(y ~ d_obs, sim))["d_obs"],
+  `FE, D с ошибками`  = coef(feols(y ~ d_obs | id, sim))["d_obs"])
+```
+
+-   Within-преобразование убирает «сигнал» (постоянную часть $D$), а «шум» ошибок остаётся → доля шума растёт, оценка сильнее тянется к нулю
+-   Для переменных, которые плохо измеряются и редко меняются (образование, профессия), FE особенно рискован
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Восемь ошибок с FE
+
+::: {.flips}
+::: {.flip}
+[ошибка 1]{.k}
+
+### «Добавили FE — убрали эндогенность»
+
+---
+
+**Как правильно:** FE убирает только постоянное во времени. Меняющиеся конфаундеры и обратная причинность остаются
+:::
+::: {.flip}
+[ошибка 2]{.k}
+
+### Не смотрят на переключателей
+
+---
+
+**Как правильно:** посчитать, сколько людей меняли $D$, описать их; оценка — про них
+:::
+::: {.flip}
+[ошибка 3]{.k}
+
+### iid-ошибки по умолчанию
+
+---
+
+**Как правильно:** в `fixest` и `plm` по умолчанию iid. Всегда `vcov = ~idind` / `vcovHC(..., "arellano")`
+:::
+::: {.flip}
+[ошибка 4]{.k}
+
+### Хаусман как ритуал
+
+---
+
+**Как правильно:** классический тест при кластерных ошибках некорректен. Робастный `phtest(method = "aux")` или Мундлак + содержательный аргумент
+:::
+:::
+
+## Восемь ошибок с FE (2)
+
+::: {.flips}
+::: {.flip}
+[ошибка 5]{.k}
+
+### Контроли-последствия и лаг исхода
+
+---
+
+**Как правильно:** не включать должность «после брака»; лаг $y$ при малом $T$ — смещение Никелла
+:::
+::: {.flip}
+[ошибка 6]{.k}
+
+### Коэффициент логита как п. п.
+
+---
+
+**Как правильно:** лог-шансы → отношение шансов $e^\beta$ или средний предельный эффект
+:::
+::: {.flip}
+[ошибка 7]{.k}
+
+### Безусловный FE-логит при малом $T$
+
+---
+
+**Как правильно:** `clogit` или `bife::bias_corr()`; сравнить оба
+:::
+::: {.flip}
+[ошибка 8]{.k}
+
+### APE без популяции
+
+---
+
+**Как правильно:** указать, по кому усреднено: все, «подвижные», с нулём для «неподвижных»
+:::
+:::
+
+## Чек-лист
+
+-   [ ] Названо, какие ненаблюдаемые считаем постоянными — и почему это правдоподобно
+-   [ ] Подсчитаны переключатели и within-вариация; описано, чем переключатели отличаются
+-   [ ] Контроли меняются во времени и не являются следствиями воздействия; `collin.var` пуст для ключевых $X$
+-   [ ] Двусторонние FE + кластер по человеку; N после удаления синглтонов указан
+-   [ ] FE против RE — робастный тест (Мундлак / `method = "aux"`), а не классический `phtest`
+-   [ ] Бинарный исход: LPM + `clogit`/`bias_corr`; эффект в п. п. с указанием популяции
+-   [ ] Проверено, не предшествует ли изменение исхода изменению воздействия (лекция 8); обсуждена ошибка измерения
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Оцените «премию за брак» для женщин 25–50 лет в срезе и с FE в `fixest` **и** `plm`; убедитесь, что коэффициенты совпадают. Кто переключатели?
+2.  Для той же модели проведите классический и робастный тест Хаусмана и тест Мундлака. Напишите абзац результата по шаблону
+3.  Эффект **официального оформления** (`official`) на зарплату: срез → FE → FE с кластером по площадке → FE с `site_code^year`. Как меняется оценка и ошибка?
+4.  Бинарный исход: `smokes ~ married` у мужчин 25–50. LPM, `feglm`, `bife` + `bias_corr`, `clogit`; средние предельные эффекты. Сколько мужчин выброшено и почему?
+5.  Повторите симуляцию с ошибкой измерения: 30 % ошибок и 10 волн. Что происходит с FE-оценкой?
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+::: {.smaller}
+-   Wooldridge J. (2010). *Econometric Analysis of Cross Section and Panel Data*, 2nd ed. Гл. 10 (FE, RE, тест Хаусмана, §10.7.3 — робастная версия), гл. 15 (бинарные исходы, условный логит, CRE-пробит)
+-   Angrist J., Pischke J.-S. *Mostly Harmless Econometrics*, гл. 5; Huntington-Klein N. *The Effect*, гл. 16
+-   Croissant Y., Millo G. (2008). Panel Data Econometrics in R: The plm Package. *JSS* 27(2); Croissant Y., Millo G. (2018). *Panel Data Econometrics with R*. Wiley
+-   Bergé L. (2018). Efficient estimation of maximum likelihood models with multiple fixed-effects: the R package FENmlm. *CREA DP*; виньетки `fixest`: walkthrough, standard errors, multiple estimations, collinearity
+-   Mundlak Y. (1978). On the Pooling of Time Series and Cross Section Data. *Econometrica*; Hausman J. (1978). Specification Tests in Econometrics. *Econometrica*
+-   Chamberlain G. (1980). Analysis of Covariance with Qualitative Data. *REStud* — условный логит
+-   Fernández-Val I., Weidner M. (2016). Individual and time effects in nonlinear panel models with large N, T. *J. of Econometrics*; Stammann A. (2018). Fast and Feasible Estimation of Generalized Linear Models with High-Dimensional k-way Fixed Effects. arXiv — пакеты `bife`, `alpaca`
+-   Imai K., Kim I. S. (2019). When Should We Use Unit Fixed Effects Regression Models for Causal Inference with Longitudinal Data? *AJPS*
+:::

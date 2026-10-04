@@ -1,0 +1,472 @@
+---
+title: "Лекция 4. Регрессия как каузальный инструмент"
+subtitle: "Блок 1. Отбор по наблюдаемым"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+work <- adults |>
+  filter(employed == 1, age >= 25, age <= 60, year >= 2010,
+         !is.na(log_wage), !is.na(years_educ), !is.na(experience)) |>
+  mutate(exp2 = experience^2)
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Регрессия — рабочая лошадь, а не волшебная палочка
+
+-   90 % прикладных оценок эффектов — регрессия с контролями. Это нормально, **если** мы понимаем, что она делает
+-   Регрессия реализует backdoor-корректировку (лекция 3): сравнивает людей **с одинаковыми** $X$ и усредняет
+-   Два вопроса на сегодня: **что именно** усредняет регрессия и **насколько точно** мы это измеряем
+
+::: {.thesis}
+Допущение — условная независимость при данных $X$. Регрессия его не проверяет и не создаёт. Она лишь аккуратно (или не очень) усредняет сравнения внутри групп.
+:::
+
+## План занятия
+
+1.  Что делает «контроль»: теорема Фриша–Во–Ловелла руками
+2.  Какие сравнения регрессия взвешивает сильнее
+3.  Формула пропущенной переменной: куда смещена оценка
+4.  Интерпретация: логарифмы, категории, взаимодействия
+5.  Стандартные ошибки: робастные и кластерные
+6.  Инструменты: `fixest`, `marginaleffects`, `modelsummary`
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Что такое «при прочих равных»
+
+Регрессия $Y = \alpha + \tau D + X\beta + \varepsilon$ оценивает $\tau$ так (теорема **Фриша–Во–Ловелла**):
+
+::: {.steps}
+::: {}
+**Регрессируем $D$ на $X$**, берём остатки $\tilde D$ — часть $D$, **не объяснённая** контролями
+:::
+::: {}
+**Регрессируем $Y$ на $X$**, берём остатки $\tilde Y$
+:::
+::: {}
+**$\hat\tau$** = наклон регрессии $\tilde Y$ на $\tilde D$
+:::
+:::
+
+::: {.thesis}
+Коэффициент при $D$ использует только ту вариацию $D$, которая **остаётся после** контролей. Если $X$ объясняет $D$ почти полностью, оценка опирается на крохи — и на людей, «нетипичных» для своих $X$.
+:::
+
+## Какие сравнения весят больше
+
+Если эффект разный в разных группах $X = x$, регрессия с «насыщенными» контролями даёт **взвешенное среднее** эффектов по группам с весами
+
+$$w_x \propto n_x \cdot \text{Var}(D \mid X = x)$$
+
+-   Больше веса — группам, где воздействие **варьирует** (половина с дипломом, половина без)
+-   Группы, где почти у всех диплом есть (или нет), почти не влияют на оценку
+-   Поэтому регрессионный коэффициент — не ATE и не ATT, а «ATE с регрессионными весами». Мэтчинг и взвешивание (лекции 5–6) меняют веса явно
+
+## Формула пропущенной переменной
+
+Истинная модель: $Y = \tau D + \gamma U + \varepsilon$. Оценили без $U$:
+
+$$\hat\tau_{\text{короткая}} \;\to\; \tau + \gamma \cdot \delta, \qquad \delta = \text{коэффициент в регрессии } U \text{ на } D \mid X$$
+
+-   Смещение = (влияние пропущенного на $Y$) × (его связь с $D$)
+-   **Знак** смещения можно рассуждать: способности повышают зарплату ($\gamma > 0$) и чаще у дипломированных ($\delta > 0$) → отдача от образования **завышена**
+-   Если пропущенное не связано с $D$ при данных $X$ ($\delta = 0$) — смещения нет, даже если оно сильно влияет на $Y$
+-   Эта же формула — основа анализа чувствительности (лекция 17)
+
+## Как читать коэффициенты
+
+| Спецификация | Коэффициент означает |
+|--------------|----------------------|
+| $Y \sim D$, $Y$ в уровнях | разница в рублях |
+| $\log Y \sim D$ | ≈ доля: $e^{\tau} - 1$; при $\tau = 0.3$ это 35 %, а не 30 % |
+| $\log Y \sim \log X$ | эластичность |
+| $Y \sim D + D \times \text{female}$ | эффект для мужчин и **добавка** для женщин |
+| $Y \sim \text{i(educ\_level)}$ | разница с базовой категорией, без допущения о линейности |
+| $Y \sim D \mid \text{year}$ | сравнение **внутри** года (фиксированные эффекты) |
+
+::: {.callout-tip appearance="minimal"}
+`marginaleffects::avg_slopes()` и `avg_comparisons()` переводят любую спецификацию в понятные величины: «средний эффект +1 года обучения в процентах зарплаты, отдельно по полу».
+:::
+
+## Стандартные ошибки
+
+::: {.cards}
+::: {.card}
+[гетероскедастичность]{.k}
+
+Дисперсия ошибок разная у разных людей → робастные ошибки (HC1–HC3). В больших выборках — всегда
+:::
+::: {.card .tint}
+[кластеры]{.k}
+
+Наблюдения внутри площадки / человека / фирмы коррелированы → кластерные ошибки. Правило: кластеризуем по уровню, на котором **назначается воздействие** или **отбирается выборка**
+:::
+::: {.card}
+[панель RLMS]{.k}
+
+`cluster = ~idind` — человек наблюдается много раз; для региональных политик — `cluster = ~psu` или по субъекту
+:::
+::: {.card .warn}
+[мало кластеров]{.k}
+
+Меньше 30–40 кластеров — ошибки занижены: wild cluster bootstrap (`fwildclusterboot`)
+:::
+:::
+
+::: {.thesis}
+Стандартная ошибка — это ответ на вопрос «что изменится, если повторить *выборку*». Она ничего не говорит о смещении.
+:::
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Уравнение Минцера на RLMS {.smaller}
+
+```{r}
+m_mincer <- feols(log_wage ~ years_educ + experience + exp2 + female | year,
+                  data = work, cluster = ~psu)
+etable(m_mincer, depvar = FALSE)
+```
+
+::: {.tiles}
+::: {.tile .navy}
+[`r round(coef(m_mincer)["years_educ"], 3)`]{.v} [log-пунктов за год обучения]{.l}
+:::
+::: {.tile}
+[`r round(coef(m_mincer)["female"], 3)`]{.v} [женщины, log-пункты]{.l}
+:::
+::: {.tile}
+[`r format(nobs(m_mincer), big.mark = " ")`]{.v} [наблюдений в выборке]{.l}
+:::
+:::
+
+::: {.thesis .smaller}
+Год обучения «даёт» ≈ 7–8 % зарплаты, опыт — выпуклый профиль, женщины получают на ≈ 35 % меньше. Классическая таблица — и ни один коэффициент пока не причинный.
+:::
+
+## Как читать вывод `summary()` модели `feols`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+out <- capture.output(summary(m_mincer))
+cat(out[-c(10, 11)], sep = "\n")                    # без строки Signif. codes
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · шапка]{.k}
+
+**OLS**, зависимая, **Observations** — `r format(nobs(m_mincer), big.mark = " ")`. **Fixed-effects: year: `r m_mincer$fixef_sizes[["year"]]`** — число уровней FE: лет `r min(work$year)`–`r max(work$year)`, хотя фильтр `year >= 2010` (`experience` есть только с 2013 г.)
+:::
+::: {.card}
+[2 · Standard-errors]{.k}
+
+**Clustered (psu)**: `r fitstat(m_mincer, "g")[[1]]` кластеров. p-value считается по t-распределению с G − 1 степенями свободы, а не по N
+:::
+::: {.card .tint}
+[3 · Estimate, Std. Error]{.k}
+
+Лог-пункты на единицу $X$: год обучения `r round(coef(m_mincer)["years_educ"], 4)` ≈ +`r round(100 * (exp(coef(m_mincer)["years_educ"]) - 1), 1)` %. `exp2` — квадрат опыта: читается вместе с `experience`
+:::
+::: {.card .tint}
+[4 · t value, Pr(>|t|)]{.k}
+
+t = Estimate / Std. Error. Длинные строки нулей в p — эффект `scipen = 999`, это «меньше 0.000000001»
+:::
+::: {.card}
+[5 · RMSE и R²]{.k}
+
+**Adj. R2** — вместе с эффектами года; **Within R2** — доля разброса, которую объясняют регрессоры **после** вычитания эффектов года (`r round(fitstat(m_mincer, "wr2")[[1]], 3)`)
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Число уровней FE не совпадает с ожидаемым; `Standard-errors: IID`; NOTE об удалённых наблюдениях или коллинеарных переменных (в курсе заметки выключены — сверяйте N)
+:::
+:::
+:::
+
+## FWL руками
+
+```{r}
+work_r <- work |> mutate(
+  y_res = resid(feols(log_wage ~ experience + exp2 + female | year, data = work)),
+  d_res = resid(feols(years_educ ~ experience + exp2 + female | year, data = work)))
+
+c(`регрессия с контролями` = coef(m_mincer)["years_educ"],
+  `остатки на остатки`     = coef(feols(y_res ~ d_res, data = work_r))["d_res"])
+```
+
+::: {.callout-note appearance="minimal"}
+Коэффициенты совпадают в точности. «Контроль» = «вычесть из $D$ и $Y$ всё, что объясняют $X$, и сравнить остатки».
+:::
+
+## FWL глазами: binscatter остатков
+
+```{r}
+#| fig-height: 3.9
+work_r |>
+  mutate(bin = ntile(d_res, 25)) |>
+  group_by(bin) |> summarise(d = mean(d_res), y = mean(y_res)) |>
+  ggplot(aes(d, y)) + geom_point(size = 2.5, colour = pal["indigo"]) +
+  geom_smooth(method = "lm", se = FALSE, colour = pal["coral"]) +
+  labs(x = "годы обучения, очищенные от контролей", y = "log зарплаты,\nочищенный от контролей")
+```
+
+## Путь коэффициента
+
+```{r}
+#| include: false
+d_ed <- work |> mutate(higher_ed = as.integer(educ_level == "Высшее"))
+spec <- function(fe = NULL) as.formula(paste(
+  "log_wage ~ higher_ed + female + experience + exp2", if (!is.null(fe)) paste("|", fe)))
+models <- list(
+  "1. наивная"             = feols(log_wage ~ higher_ed, d_ed),
+  "2. + пол, опыт"         = feols(spec(), d_ed),
+  "3. + год"               = feols(spec("year"), d_ed),
+  "4. + тип поселения"     = feols(spec("year + settlement"), d_ed),
+  "5. + площадка"          = feols(spec("year + settlement + site"), d_ed),
+  "6. + профессия (плохо)" = feols(spec("year + settlement + site + occup_group"), d_ed)
+)
+path <- imap_dfr(models, ~ tidy(.x, conf.int = TRUE, vcov = ~psu) |>
+                   filter(term == "higher_ed") |> mutate(модель = .y))
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.9
+ggplot(path, aes(estimate, fct_rev(модель))) +
+  geom_vline(xintercept = 0, linetype = 2, colour = "grey50") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = pal["indigo"]) +
+  labs(x = "коэффициент при дипломе, log-пункты (95 % ДИ, кластер psu)", y = NULL)
+```
+
+### Код
+
+```{r}
+#| eval: false
+d_ed <- work |> mutate(higher_ed = as.integer(educ_level == "Высшее"))
+spec <- function(fe = NULL) as.formula(paste(
+  "log_wage ~ higher_ed + female + experience + exp2", if (!is.null(fe)) paste("|", fe)))
+models <- list(
+  "1. наивная"             = feols(log_wage ~ higher_ed, d_ed),
+  "2. + пол, опыт"         = feols(spec(), d_ed),
+  "3. + год"               = feols(spec("year"), d_ed),
+  "4. + тип поселения"     = feols(spec("year + settlement"), d_ed),
+  "5. + площадка"          = feols(spec("year + settlement + site"), d_ed),
+  "6. + профессия (плохо)" = feols(spec("year + settlement + site + occup_group"), d_ed)
+)
+path <- imap_dfr(models, ~ tidy(.x, conf.int = TRUE, vcov = ~psu) |>
+                   filter(term == "higher_ed") |> mutate(модель = .y))
+ggplot(path, aes(estimate, fct_rev(модель))) +
+  geom_vline(xintercept = 0, linetype = 2, colour = "grey50") +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high), colour = pal["indigo"]) +
+  labs(x = "коэффициент при дипломе, log-пункты (95 % ДИ, кластер psu)", y = NULL)
+```
+:::
+
+## Формула пропущенной переменной в числах
+
+```{r}
+short <- coef(models[[4]])["higher_ed"];  long <- coef(models[[5]])["higher_ed"]   # модели 4 и 5
+c(короткая = short, длинная = long, разница = short - long)
+```
+
+Разница = $\gamma \cdot \delta$: (вклад площадки в зарплату) × (связь диплома с «дорогими» площадками). Берём эффекты площадок из длинной модели и регрессируем их на диплом с контролями короткой:
+
+```{r}
+d_ed$site_fe <- fixef(models[[5]])$site[as.character(d_ed$site)]        # γ = 1 по построению
+aux <- feols(site_fe ~ higher_ed + female + experience + exp2 | year + settlement, data = d_ed)
+c(`γ·δ по формуле` = unname(coef(aux)["higher_ed"]))
+```
+
+::: {.callout-note appearance="minimal"}
+Совпадает в точности: формула OVB — тождество, а не приближение.
+:::
+
+## Кто определяет коэффициент
+
+Эффект диплома по группам «пол × поселение» и регрессионные веса $n_g \cdot \text{Var}(D \mid g)$:
+
+```{r}
+tau_in <- function(d) coef(lm(log_wage ~ higher_ed + experience + exp2 + factor(year), d))["higher_ed"]
+grp <- d_ed |> group_by(sex, settlement) |>
+  summarise(n = n(), var_d = var(higher_ed), tau_g = tau_in(pick(everything())), .groups = "drop") |>
+  mutate(w = n * var_d / sum(n * var_d))
+grp |> arrange(-w) |> mutate(across(c(var_d, tau_g, w), ~ round(.x, 3)))
+```
+
+## Регрессия = взвешенное среднее групповых эффектов
+
+```{r}
+m_fe <- feols(log_wage ~ higher_ed + experience + exp2 | year + sex^settlement, data = d_ed)
+c(`взвешенное среднее по группам` = sum(grp$w * grp$tau_g),
+  `регрессия с FE групп`          = unname(coef(m_fe)["higher_ed"]))
+```
+
+-   Веса — не доли групп: сёла и ПГТ «весят» меньше своей численности, потому что дипломов там мало и $\text{Var}(D)$ низкая
+-   Если нужен эффект **для сельских жителей**, регрессия с общим коэффициентом его не даст — нужна гетерогенная спецификация или другой эстиманд
+
+## Гетерогенность: взаимодействия и `marginaleffects`
+
+```{r}
+m_int <- feols(log_wage ~ years_educ * female + experience + exp2 | year,
+               data = work, cluster = ~psu)
+avg_slopes(m_int, variables = "years_educ", by = "female") |>
+  as_tibble() |> select(female, estimate, std.error, conf.low, conf.high)
+```
+
+-   Отдача от года обучения у женщин выше, чем у мужчин — распространённый результат для России
+-   `avg_slopes` считает средний наклон по людям каждой группы; для нелинейных моделей (logit) это единственный честный способ получить «эффект в процентных пунктах»
+
+## Как читать вывод `avg_slopes()`
+
+```{r}
+#| include: false
+sl <- avg_slopes(m_int, variables = "years_educ", by = "female")
+sl_diff <- avg_slopes(m_int, variables = "years_educ", by = "female", hypothesis = "b2 - b1 = 0")
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| eval: false
+avg_slopes(m_int, variables = "years_educ", by = "female")
+avg_slopes(m_int, variables = "years_educ", by = "female", hypothesis = "b2 - b1 = 0")
+```
+
+```{r}
+#| echo: false
+wrap_print <- function(x) {                          # консольный вывод, длинные строки переносим
+  o <- capture.output(print(x))
+  cat(unlist(lapply(o, \(l) if (nchar(l) > 100) strwrap(l, 100, exdent = 9) else l)), sep = "\n")
+}
+wrap_print(sl); wrap_print(sl_diff)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Term, Contrast, by]{.k}
+
+`mean(dY/dX)` — **средняя производная**: наклон считается для каждого человека и усредняется внутри группы `female`
+:::
+::: {.card .tint}
+[2 · Estimate]{.k}
+
+В единицах исхода на единицу $X$: лог-пункты на год обучения. Мужчины `r round(sl$estimate[1], 4)`, женщины `r round(sl$estimate[2], 4)`
+:::
+::: {.card}
+[3 · Std. Error, z, Pr(>|z|)]{.k}
+
+Дельта-метод с ковариационной матрицей **модели** — здесь кластер по psu. Тест — нормальный (z), а не t
+:::
+::: {.card}
+[4 · S]{.k}
+
+**s-value** = $-\log_2 p$: «бит» информации против нуля. S = 4 — примерно как 4 орла подряд у честной монеты
+:::
+::: {.card .tint}
+[5 · 2.5 % и 97.5 %; `b2-b1=0`]{.k}
+
+95 %-й ДИ. Строка `b2-b1=0` — тест **разницы** между группами: `r round(sl_diff$estimate, 4)` (p = `r round(sl_diff$p.value, 3)`)
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Вывод о разнице «по перекрытию интервалов» вместо `hypothesis`; `Type: response` у logit-модели перепутан с `link`; SE без кластеров, хотя модель их имела
+:::
+:::
+:::
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«Среди работающих 25–60 лет (RLMS-HSE `r min(work$year)`–`r max(work$year)`, `r format(nobs(m_int), big.mark = " ")` наблюдений) дополнительный год обучения связан с зарплатой выше на **`r sprintf("%.1f", 100 * (exp(sl$estimate[1]) - 1))` %** у мужчин и на **`r sprintf("%.1f", 100 * (exp(sl$estimate[2]) - 1))` %** у женщин при одинаковых опыте и годе наблюдения (средние наклоны; ошибки кластеризованы по `r fitstat(m_int, "g")[[1]]` площадкам). Разница между полами — `r round(sl_diff$estimate, 3)` лог-пункта (s.e. `r round(sl_diff$std.error, 3)`). Причинная интерпретация требует, чтобы при этих контролях образование не было связано со способностями и семейным фоном.»
+:::
+
+-   Назвать эстиманд (средний наклон по людям группы), допущение (отбор по наблюдаемым) и тип ошибок
+-   Разницу групп подтверждать тестом разницы, а не словами «у женщин значимо, у мужчин тоже»
+
+## Категории вместо линейности
+
+```{r}
+#| fig-height: 3.6
+m_cat <- feols(log_wage ~ i(educ_level, ref = "Среднее общее") + experience + exp2 +
+                 female | year, data = work, cluster = ~psu)
+coefplot(m_cat, keep = "educ_level", main = "Разница с полным средним, log-пункты")
+```
+
+::: {.callout-note appearance="minimal"}
+«Год обучения» усредняет очень разные годы: 9-й класс и 5-й курс. Категории честнее, когда шкала не интервальная.
+:::
+
+## Четыре стандартные ошибки одной модели
+
+```{r}
+m <- feols(log_wage ~ higher_ed + female + experience + exp2 | year, data = d_ed)
+etable(m, m, m, m, vcov = list("iid", "hetero", ~psu, ~idind), keep = "higher_ed",
+       depvar = FALSE, drop.section = "fixef", fitstat = ~ n,
+       headers = c("iid", "робастные", "psu", "idind"))
+```
+
+-   Робастные почти не отличаются от iid — здесь гетероскедастичность не главное
+-   Кластер по площадке **утраивает** ошибку: зарплаты внутри площадки коррелированы через местный рынок
+-   Выбор кластера — часть дизайна, а не косметика
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Семь ошибок с регрессией
+
+1.  Читают 0.3 в лог-модели как «30 %» (на самом деле 35 %), а 1.0 — как «100 %» (172 %)
+2.  Сравнивают коэффициенты между моделями с разными контролями и объявляют «робастность»
+3.  Считают $R^2$ мерой причинной валидности: модель с $R^2 = 0.9$ может быть целиком про отбор
+4.  Кластеризуют «как получится» или не кластеризуют вовсе
+5.  Интерпретируют все коэффициенты (Table 2 fallacy)
+6.  Экстраполируют: контроль за возрастом линейно там, где возрастные группы не пересекаются
+7.  Условие на `wage > 0` — отбор по исходу (лекция 3)
+
+## Чек-лист регрессии для оценки эффекта
+
+-   [ ] Набор контролей выведен из графа, не из «что было в данных»
+-   [ ] Ни один контроль не измерен после воздействия
+-   [ ] Функциональная форма: логарифм для денег, категории для шкал, квадрат для возраста/опыта
+-   [ ] Кластер — по уровню назначения или отбора
+-   [ ] Эффект переведён в понятные единицы (`avg_comparisons`)
+-   [ ] Показан путь коэффициента: что меняет каждый контроль и почему
+-   [ ] Есть оценка, насколько сильным должен быть пропущенный конфаундер, чтобы «убить» результат (лекция 17)
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Оцените эффект **официального оформления** (`official`) на зарплату: наивно, с контролями из вашего DAG, с фиксированными эффектами площадки и года. Постройте путь коэффициента
+2.  Воспроизведите FWL для этого эффекта и нарисуйте binscatter остатков
+3.  Посчитайте регрессионные веса по группам «образование × поселение». Какие группы определяют оценку? Есть ли группы с весом ≈ 0?
+4.  Переведите коэффициент в проценты зарплаты через `avg_comparisons()`; сравните с $e^{\tau}-1$
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+-   Angrist J., Pischke J.-S. *Mostly Harmless Econometrics*, гл. 3 — регрессия как условное среднее, веса, OVB
+-   Cunningham S. *The Mixtape*, гл. 2 «Probability and Regression Review» — FWL
+-   Huntington-Klein N. *The Effect*, гл. 13 «Regression»
+-   Cinelli C., Hazlett C. (2020). Making Sense of Sensitivity. *JRSS-B* — формула OVB как инструмент
+-   Abadie A., Athey S., Imbens G., Wooldridge J. (2023). When Should You Adjust Standard Errors for Clustering? *QJE*
+-   Пакеты: [`fixest`](https://lrberge.github.io/fixest/), [`marginaleffects`](https://marginaleffects.com/), [`modelsummary`](https://modelsummary.com/)

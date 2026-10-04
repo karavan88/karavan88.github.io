@@ -1,0 +1,115 @@
+/*-- scss:defaults --*/
+$body-bg: #FBF8F3;
+$body-color: #2A2622;
+$link-color: #A3263A;
+$presentation-font-size-root: 30px;
+$presentation-heading-font: "Playfair Display", Georgia, serif;
+$presentation-heading-color: #1E1B24;
+$presentation-heading-font-weight: 800;
+$presentation-heading-letter-spacing: -0.01em;
+$presentation-heading-text-transform: none;
+$font-family-sans-serif: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+$font-family-monospace: "JetBrains Mono", monospace;
+$code-block-font-size: 0.58em;
+$code-block-bg: #F2ECE2;
+$code-block-border-color: transparent;
+$code-color: #8A1F31;
+$selection-bg: #A3263A;
+
+/*-- scss:rules --*/
+.reveal { font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif; color: #2A2622; font-weight: 400; }
+.reveal .slides { text-align: left; }
+.reveal .slides section { padding-top: 0.2em; }
+.reveal p, .reveal li { line-height: 1.42; }
+.reveal strong { color: #1E1B24; font-weight: 700; }
+
+/* заголовок слайда */
+.reveal h2 {
+  font-family: "Playfair Display", Georgia, serif; font-size: 1.5em; color: #1E1B24;
+  font-weight: 800; letter-spacing: -0.01em; line-height: 1.12;
+  margin: 0 0 0.55em 0; padding-bottom: 0.28em; position: relative;
+  border-bottom: 1px solid #D9CDBB;
+}
+.reveal h2::after { content:""; position:absolute; left:0; bottom:-1px; width:2.4em; height:3px; background:#A3263A; }
+.reveal h2 code { font-size: 0.85em; background: none; color: #A3263A; }
+.reveal h3 { font-family: "Playfair Display", Georgia, serif; color: #1E1B24; font-size: 1.05em; }
+
+/* списки */
+.reveal ul, .reveal ol { margin-left: 1.05em; }
+.reveal ul li, .reveal ol li { margin-bottom: 0.42em; }
+.reveal ul li::marker { color: #A3263A; }
+.reveal ol li::marker { color: #A3263A; font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 0.85em; }
+
+/* код */
+.reveal div.sourceCode, .reveal div.sourceCode pre, .reveal pre.sourceCode { background-color: #F2ECE2 !important; }
+.reveal div.sourceCode { border-radius: 3px; background: #F2ECE2; border: none; margin: 0.45em 0; }
+.reveal pre { box-shadow: none; margin: 0.45em 0; }
+.reveal pre code { font-family: "JetBrains Mono", monospace; line-height: 1.45; padding: 0.7em 0.95em; max-height: none; }
+.reveal code { font-family: "JetBrains Mono", monospace; }
+.reveal p code, .reveal li code { background: #F0E8DC; color: #8A1F31; padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.86em; }
+.reveal .cell-output pre, .reveal .cell-output-stdout pre { background: transparent !important; }
+.reveal .cell-output pre code, .reveal .cell-output-stdout pre code {
+  background: #FFFFFF; color: #3B3530; border-left: 3px solid #C08A2E; border-radius: 0 3px 3px 0;
+}
+.reveal .cell-output-display { font-size: 0.74em; }
+.reveal div.code-copy-outer-scaffold .code-copy-button { opacity: .5; }
+
+/* таблицы */
+.reveal table { border-collapse: collapse; font-size: 0.7em; margin: 0.4em auto; font-variant-numeric: tabular-nums; }
+.reveal table th { background: transparent; color: #1E1B24; font-weight: 700; padding: 0.45em 0.75em;
+  border-bottom: 2px solid #A3263A; text-align: left; font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif; }
+.reveal table td { padding: 0.38em 0.75em; border-bottom: 1px solid #E4DBCD; }
+.reveal table tr:nth-child(even) td { background: transparent; }
+.reveal table tbody tr:last-child td { border-bottom: 2px solid #2A2622; }
+
+/* тезис */
+.thesis, .reveal .thesis {
+  background: #F4EADF; color: #2A2622; border-left: 5px solid #A3263A;
+  padding: 0.7em 1em; margin: 0.7em 0; font-size: 0.92em; border-radius: 0 3px 3px 0; font-style: normal;
+}
+.reveal .thesis.smaller { font-size: 0.78em; }
+.reveal .thesis strong { color: #A3263A; }
+.reveal .thesis .katex { color: inherit; }
+
+/* callout */
+.reveal .callout { border-left-color: #C08A2E !important; background: #F4EADF !important; font-size: 0.82em; }
+
+/* формулы */
+.reveal .katex { font-size: 1.05em; color: #1E1B24; }
+
+/* титульный слайд */
+.reveal .slides section.quarto-title-block { text-align: left; padding-top: 2.2em; }
+.reveal .slides section.quarto-title-block::before { content: "КАУЗАЛЬНЫЙ АНАЛИЗ В R · RLMS-HSE"; display: block; text-align: left; font-family: "JetBrains Mono", monospace;
+  font-size: 0.48em; letter-spacing: 0.22em; color: #A3263A; margin-bottom: 1.6em; font-weight: 600; }
+.reveal .slides section.quarto-title-block .title { font-family: "Playfair Display", Georgia, serif; font-size: 2.15em; line-height: 1.05; color: #1E1B24;
+  font-weight: 800; letter-spacing: -0.01em; margin-bottom: 0.35em; }
+.reveal .slides section.quarto-title-block .subtitle { font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif; font-size: 0.95em; color: #A3263A; font-style: normal; font-weight: 500; }
+.reveal .slides section.quarto-title-block .quarto-title-authors { justify-content: flex-start !important; margin-top: 2.4em; text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author-name { text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author-name { font-weight: 700; color: #2A2622; font-size: 0.8em; }
+.reveal .slides section.quarto-title-block .quarto-title-affiliation { color: #8A8073; font-size: 0.62em; margin: 0.2em 0 0 0; text-align: left; }
+.reveal .slides section.quarto-title-block .title, .reveal .slides section.quarto-title-block .subtitle { text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author { padding-left: 0; }
+.reveal .slides section.quarto-title-block { border-left: 6px solid #A3263A; padding-left: 1.2em; }
+
+/* разделители частей */
+.reveal .slides { counter-reset: part; }
+.reveal .slides section.level1 { counter-increment: part; }
+.reveal .slides section.level1 h1 { font-family: "Playfair Display", Georgia, serif; font-size: 3.4em; font-weight: 800;
+  letter-spacing: -0.01em; color: #FBF8F3; text-align: left; line-height: 1; text-transform: none; }
+.reveal .slides section.level1 h1::before { content: counter(part, decimal-leading-zero); display: block;
+  font-family: "JetBrains Mono", monospace; font-size: 0.24em; letter-spacing: 0.2em; color: #C08A2E; margin-bottom: 0.9em; font-weight: 600; }
+.reveal .slides section.level1 h1::after { content: ""; display: block; width: 2.2em; height: 6px; background: #A3263A; margin-top: 0.45em; }
+
+/* служебное */
+.reveal .footer { font-family: "JetBrains Mono", monospace; font-size: 0.4em; color: #8A8073; letter-spacing: 0.06em; }
+.reveal .slide-number { font-family: "JetBrains Mono", monospace; font-size: 0.45em; color: #8A8073; background: transparent !important; }
+.reveal .progress { color: #A3263A; height: 4px; }
+.reveal .controls { color: #A3263A; }
+.center { text-align: center; }
+.smaller { font-size: 0.8em; }
+.tiny { font-size: 0.65em; }
+.muted { color: #8A8073; }
+.columns { display: flex; gap: 1em; }
+.column { flex: 1; }
+

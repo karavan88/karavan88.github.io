@@ -1,0 +1,45 @@
+# Общие настройки всех лекций курса (reveal.js через Quarto)
+author: "Карен Аванесян"
+institute: "Каузальный анализ в R на данных RLMS-HSE"
+lang: ru-RU
+format:
+  revealjs:
+    theme: [default, themes/causal.scss]
+    css: themes/fonts-causal.css
+    include-after-body: themes/causal-ui.html
+    width: 1280
+    height: 720
+    margin: 0.07
+    highlight-style: github
+    footer: "Каузальный анализ в R · RLMS-HSE · К. Аванесян"
+    slide-number: c/t
+    show-slide-number: all
+    hash-type: number
+    preview-links: auto
+    menu:
+      side: left
+      width: normal
+    transition: fade
+    background-transition: fade
+    incremental: false
+    smaller: false
+    scrollable: false
+    embed-resources: true
+    html-math-method:
+      method: katex
+    code-line-numbers: false
+    code-overflow: wrap
+    code-copy: true
+    fig-width: 9
+    fig-height: 4.6
+    fig-dpi: 144
+    df-print: kable
+execute:
+  echo: true
+  warning: false
+  message: false
+  freeze: auto
+knitr:
+  opts_chunk:
+    R.options:
+      width: 95

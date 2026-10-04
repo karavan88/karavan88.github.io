@@ -1,0 +1,596 @@
+---
+title: "Лекция 10. DiD с разновременным включением"
+subtitle: "Блок 3. Отбор по ненаблюдаемым и естественные эксперименты"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+library(did); library(didimputation); library(bacondecomp); library(panelView)
+set.seed(10)
+units <- tibble(id = 1:600, g = c(rep(2005, 250), rep(2010, 250), rep(0, 100)), alpha = rnorm(600))
+sim <- expand_grid(units, year = 2001:2015) |>
+  mutate(treated = g > 0 & year >= g, k = ifelse(g > 0, year - g, NA_real_),
+         tau = ifelse(treated, ifelse(g == 2005, 3, 1) * (1 + 0.4 * k), 0),   # эффект растёт и разный
+         y = alpha + 0.1 * (year - 2001) + tau + rnorm(n(), 0, 0.5),
+         d = as.integer(treated))
+true_att <- mean(sim$tau[sim$treated])
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Политики приходят не одновременно
+
+-   Регионы вводят ограничения в разные годы; реформы поэтапны по когортам; программы раскатываются волнами
+-   Естественное желание: одна регрессия с двусторонними FE и индикатором «уже включено» — **TWFE**
+-   С 2018 г. выяснилось: при разных сроках включения и **меняющихся во времени** эффектах TWFE может дать число, не похожее ни на один настоящий эффект — вплоть до неверного знака
+
+::: {.thesis}
+Проблема не в FE и не в DiD, а в том, **кого с кем** TWFE негласно сравнивает: уже обработанные единицы становятся «контролем» для включённых позже.
+:::
+
+## План занятия
+
+1.  Декомпозиция Гудмана–Бэкона: из чего состоит TWFE
+2.  Запрещённые сравнения и отрицательные веса
+3.  Три исправления: Callaway–Sant'Anna, Sun–Abraham, импутация
+4.  Симуляция: все методы на одних данных
+5.  Как читать вывод `att_gt()`, `aggte()`, `sunab()` и писать результат
+6.  RLMS: когортное повышение пенсионного возраста
+7.  Чувствительность к предтрендам: `HonestDiD`
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Декомпозиция Гудмана–Бэкона
+
+Коэффициент TWFE $\hat\tau$ при $D_{it}$ — **взвешенное среднее всех 2 × 2 DiD**, которые можно составить из пар групп и периодов:
+
+| Тип сравнения | Что служит контролем | Проблема |
+|---------------|---------------------|----------|
+| обработанные vs никогда не обработанные | никогда не обработанные | нет |
+| рано включённые vs поздно включённые (пока те не включены) | «ещё не обработанные» | нет |
+| **поздно включённые vs рано включённые (уже обработанные)** | **уже обработанные** | **да** |
+
+-   Третий тип использует динамику эффекта у ранних как «тренд без воздействия»: если эффект **растёт**, он вычитается, и эффект поздних занижается — вплоть до смены знака
+
+## Запрещённое сравнение в картинках
+
+```{r}
+#| echo: false
+#| fig-height: 4
+sim |> group_by(g, year) |> summarise(y = mean(y), .groups = "drop") |>
+  mutate(когорта = factor(g, labels = c("никогда", "с 2005", "с 2010"))) |>
+  ggplot(aes(year, y, colour = когорта)) + geom_line(linewidth = 1.2) +
+  geom_vline(xintercept = c(2004.5, 2009.5), linetype = 2, colour = "grey50") +
+  labs(x = NULL, y = "средний исход", colour = NULL)
+```
+
+Сравнивая когорту 2010 с когортой 2005 после 2010 г., TWFE считает рост у «ранних» (их эффект продолжает расти) за общий тренд — и вычитает его.
+
+## Три исправления
+
+::: {.cards .c3}
+::: {.card}
+[2021 · пакет `did`]{.k}
+
+### Callaway–Sant'Anna
+
+Оценить $ATT(g, t)$ для каждой когорты $g$ и периода $t$, сравнивая **только** с никогда или ещё не обработанными; потом агрегировать
+:::
+::: {.card}
+[2021 · `fixest::sunab()`]{.k}
+
+### Sun–Abraham
+
+Event study с взаимодействиями «когорта × относительное время» и взвешенным усреднением по когортам
+:::
+::: {.card}
+[2024 · `didimputation`]{.k}
+
+### Импутация (BJS)
+
+Borusyak, Jaravel, Spiess: TWFE **только** на необработанных наблюдениях → предсказать $Y(0)$ для обработанных → усреднить разности
+:::
+:::
+
+Для **обратимого** воздействия (включили — выключили): de Chaisemartin & D'Haultfœuille, `DIDmultiplegt`
+
+::: {.callout-tip appearance="minimal"}
+При одинаковых эффектах все методы совпадают с TWFE. Расходятся — значит, эффекты гетерогенны, и TWFE нельзя доверять.
+:::
+
+## Что значит «агрегировать»
+
+Из $ATT(g, t)$ можно собрать разные ответы:
+
+::: {.cards .c4}
+::: {.card .navy}
+[type = ]{.k}
+
+### simple
+
+Средний эффект по всем обработанным наблюдениям
+:::
+::: {.card .tint}
+[type = ]{.k}
+
+### dynamic
+
+По времени с момента включения $k = t - g$: event study без запрещённых сравнений
+:::
+::: {.card}
+[type = ]{.k}
+
+### group
+
+По когортам: кому реформа помогла больше
+:::
+::: {.card}
+[type = ]{.k}
+
+### calendar
+
+По календарным годам
+:::
+:::
+
+::: {.thesis}
+Каждый агрегат — отдельный эстиманд; «эффект политики» без уточнения — не ответ.
+:::
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Симуляция: три когорты, растущие эффекты
+
+```{r}
+#| fig-height: 3.8
+#| results: hide
+panelview(y ~ d, data = as.data.frame(sim |> filter(id %% 20 == 0)), index = c("id", "year"),
+          type = "treat", by.timing = TRUE, legend.labs = c("не обработан", "обработан"),
+          main = "", xlab = "", ylab = "", axis.lab.gap = c(0, 10))
+```
+
+Эффект: у когорты 2005 — $3 \times (1 + 0.4k)$, у когорты 2010 — $1 \times (1 + 0.4k)$; никогда не обработанных — 100 из 600. Истинный ATT по всем обработанным наблюдениям: **`r round(true_att, 2)`**.
+
+## TWFE и декомпозиция
+
+```{r}
+twfe <- feols(y ~ d | id + year, data = sim, cluster = ~id)
+c(`TWFE` = unname(coef(twfe)["d"]), `истина` = true_att)
+```
+
+```{r}
+bacon(y ~ d, data = as.data.frame(sim), id_var = "id", time_var = "year", quietly = TRUE) |>
+  group_by(type) |> summarise(вес = sum(weight), оценка = weighted.mean(estimate, weight)) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+```
+
+-   Треть веса — на сравнении «поздние vs ранние» с оценкой **−4.6** при истинных эффектах от 1 до 15
+-   Итог занижен втрое; при ещё более резкой динамике знак меняется
+
+## Callaway–Sant'Anna
+
+```{r}
+cs <- att_gt(yname = "y", tname = "year", idname = "id", gname = "g",
+             data = as.data.frame(sim), control_group = "nevertreated", base_period = "universal")
+cs_simple <- aggte(cs, type = "simple")
+c(ATT = cs_simple$overall.att, se = cs_simple$overall.se, истина = true_att) |> round(2)
+```
+
+-   `att_gt()` оценивает $ATT(g, t)$ для каждой пары «когорта × год» — здесь 2 когорты × 14 лет
+-   `control_group = "nevertreated"` или `"notyettreated"`; `base_period = "universal"` — одна база $g - 1$ для всех периодов
+-   Ковариаты — через `xformla = ~ x`, оценка дважды робастная (лекция 6)
+
+## Как читать вывод `att_gt()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+o <- capture.output(summary(cs)); sel <- \(p) o[grepl(p, o)]
+cat(c(sel("Group Time"), sel("^ +2005 200[2-6] "), "  ...", sel("^ +2010 20(08|09|10|11) "), "  ...",
+      sel("^Signif|^P-value|^Control Group|^Estimation")), sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Group, Time]{.k}
+
+`Group` — когорта $g$: год **первого** воздействия; `Time` — календарный год $t$. Строк: `r length(cs$att)` = когорты × годы
+:::
+::: {.card .tint}
+[2 · ATT(g,t)]{.k}
+
+Эффект для когорты $g$ в году $t$: её изменение с $g - 1$ минус изменение никогда не обработанных. Строка $t = g - 1$ — база: 0 и `NA`
+:::
+::: {.card}
+[3 · до включения]{.k}
+
+Строки до включения — плацебо-ATT. Должны быть около нуля: здесь от `r round(min(cs$att[cs$t < cs$group - 1]), 2)` до `r round(max(cs$att[cs$t < cs$group - 1]), 2)` при истинных эффектах 1–15
+:::
+::: {.card}
+[4 · Simult. Conf. Band]{.k}
+
+Равномерная полоса (мультипликативный бутстрэп, `r cs$DIDparams$biters` повторов): накрывает **все** ATT(g,t) сразу, поэтому шире поточечной. `*` — полоса не накрывает 0
+:::
+::: {.card .tint}
+[5 · pre-test]{.k}
+
+Совместный тест «все ATT(g,t) до включения = 0»: p = `r round(cs$Wpval, 2)` — не отвергаем. Ниже — группа сравнения, антиципация, метод (DR)
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+pre-test p < 0.05; `NA` в ошибках не только в базе (крошечные когорты); выводы меняются при `control_group = "notyettreated"`
+:::
+:::
+:::
+
+## Динамический агрегат: честный event study
+
+```{r}
+#| fig-height: 3.8
+cs_dyn <- aggte(cs, type = "dynamic")
+ggdid(cs_dyn) + labs(title = NULL, x = "лет с момента включения", y = "ATT(k)") +
+  theme_minimal(base_size = 14) + theme(legend.position = "bottom")
+```
+
+## Как читать вывод `aggte()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+o1 <- capture.output(summary(cs_simple)); i <- grep("ATT +Std", o1)
+o2 <- capture.output(summary(cs_dyn)); j <- grep("Overall summary", o2)
+cat(c('type = "simple"', o1[i:(i + 1)], "", 'type = "dynamic"', o2[j:(j + 2)], o2[grep("Dynamic Effects", o2) + 0:1],
+      o2[grepl("^ +(-[1-3]|[0-2]|[5-7]|10) +-?[0-9]", o2)]), sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card .tint}
+[1 · simple]{.k}
+
+Среднее всех ATT(g,t) после включения, взвешенное по размеру когорт: `r round(cs_simple$overall.att, 2)` при истине `r round(true_att, 2)`
+:::
+::: {.card}
+[2 · Event time]{.k}
+
+$e = t - g$, лет с включения. $e = -1$ — база (0, `NA`); $e < 0$ — предтренды по событийному времени
+:::
+::: {.card .tint}
+[3 · Overall в dynamic]{.k}
+
+Среднее ATT(e) по $e \ge 0$ с **равными** весами по $e$ — другой эстиманд: `r round(cs_dyn$overall.att, 2)`, а не `r round(cs_simple$overall.att, 2)`
+:::
+::: {.card}
+[4 · состав]{.k}
+
+$e = 6 \ldots 10$ есть только у когорты 2005 (её эффект втрое больше): скачок от $e = 5$ к $e = 6$ — смена состава, а не динамика. Лекарство — `balance_e`
+:::
+::: {.card}
+[5 · ошибки]{.k}
+
+Бутстрэп по единицам; `aggte()` учитывает, что веса когорт **оценены**, — при разнородных эффектах это расширяет интервал
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Overall из `dynamic` выдают за `simple`; хвосты $e$ с одной когортой рисуют как «нарастание»; $e < 0$ заметно отличаются от нуля
+:::
+:::
+:::
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«По оценке Callaway–Sant'Anna (контроль — никогда не обработанные, база $g - 1$, дважды робастная оценка, бутстрэп по единицам) средний эффект на обработанных составил **`r round(cs_simple$overall.att, 2)`** (s.e. `r round(cs_simple$overall.se, 2)`; 95 % ДИ [`r round(cs_simple$overall.att - 1.96 * cs_simple$overall.se, 2)`; `r round(cs_simple$overall.att + 1.96 * cs_simple$overall.se, 2)`]). Совместный предтест параллельных трендов не отвергает нулевую гипотезу (p = `r round(cs$Wpval, 2)`). Эффект нарастает с длительностью воздействия: от `r round(cs_dyn$att.egt[cs_dyn$egt == 0], 2)` в год включения до `r round(cs_dyn$att.egt[cs_dyn$egt == 5], 2)` через пять лет. TWFE на тех же данных даёт `r round(coef(twfe)[["d"]], 2)` из-за сравнений с уже обработанными.»
+:::
+
+-   Обязательно: группа сравнения, базовый период, **тип агрегата** (simple / dynamic / group — разные эстиманды), тип ошибок
+-   Не писать «эффект политики = X» без агрегата; не показывать хвосты ATT(e), где осталась одна когорта, как динамику эффекта
+
+## Sun–Abraham и импутация
+
+```{r}
+sa <- feols(y ~ sunab(g, year) | id + year, data = sim |> mutate(g = ifelse(g == 0, 10000, g)),
+            cluster = ~id)                              # никогда не обработанные: g = ∞
+imp <- did_imputation(data = sim |> mutate(gvar = ifelse(g == 0, NA, g)),
+                      yname = "y", gname = "gvar", tname = "year", idname = "id")
+tibble(метод = c("истина", "TWFE", "Callaway–Sant'Anna", "Sun–Abraham", "импутация (BJS)"),
+       ATT = c(true_att, coef(twfe)["d"], aggte(cs, type = "simple")$overall.att,
+               summary(sa, agg = "ATT")$coeftable["ATT", 1], imp$estimate)) |>
+  mutate(ATT = round(ATT, 2))
+```
+
+::: {.thesis .smaller}
+Три современных метода дают ≈ 6.5 — истину. TWFE — 1.9. Разница целиком объясняется запрещёнными сравнениями.
+:::
+
+## Как читать вывод `sunab()`
+
+```{r}
+#| include: false
+sa_att <- summary(sa, agg = "ATT")$coeftable["ATT", ]
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+o <- capture.output(summary(sa))
+cat(o[grepl("^Standard|Estimate|^year::(-[1-3]|[0-2]|[5-7]) ", o)], sep = "\n")
+o <- capture.output(summary(sa, agg = "ATT")); cat(o[grepl("Estimate|^ATT ", o)], sep = "\n")
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · `year::k`]{.k}
+
+Относительное время $k = t - g$, усреднённое по когортам с весами их долей. $k = -1$ — база (`ref.p = -1`), строки нет
+:::
+::: {.card}
+[2 · никогда не обработанные]{.k}
+
+Закодированы $g = 10000$ (вне диапазона лет): `sunab()` сам берёт их как контрольную когорту
+:::
+::: {.card .tint}
+[3 · сверка]{.k}
+
+Коэффициенты совпадают с `aggte(type = "dynamic")`: обе модели насыщены по «когорта × $k$» и имеют общую базу
+:::
+::: {.card .tint}
+[4 · `agg = "ATT"`]{.k}
+
+Среднее всех пост-ячеек «когорта × $k$» с весами по числу наблюдений: `r round(sa_att[1], 2)` — как `simple` у Callaway–Sant'Anna
+:::
+::: {.card}
+[5 · ошибки]{.k}
+
+Кластер по `id` из `feols`. s.e. `r round(sa_att[2], 3)` против `r round(cs_simple$overall.se, 3)` у `aggte()`: тот учитывает, что веса когорт оценены
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Никогда не обработанные оставлены с $g = 0$ — `sunab()` примет их за когорту; длинные $k$ держатся на одной когорте
+:::
+:::
+:::
+
+## TWFE event study тоже ломается
+
+```{r}
+#| fig-height: 3.8
+sim_es <- sim |> mutate(k_es = ifelse(g == 0, -1000, year - g))      # никогда: отдельная категория
+twfe_es <- feols(y ~ i(k_es, ref = c(-1, -1000)) | id + year, data = sim_es, cluster = ~id)
+iplot(list(twfe_es, sa), main = "Event study: TWFE против Sun–Abraham", xlab = "лет от включения",
+      col = c(pal["coral"], pal["indigo"]), ci.width = 0, pt.join = TRUE)
+legend("topleft", legend = c("TWFE", "Sun–Abraham"), col = c(pal["coral"], pal["indigo"]),
+       pch = 16, bty = "n")
+```
+
+TWFE рисует «предтренды» величиной +2.5, которых нет, и занижает динамику. Sun–Abraham восстанавливает траекторию.
+
+## RLMS: пенсионная реформа по когортам
+
+Женщины 1964 г. р. и младше выходят на пенсию позже 55 лет — и каждая когорта на свой срок:
+
+| Год рождения | Новый возраст | «Лишних» лет без пенсии |
+|--------------|---------------|-------------------------|
+| ≤ 1963 | 55 | 0 (контроль) |
+| 1964 / 1965 | 55.5 / 56.5 | 0.5 / 1.5 |
+| 1966 / 1967 | 58 / 59 | 3 / 4 |
+| ≥ 1968 | 60 | 5 |
+
+Единицы — женщины, «время» — возраст; включение в 55 лет, но **интенсивность** разная по когортам. Оценим эффекты по группам когорт против дореформенных.
+
+## Когортные event study по возрасту
+
+```{r}
+#| include: false
+pw <- rlms |>
+  filter(female == 1, birth_year %in% 1958:1970, age %in% 50:60, year >= 2010) |>
+  mutate(k = age - 55, g1 = as.integer(birth_year %in% 1964:1965),
+         g2 = as.integer(birth_year %in% 1966:1967), g3 = as.integer(birth_year >= 1968))
+rhs <- "~ i(k, g1, ref = -1) + i(k, g2, ref = -1) + i(k, g3, ref = -1) | birth_year + age"
+fit_c <- function(y) feols(as.formula(paste(y, rhs)), data = pw, cluster = ~idind)
+res <- map_dfr(c(`получает пенсию` = "pension", занята = "employed"),
+               ~ tidy(fit_c(.x), conf.int = TRUE), .id = "исход") |>
+  mutate(k = as.numeric(str_extract(term, "-?\\d+")),
+         когорты = recode(str_extract(term, "g\\d"), g1 = "1964–65", g2 = "1966–67", g3 = "1968+"))
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.7
+ggplot(res, aes(k, estimate, colour = когорты)) +
+  geom_hline(yintercept = 0, colour = "grey50") + geom_vline(xintercept = -0.5, linetype = 2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = когорты), alpha = 0.12, colour = NA) +
+  geom_line(linewidth = 1) + geom_point(size = 2) + facet_wrap(~ исход) +
+  labs(x = "возраст − 55", y = "разница с когортами ≤ 1963", colour = NULL, fill = NULL)
+```
+
+### Код
+
+```{r}
+#| eval: false
+pw <- rlms |>
+  filter(female == 1, birth_year %in% 1958:1970, age %in% 50:60, year >= 2010) |>
+  mutate(k = age - 55, g1 = as.integer(birth_year %in% 1964:1965),
+         g2 = as.integer(birth_year %in% 1966:1967), g3 = as.integer(birth_year >= 1968))
+rhs <- "~ i(k, g1, ref = -1) + i(k, g2, ref = -1) + i(k, g3, ref = -1) | birth_year + age"
+fit_c <- function(y) feols(as.formula(paste(y, rhs)), data = pw, cluster = ~idind)
+res <- map_dfr(c(`получает пенсию` = "pension", занята = "employed"),
+               ~ tidy(fit_c(.x), conf.int = TRUE), .id = "исход") |>
+  mutate(k = as.numeric(str_extract(term, "-?\\d+")),
+         когорты = recode(str_extract(term, "g\\d"), g1 = "1964–65", g2 = "1966–67", g3 = "1968+"))
+ggplot(res, aes(k, estimate, colour = когорты)) +
+  geom_hline(yintercept = 0, colour = "grey50") + geom_vline(xintercept = -0.5, linetype = 2) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = когорты), alpha = 0.12, colour = NA) +
+  geom_line(linewidth = 1) + geom_point(size = 2) + facet_wrap(~ исход) +
+  labs(x = "возраст − 55", y = "разница с когортами ≤ 1963", colour = NULL, fill = NULL)
+```
+:::
+
+## Как читать
+
+-   **Пенсия**: у когорт 1964–65 выплата исчезает на год-полтора и возвращается; у 1966–67 — на 3–4 года; у 1968+ — до 60 лет. Реформа видна в данных «как написано»
+-   **Занятость**: эффект растёт с интенсивностью — 1964–65 почти ничего, 1966–67 +15–20 п.п., 1968+ до +45 п.п. к 58–59 годам. Чем дольше без пенсии, тем больше остаются на работе
+-   Предтренды до 55 лет близки к нулю для всех групп (у 1968+ чуть ниже — молодые когорты заняты иначе)
+-   Пулить всё в одно $D_{it}$ = терять именно эту гетерогенность
+
+## Что получает TWFE на тех же данных
+
+```{r}
+new_age <- c(`1964` = 55.5, `1965` = 56.5, `1966` = 58, `1967` = 59)        # остальные: 55 или 60
+pw <- pw |> mutate(
+  new_age = coalesce(new_age[as.character(birth_year)], ifelse(birth_year <= 1963, 55, 60)),
+  d = as.integer(age >= 55 & age < new_age))          # «сейчас без пенсии из-за реформы»
+etable(feols(pension ~ d | idind + year, pw, cluster = ~idind),
+       feols(employed ~ d | idind + year, pw, cluster = ~idind), fitstat = ~ n)
+```
+
+-   −0.19 по пенсии при когортных −0.5…−0.9; +0.05 по занятости при когортных до +0.5
+-   Воздействие здесь ещё и **выключается** (достигли нового возраста): TWFE сравнивает тех, у кого оно прошло, с теми, у кого идёт. Выход — `DIDmultiplegt` или явные когортные оценки
+
+## Чувствительность к предтрендам: `HonestDiD`
+
+Rambachan & Roth: вместо «предтренды равны нулю» — «после включения нарушение параллельности не больше, чем $M \times$ самое большое нарушение до». Для каждого $M$ — доверительное множество эффекта.
+
+```{r}
+#| eval: false
+library(HonestDiD)      # remotes::install_github("asheshrambachan/HonestDiD")
+es_w <- feols(employed ~ i(k, g3, ref = -1) | birth_year + age, data = pw, cluster = ~idind)
+b <- coef(es_w); V <- vcov(es_w)
+pre <- grep("^k::-", names(b)); post <- grep("^k::[0-9]", names(b)); idx <- c(pre, post)
+createSensitivityResults_relativeMagnitudes(
+  betahat = b[idx], sigma = V[idx, idx], numPrePeriods = length(pre),
+  numPostPeriods = length(post), Mbarvec = c(0.5, 1, 1.5, 2))
+```
+
+-   Результат читается так: «эффект остаётся положительным, если нарушение после реформы не превышает $\bar M = 1.5$ нарушений до»
+-   Это честный язык для обсуждения DiD вместо бинарного «предтренды незначимы»
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Шесть ошибок со staggered DiD (1/2)
+
+Нажмите на карточку:
+
+::: {.flips}
+::: {.flip}
+[ошибка 1]{.k}
+
+### TWFE с одним $D_{it}$
+
+При разновременном включении — и ни одной проверки гетерогенности
+
+---
+
+**Как правильно:** Сравнить с Callaway–Sant'Anna, Sun–Abraham, импутацией: расходятся — эффекты гетерогенны, TWFE нельзя доверять
+:::
+::: {.flip}
+[ошибка 2]{.k}
+
+### TWFE event study
+
+Event study на TWFE с биннингом, который сам создаёт предтренды
+
+---
+
+**Как правильно:** Динамический агрегат `aggte(type = "dynamic")` или `sunab()` — event study без запрещённых сравнений
+:::
+::: {.flip}
+[ошибка 3]{.k}
+
+### Плохой контроль
+
+«Никогда не обработанные» — регионы, которые отличаются от остальных настолько, что не годятся в контроль
+
+---
+
+**Как правильно:** Назвать группу сравнения; `control_group = "notyettreated"` — сравнивать с ещё не обработанными
+:::
+:::
+
+## Шесть ошибок со staggered DiD (2/2)
+
+::: {.flips}
+::: {.flip}
+[ошибка 4]{.k}
+
+### Выключение
+
+Невключающееся воздействие (включили — выключили) оценивается методами для включающегося
+
+---
+
+**Как правильно:** `DIDmultiplegt` или явные когортные оценки
+:::
+::: {.flip}
+[ошибка 5]{.k}
+
+### Один агрегат
+
+Агрегат «simple» выдают за эффект политики, не показав динамику и когорты
+
+---
+
+**Как правильно:** Показать динамический и когортный агрегаты: каждый — отдельный эстиманд
+:::
+::: {.flip}
+[ошибка 6]{.k}
+
+### Только p-value
+
+Обсуждение предтрендов сводится к p-value без границ `HonestDiD`
+
+---
+
+**Как правильно:** Границы `HonestDiD`: при каком $\bar M$ эффект остаётся по знаку
+:::
+:::
+
+## Чек-лист
+
+-   [ ] Нарисована карта включения (`panelView`): кто, когда, навсегда ли
+-   [ ] Названа группа сравнения: никогда / ещё не обработанные
+-   [ ] Оценены $ATT(g, t)$ и показаны динамический и когортный агрегаты
+-   [ ] Сравнение с TWFE и объяснение расхождения
+-   [ ] Чувствительность к предтрендам ($\bar M$)
+-   [ ] Кластер по единице назначения; при малом числе единиц — bootstrap
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Повторите когортный анализ для **мужчин** (1959–1965 г. р., включение в 60 лет). Где эффект на занятость сильнее — у мужчин или женщин? Почему?
+2.  В симуляции сделайте эффекты **одинаковыми** для когорт и постоянными во времени. Совпадут ли TWFE и Callaway–Sant'Anna? Затем сделайте эффект у ранней когорты **убывающим** — что станет с TWFE?
+3.  Оцените когортные эффекты реформы на самооценку здоровья и `life_sat`. Есть ли «штраф» за работу без пенсии?
+4.  Установите `HonestDiD` и постройте границы для когорты 1968+ при $\bar M \in \{0.5, 1, 2\}$
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+-   Goodman-Bacon A. (2021). Difference-in-Differences with Variation in Treatment Timing. *J. Econometrics*
+-   Callaway B., Sant'Anna P. (2021). Difference-in-Differences with Multiple Time Periods. *J. Econometrics*
+-   Sun L., Abraham S. (2021). Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects. *J. Econometrics*
+-   Borusyak K., Jaravel X., Spiess J. (2024). Revisiting Event-Study Designs: Robust and Efficient Estimation. *REStud*
+-   de Chaisemartin C., D'Haultfœuille X. (2020). Two-Way Fixed Effects Estimators with Heterogeneous Treatment Effects. *AER*
+-   Baker A., Larcker D., Wang C. (2022). How Much Should We Trust Staggered DiD Estimates? *JFE* — симуляции, как здесь; Roth J. et al. (2023) — обзор

@@ -49,3 +49,7 @@ rsconnect/
 /.quarto/
 
 .projects_predictive_modeling.qmd
+
+# данные RLMS никогда не попадают в репозиторий
+causal-r/data/*
+!causal-r/data/.gitkeep

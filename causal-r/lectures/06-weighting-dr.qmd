@@ -1,0 +1,566 @@
+---
+title: "Лекция 6. Взвешивание и дважды робастные оценки"
+subtitle: "Блок 1. Отбор по наблюдаемым"
+---
+
+```{r}
+#| label: setup
+#| include: false
+source(here::here("causal-r/R/load_panel.R"))
+library(WeightIt); library(cobalt)
+set.seed(6)
+prev <- rlms |> transmute(idind, year = year + 1, log_wage_prev = log_wage)
+tr <- adults |>
+  filter(year == 2019, employed == 1, age >= 25, age <= 60,
+         !is.na(log_wage), !is.na(training_12m), !is.na(years_educ), !is.na(official)) |>
+  left_join(prev, by = c("idind", "year")) |>
+  filter(!is.na(log_wage_prev), !is.na(state_owned), !is.na(occup_group), !is.na(industry)) |>
+  mutate(treat = training_12m, tenure = coalesce(tenure, 0)) |>
+  select(idind, treat, log_wage, log_wage_prev, female, age, years_educ, urban, official,
+         state_owned, occup_group, industry, tenure, psu)
+f_ps <- treat ~ log_wage_prev + female + age + years_educ + urban + official + state_owned +
+  tenure + occup_group + industry
+f_y  <- log_wage ~ treat * (log_wage_prev + female + age + years_educ + urban + official +
+                              state_owned + tenure) + occup_group + industry
+```
+
+# Зачем {background-color="#0d366b" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0d366b 0%, #1c5cab 100%)"}
+
+## Третий способ сделать то же самое
+
+| | Регрессия | Мэтчинг | Взвешивание |
+|--|-----------|---------|-------------|
+| Что делает с $X$ | моделирует исход | подбирает похожих | перевзвешивает выборку |
+| Какие единицы использует | все | подмножество | все, с весами |
+| Эстиманд по умолчанию | «регрессионные веса» | ATT | ATE, ATT, ATO — на выбор |
+| Чувствительность к модели | к модели исхода | к модели PS (баланс проверяем) | к модели PS (баланс проверяем), к экстремальным весам |
+
+::: {.thesis}
+**Дважды робастная** оценка объединяет модель исхода и модель назначения: достаточно, чтобы **хотя бы одна** была верной. Это стандарт для оценок по наблюдаемым.
+:::
+
+## План занятия
+
+1.  Обратные вероятности как «псевдопопуляция»
+2.  Веса для ATE, ATT, ATO; стабилизация и обрезание
+3.  Диагностика: баланс и эффективный размер выборки
+4.  G-computation: регрессия как машина контрфактов
+5.  AIPW: почему «дважды»
+6.  Симуляция двойной робастности
+
+# Идея {background-color="#0b3a73" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0b3a73 0%, #2a6fc4 100%)"}
+
+## Обратные вероятности
+
+Если $e(X) = P(D = 1 \mid X)$, то взвешивание
+
+$$w_i = \frac{D_i}{e(X_i)} + \frac{1 - D_i}{1 - e(X_i)}$$
+
+создаёт **псевдопопуляцию**, в которой $D$ не зависит от $X$: каждый обработанный «представляет» $1/e$ таких же людей, включая тех, кто воздействия не получил.
+
+::: {.cards .c3}
+::: {.card}
+[ATE]{.k}
+
+### Вся популяция
+
+Взвешенная разница средних = ATE (при условной независимости и общей поддержке)
+:::
+::: {.card .tint}
+[ATT]{.k}
+
+### Обработанные
+
+Обработанные с весом 1, контроли — $e / (1 - e)$
+:::
+::: {.card}
+[ATO]{.k}
+
+### Overlap
+
+$1 - e$ для обработанных, $e$ для контролей — больше веса тем, кто мог оказаться в любой группе
+:::
+:::
+
+## Экстремальные веса
+
+-   $e(X) = 0.01$ → вес 100: один человек «отвечает» за сотню. Дисперсия оценки взлетает
+-   Это сигнал о **слабой поддержке**, а не техническая проблема: такие люди почти никогда не получают воздействие
+-   Что делать: стабилизировать ($\bar e / e$), обрезать (trim 1 %), сменить эстиманд (ATT, ATO), проверить спецификацию PS
+-   **ESS** — эффективный размер выборки: $(\sum w)^2 / \sum w^2$. Если ESS упал с 4 000 до 300, доверительный интервал будет соответствующим
+
+## G-computation: регрессия как машина контрфактов
+
+::: {.steps}
+::: {}
+**Оценить** модель исхода $\hat\mu(d, X)$ — например, регрессию с взаимодействиями $D \times X$
+:::
+::: {}
+**Предсказать** для **каждого** человека $\hat\mu(1, X_i)$ и $\hat\mu(0, X_i)$
+:::
+::: {}
+**Усреднить**: ATE = среднее разностей; ATT — среднее по обработанным
+:::
+:::
+
+-   Это и есть «стандартизация» в эпидемиологии и «regression adjustment» в экономике
+-   `marginaleffects::avg_comparisons()` делает ровно это, с корректными ошибками
+-   Требует правильной модели исхода. Экстраполирует там, где нет поддержки — молча
+
+## AIPW: сложить два подхода
+
+$$\hat\tau_{AIPW} = \frac{1}{n}\sum_i \left[ \hat\mu(1, X_i) - \hat\mu(0, X_i) + \frac{D_i (Y_i - \hat\mu(1, X_i))}{\hat e(X_i)} - \frac{(1 - D_i)(Y_i - \hat\mu(0, X_i))}{1 - \hat e(X_i)} \right]$$
+
+-   Первая часть — g-computation; вторая — взвешенная поправка на ошибки модели исхода
+-   Если модель исхода верна, поправка в среднем 0. Если верна модель PS, поправка исправляет ошибки модели исхода
+-   Практический эквивалент: **взвешенная регрессия с ковариатами** (веса IPW) — тоже дважды робастна
+-   Та же конструкция лежит в основе causal forest (лекция 16), Double ML и TMLE
+
+# Код {background-color="#0a2a52" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0a2a52 0%, #104281 100%)"}
+
+## Веса для ATT
+
+Воздействие — обучение за последние 12 месяцев (`training_12m`), RLMS 2019, работающие 25–60 лет:
+
+```{r}
+#| output: false
+W_att <- weightit(f_ps, data = tr, method = "glm", estimand = "ATT")
+summary(W_att)                                 # вывод — на следующем слайде
+```
+
+```{r}
+#| include: false
+s_att <- summary(W_att)
+```
+
+-   `method = "glm"` — логит-модель PS по формуле `f_ps` (прошлая зарплата, пол, возраст, образование, тип занятости, профессия, отрасль)
+-   `estimand = "ATT"` — обученные получают вес 1, контроли — $e(X)/(1 - e(X))$
+-   Веса лежат в `W_att$weights`; первое, что с ними делают, — `summary()`
+
+## Как читать вывод `summary()` весов
+
+::: {.panel-tabset}
+### Вывод R
+
+::: {style="font-size: 0.8em"}
+```{r}
+#| echo: false
+s_att
+```
+:::
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Weight ranges]{.k}
+
+Мин. и макс. веса по группам и «гистограмма» из символов. Для ATT у обученных все веса = 1; у контролей — от `r round(s_att$weight.range$Control[1], 3)` до `r round(s_att$weight.range$Control[2], 2)`
+:::
+::: {.card}
+[2 · 5 most extreme]{.k}
+
+Номера строк и веса пяти самых «тяжёлых» людей в группе. Посмотрите на них в данных: кто они и почему почти не похожи на другую группу
+:::
+::: {.card .tint}
+[3 · Coef of Var]{.k}
+
+Разброс весов: sd / среднее. Связан с ESS: $n / (1 + CV^2)$ = `r round(sum(tr$treat == 0) / (1 + s_att$coef.of.var[["Control"]]^2))` ≈ ESS контролей
+:::
+::: {.card}
+[4 · MAD, Entropy, # Zeros]{.k}
+
+Другие меры неравномерности весов (чем больше, тем хуже). **# Zeros** — сколько людей выброшено совсем (бывает при обрезании и мэтчинге)
+:::
+::: {.card .tint}
+[5 · Effective Sample Sizes]{.k}
+
+Сколько «независимых» наблюдений стоят веса: контролей было `r sum(tr$treat == 0)`, стало `r round(s_att$effective.sample.size["Weighted", "Control"])`. Обученные не изменились — их вес 1
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Один-два веса на порядок больше остальных; ESS группы упал в разы; веса для ATE в сотнях. Это слабая общая поддержка, а не «шум»
+:::
+:::
+:::
+
+## Баланс после взвешивания
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 3.9
+love.plot(W_att, binary = "std", abs = TRUE, thresholds = c(m = 0.1), var.order = "unadjusted",
+          drop.distance = TRUE, sample.names = c("до", "с весами ATT"), title = NULL) +
+  labs(x = "|стандартизированная разница средних|") +
+  theme(axis.text.y = element_text(size = 5.5))
+```
+
+### Код
+
+```{r}
+#| eval: false
+love.plot(W_att, binary = "std", abs = TRUE, thresholds = c(m = 0.1), var.order = "unadjusted",
+          drop.distance = TRUE, sample.names = c("до", "с весами ATT"), title = NULL) +
+  labs(x = "|стандартизированная разница средних|")
+```
+:::
+
+## Как читать вывод `bal.tab()`
+
+```{r}
+#| include: false
+b_att <- bal.tab(W_att, binary = "std", un = TRUE, thresholds = c(m = 0.1))
+op <- options(width = 200); bt_out <- capture.output(print(b_att)); options(op)
+```
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| eval: false
+bal.tab(W_att, binary = "std", un = TRUE, thresholds = c(m = 0.1))
+```
+
+::: {style="font-size: 0.85em"}
+```{r}
+#| echo: false
+rows <- sub(" {40}", "", bt_out[1:11])               # строки PS и основных ковариат
+tally <- grep("Balance tally", bt_out); ess <- grep("Effective sample sizes", bt_out)
+cat(c(rows, sprintf("   … ещё %d дамми профессий и отраслей", nrow(b_att$Balance) - 9), "",
+      bt_out[tally + 0:3], "", bt_out[ess + 0:3]), sep = "\n")
+```
+:::
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Type]{.k}
+
+`Distance` — сам PS, `Contin.` — непрерывная, `Binary` — дамми. Факторы `occup_group` и `industry` развёрнуты в дамми по уровням
+:::
+::: {.card .tint}
+[2 · Diff.Un]{.k}
+
+Стандартизированная разница средних **до** взвешивания (`binary = "std"` — и для дамми). Годы обучения: `r round(b_att$Balance["years_educ", "Diff.Un"], 2)` SD — обучаются более образованные
+:::
+::: {.card .tint}
+[3 · Diff.Adj]{.k}
+
+То же **после** взвешивания. Цель — |SMD| < 0.1. Максимум здесь — `r round(max(abs(b_att$Balance$Diff.Adj)), 3)`
+:::
+::: {.card}
+[4 · M.Threshold и tally]{.k}
+
+Метка по порогу `thresholds = c(m = 0.1)` у каждой переменной и итог: сколько сбалансировано, сколько нет
+:::
+::: {.card}
+[5 · Effective sample sizes]{.k}
+
+Те же ESS, что в `summary()`: цена баланса. Хороший баланс при крошечном ESS — плохая сделка
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+`Not Balanced` у сильных конфаундеров; баланс только средних — проверьте дисперсии (`disp.v.ratio = TRUE`) и распределения (`stats = "ks.statistics"`)
+:::
+:::
+:::
+
+## Распределение весов: где прячутся экстремумы
+
+Для ATT веса контролей скромные (обучение — редкое событие). А вот веса **для ATE** у обученных с низким $e(X)$ взлетают:
+
+```{r}
+#| include: false
+W_ate <- weightit(f_ps, data = tr, method = "glm", estimand = "ATE")
+tr$w_ate <- W_ate$weights
+```
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+#| fig-height: 2.3
+ggplot(tr |> filter(treat == 1), aes(w_ate)) +
+  geom_histogram(bins = 50, fill = pal["indigo"]) +
+  labs(x = "вес обученного для ATE: 1 / e(X)", y = NULL)
+```
+
+```{r}
+#| echo: false
+tr |> filter(treat == 1) |> summarise(ESS = sum(w_ate)^2 / sum(w_ate^2), макс = max(w_ate),
+                                      `доля весов > 20` = mean(w_ate > 20))
+```
+
+### Код
+
+```{r}
+#| eval: false
+W_ate <- weightit(f_ps, data = tr, method = "glm", estimand = "ATE")
+tr$w_ate <- W_ate$weights
+ggplot(tr |> filter(treat == 1), aes(w_ate)) +
+  geom_histogram(bins = 50, fill = pal["indigo"]) +
+  labs(x = "вес обученного для ATE: 1 / e(X)", y = NULL)
+tr |> filter(treat == 1) |> summarise(ESS = sum(w_ate)^2 / sum(w_ate^2), макс = max(w_ate),
+                                      `доля весов > 20` = mean(w_ate > 20))
+```
+:::
+
+## Обрезание
+
+```{r}
+W_trim <- trim(W_ate, at = 0.99)                     # обрезать верхний 1 % весов
+stat <- function(W, name) tibble(
+  веса = name,
+  `ESS обученных` = summary(W)$effective.sample.size["Weighted", "Treated"],
+  `макс |SMD|`    = max(abs(bal.tab(W, binary = "std")$Balance$Diff.Adj)))
+bind_rows(stat(W_ate, "как есть"), stat(W_trim, "обрезаны 1 %")) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+```
+
+::: {.callout-note appearance="minimal"}
+Обрезание — компромисс: ESS вырос втрое, баланс стал хуже, а эстиманд — уже не совсем ATE. Любое обрезание надо показывать в отчёте.
+:::
+
+## Оценка эффекта с весами: честные ошибки
+
+```{r}
+fit_w <- lm_weightit(f_y, data = tr, weightit = W_att)          # учитывает оценку весов
+att_w <- avg_comparisons(fit_w, variables = "treat", newdata = subset(tr, treat == 1))
+att_w |> as_tibble() |> select(estimate, std.error, conf.low, conf.high)
+```
+
+-   `lm_weightit()` считает стандартные ошибки через M-оценивание — с учётом того, что веса сами оценены
+-   Регрессия с ковариатами **плюс** веса = дважды робастная оценка ATT
+
+## Как читать вывод `avg_comparisons()`
+
+::: {.panel-tabset}
+### Вывод R
+
+```{r}
+#| echo: false
+print(att_w)
+```
+
+### С пояснениями
+
+::: {.cards .c3}
+::: {.card}
+[1 · Term, Contrast]{.k}
+
+`treat`, `1 - 0`: для каждого человека предсказание при $D = 1$ минус при $D = 0$, затем среднее. `newdata` = только обученные → это **ATT**
+:::
+::: {.card .tint}
+[2 · Estimate]{.k}
+
+В единицах исхода: `r round(att_w$estimate, 4)` лог-пункта ≈ +`r round(100 * (exp(att_w$estimate) - 1), 1)` % к зарплате обученных
+:::
+::: {.card .tint}
+[3 · Std. Error]{.k}
+
+Из `vcov` модели: у `lm_weightit()` по умолчанию `"asympt"` — M-оценивание, учитывает, что веса оценены. Обычный `lm(weights = )` этого не делает
+:::
+::: {.card}
+[4 · z, Pr(>|z|), S]{.k}
+
+Нормальный тест против нуля: p = `r round(att_w$p.value, 3)`, S = `r round(att_w$s.value, 1)` бита — слабое свидетельство
+:::
+::: {.card}
+[5 · 2.5 % и 97.5 %]{.k}
+
+95 %-й ДИ: от `r round(att_w$conf.low, 3)` до `r round(att_w$conf.high, 3)`. Включает ноль, но исключает эффекты больше `r round(att_w$conf.high, 2)` (≈ `r round(100 * (exp(att_w$conf.high) - 1))` %)
+:::
+::: {.card .warn}
+[6 · сигналы беды]{.k}
+
+Забыли `newdata` — получили ATE, а не ATT; `Contrast` не `1 - 0` (например, `+1`): `treat` закодирован не как 0/1; SE из `lm()` с весами вместо `lm_weightit()`
+:::
+:::
+:::
+
+## Как писать результат
+
+::: {.card .tint}
+[шаблон]{.k}
+
+«Среди работающих 25–60 лет в RLMS 2019 г. (`r sum(tr$treat)` прошедших обучение, `r sum(tr$treat == 0)` контролей) дважды робастная оценка ATT — взвешивание по обратной вероятности (логит-PS) плюс регрессия исхода — составляет **`r round(att_w$estimate, 3)`** лог-пункта (s.e. `r round(att_w$std.error, 3)`; 95 % ДИ от `r round(att_w$conf.low, 3)` до `r round(att_w$conf.high, 3)`). После взвешивания все |SMD| < 0.1; эффективный размер контрольной группы — `r round(s_att$effective.sample.size["Weighted", "Control"])`. Оценка опирается на допущение, что при учтённых характеристиках, включая зарплату год назад, решение об обучении не связано с ненаблюдаемыми детерминантами зарплаты.»
+:::
+
+-   Обязательно: эстиманд (ATT), модель PS и модель исхода, баланс и ESS, как считались ошибки, было ли обрезание
+-   Не писать «обучение не влияет на зарплату»: интервал широкий и включает как ноль, так и заметные эффекты
+
+## Энтропийное балансирование
+
+```{r}
+W_ebal <- weightit(f_ps, data = tr, method = "ebal", estimand = "ATT")
+b_ebal <- bal.tab(W_ebal, binary = "std")$Balance$Diff.Adj
+round(c(`макс |SMD| после ebal` = max(abs(b_ebal)),
+        `ESS контролей` = summary(W_ebal)$effective.sample.size["Weighted", "Control"]), 3)
+```
+
+-   Вместо модели PS — ищем веса, при которых средние (и дисперсии) ковариат **точно** совпадают
+-   Баланс гарантирован по построению; цена — дисперсия, если профили групп сильно различаются
+
+## G-computation без весов
+
+```{r}
+fit_g <- lm(f_y, data = tr)
+avg_comparisons(fit_g, variables = "treat", vcov = "HC3", newdata = subset(tr, treat == 1)) |>
+  as_tibble() |> select(estimate, std.error, conf.low, conf.high)
+```
+
+-   Та же регрессия, без весов: ATT из модели исхода
+-   Близко к взвешенной оценке — хороший знак: обе модели «согласны»
+
+## Лестница оценок, продолжение
+
+```{r}
+#| echo: false
+est <- function(fit, name, ...) avg_comparisons(fit, variables = "treat", newdata = subset(tr, treat == 1), ...) |>
+  as_tibble() |> transmute(метод = name, оценка = estimate, se = std.error)
+W_ato <- weightit(f_ps, data = tr, method = "glm", estimand = "ATO")
+ate_row <- avg_comparisons(lm_weightit(f_y, data = tr, weightit = W_ate), variables = "treat") |>
+  as_tibble() |> transmute(метод = "IPW, ATE (вся популяция)", оценка = estimate, se = std.error)
+ato_row <- avg_comparisons(lm_weightit(f_y, data = tr, weightit = W_ato), variables = "treat") |>
+  as_tibble() |> transmute(метод = "overlap-веса, ATO", оценка = estimate, se = std.error)
+bind_rows(
+  tidy(feols(log_wage ~ treat, tr, vcov = "hetero")) |> filter(term == "treat") |>
+    transmute(метод = "наивная разница", оценка = estimate, se = std.error),
+  est(fit_g, "g-computation (регрессия), ATT", vcov = "HC3"),
+  est(fit_w, "IPW + регрессия (DR), ATT"),
+  est(lm_weightit(f_y, data = tr, weightit = W_ebal), "энтропийные веса + регрессия, ATT"),
+  ate_row, ato_row
+) |> mutate(across(c(оценка, se), ~ round(.x, 3))) |> knitr::kable()
+```
+
+::: {.thesis .smaller}
+Все корректировки по наблюдаемым дают 0.04–0.07 с интервалами, включающими ноль. ATE и ATO близки к ATT: в этом примере эффект мало различается по $e(X)$ — но это надо было проверить, а не предполагать.
+:::
+
+## Симуляция: что значит «дважды»
+
+```{r}
+#| include: false
+dgp <- function(n = 4000) {
+  tibble(x1 = rnorm(n), x2 = rnorm(n)) |>
+    mutate(e = plogis(-0.3 + 0.6 * x1 + 0.5 * x2^2),      # PS нелинеен по x2
+           d = rbinom(n, 1, e),
+           y = 1 + 2 * d + x1 + 1.5 * x2^2 + rnorm(n))      # исход тоже нелинеен; эффект = 2
+}
+one_rep <- function() {
+  s <- dgp()
+  ps_ok  <- fitted(glm(d ~ x1 + I(x2^2), s, family = binomial))      # верный PS
+  ps_bad <- fitted(glm(d ~ x1 + x2,       s, family = binomial))      # пропущен квадрат
+  w <- function(ps) ifelse(s$d == 1, 1 / ps, 1 / (1 - ps))
+  gcomp <- function(m) mean(predict(m, mutate(s, d = 1)) - predict(m, mutate(s, d = 0)))
+  g  <- function(f) gcomp(lm(f, s))
+  dr <- function(ps, f) { s$ww <- w(ps); gcomp(lm(f, s, weights = ww)) }
+  c(`IPW, PS верен` = unname(coef(lm(y ~ d, s, weights = w(ps_ok)))["d"]),
+    `IPW, PS неверен` = unname(coef(lm(y ~ d, s, weights = w(ps_bad)))["d"]),
+    `g-comp, исход верен` = g(y ~ d * (x1 + I(x2^2))),
+    `g-comp, исход неверен` = g(y ~ d * (x1 + x2)),
+    `DR: PS неверен, исход верен` = dr(ps_bad, y ~ d * (x1 + I(x2^2))),
+    `DR: PS верен, исход неверен` = dr(ps_ok, y ~ d * (x1 + x2)),
+    `DR: оба неверны` = dr(ps_bad, y ~ d * (x1 + x2)))
+}
+set.seed(66)
+res <- replicate(200, one_rep())
+```
+
+Истинный эффект = 2; PS и исход нелинейны по $x_2$. 200 повторов по 4000 наблюдений.
+
+::: {.panel-tabset}
+### Результат
+
+```{r}
+#| echo: false
+tibble(оценка = rownames(res), среднее = rowMeans(res), sd = apply(res, 1, sd)) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+```
+
+### Код
+
+```{r}
+#| eval: false
+dgp <- function(n = 4000) {
+  tibble(x1 = rnorm(n), x2 = rnorm(n)) |>
+    mutate(e = plogis(-0.3 + 0.6 * x1 + 0.5 * x2^2),      # PS нелинеен по x2
+           d = rbinom(n, 1, e),
+           y = 1 + 2 * d + x1 + 1.5 * x2^2 + rnorm(n))      # исход тоже нелинеен; эффект = 2
+}
+one_rep <- function() {
+  s <- dgp()
+  ps_ok  <- fitted(glm(d ~ x1 + I(x2^2), s, family = binomial))      # верный PS
+  ps_bad <- fitted(glm(d ~ x1 + x2,       s, family = binomial))      # пропущен квадрат
+  w <- function(ps) ifelse(s$d == 1, 1 / ps, 1 / (1 - ps))
+  gcomp <- function(m) mean(predict(m, mutate(s, d = 1)) - predict(m, mutate(s, d = 0)))
+  g  <- function(f) gcomp(lm(f, s))
+  dr <- function(ps, f) { s$ww <- w(ps); gcomp(lm(f, s, weights = ww)) }
+  c(`IPW, PS верен` = unname(coef(lm(y ~ d, s, weights = w(ps_ok)))["d"]),
+    `IPW, PS неверен` = unname(coef(lm(y ~ d, s, weights = w(ps_bad)))["d"]),
+    `g-comp, исход верен` = g(y ~ d * (x1 + I(x2^2))),
+    `g-comp, исход неверен` = g(y ~ d * (x1 + x2)),
+    `DR: PS неверен, исход верен` = dr(ps_bad, y ~ d * (x1 + I(x2^2))),
+    `DR: PS верен, исход неверен` = dr(ps_ok, y ~ d * (x1 + x2)),
+    `DR: оба неверны` = dr(ps_bad, y ~ d * (x1 + x2)))
+}
+set.seed(66)
+res <- replicate(200, one_rep())
+tibble(оценка = rownames(res), среднее = rowMeans(res), sd = apply(res, 1, sd)) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+```
+:::
+
+## Что показала симуляция
+
+-   Истинный эффект — 2. IPW с неверным PS и g-computation с неверной моделью исхода **смещены**
+-   DR-оценка верна, если верна **хотя бы одна** из двух моделей
+-   Если неверны обе — смещение остаётся (но часто меньше, чем у каждой по отдельности)
+-   Отсюда практика: гибкие модели для **обеих** частей — следующий шаг — машинное обучение (causal forest, лекция 16)
+
+# Как ошибаются {background-color="#5c1a26" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #5c1a26 0%, #a33a3a 100%)"}
+
+## Шесть ошибок с весами
+
+1.  Не смотрят на распределение весов: один человек с весом 80 определяет результат
+2.  Считают ATE там, где нет поддержки: для части людей воздействие практически невозможно
+3.  Стандартные ошибки «как будто веса известны» — занижены; нужны M-оценки или бутстрэп
+4.  Модель PS с переменными, измеренными после воздействия
+5.  Оптимизируют PS на предсказание (AUC), а не на баланс
+6.  Называют DR-оценку «робастной» без проверки, что хотя бы одна модель правдоподобна
+
+## Чек-лист
+
+-   [ ] Эстиманд выбран осознанно: ATE / ATT / ATO — и объяснён
+-   [ ] Показаны распределение весов, ESS, обрезание (если есть)
+-   [ ] Баланс после взвешивания: SMD < 0.1
+-   [ ] Оценка — взвешенная регрессия с ковариатами (DR)
+-   [ ] Ошибки учитывают оценку весов (`lm_weightit`, бутстрэп)
+-   [ ] Результат сравнён с g-computation и мэтчингом: расхождения объяснены
+
+# Мини-задача {background-color="#0c4a47" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #0c4a47 0%, #13807a 100%)"}
+
+## Задание к следующему занятию
+
+1.  Пересчитайте ATT через IPW для 2016 и 2023 годов. Сравните с мэтчингом из прошлого задания
+2.  Постройте веса ATE и найдите 10 человек с максимальными весами. Кто они? Что произойдёт с оценкой, если их убрать?
+3.  В симуляции двойной робастности замените линейные модели на `ranger` (случайный лес) для PS и исхода. Что произошло со смещением в случае «оба неверны»?
+4.  Оцените эффект **курения** на `good_health` взвешиванием (ATT) с теми же ковариатами, что в задании по мэтчингу. Насколько различаются оценки IPW и мэтчинга? Почему?
+
+# Литература {background-color="#101828" background-gradient="radial-gradient(circle at 85% 18%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 45%), linear-gradient(135deg, #101828 0%, #344054 100%)"}
+
+## Что прочитать
+
+-   Hernán M., Robins J. *What If*, гл. 12–13 — IP weighting и standardization, одна глава за другой
+-   Robins J., Rotnitzky A., Zhao L. (1994). Estimation of Regression Coefficients When Some Regressors Are Not Always Observed. *JASA* — исток AIPW
+-   Li F., Morgan K., Zaslavsky A. (2018). Balancing Covariates via Propensity Score Weighting. *JASA* — overlap-веса
+-   Hainmueller J. (2012). Entropy Balancing for Causal Effects. *Political Analysis*
+-   Greifer N. Виньетки [`WeightIt`](https://ngreifer.github.io/WeightIt/) «Estimating Effects After Weighting»
+-   Huntington-Klein N. *The Effect*, гл. 14 «Matching» (включая взвешивание)

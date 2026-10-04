@@ -1,0 +1,104 @@
+/*-- scss:defaults --*/
+$soft-lavender: #8B7CF6;
+$deep-teal: #0F766E;
+$warm-coral: #F97066;
+$sage-green: #84CC16;
+$deep-indigo: #4F46E5;
+$charcoal: #374151;
+
+$presentation-font-size-root: 30px;
+$code-block-font-size: 0.60em;
+$code-block-bg: #f6f7fb;
+$code-block-border-color: #e3e6f0;
+
+/*-- scss:rules --*/
+
+// Основные цвета и типографика
+.reveal {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: normal;
+  color: #333;
+}
+
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-shadow: none;
+  word-wrap: break-word;
+}
+
+.reveal h1 { font-size: 2.2em; color: white; }
+
+// Титульный слайд
+.reveal .slides section:first-child h1,
+.reveal .title-slide h1 {
+  font-size: 1.9em;
+  color: #1f2937;
+  text-shadow: none;
+}
+.reveal .title-slide .subtitle { color: $deep-indigo; font-size: 1.1em; }
+.reveal .title-slide .quarto-title-authors,
+.reveal .title-slide .institute { color: #555; }
+
+.reveal h2 { font-size: 1.45em; color: $deep-indigo; margin-bottom: 0.5em; }
+.reveal h3 { font-size: 1.15em; color: $deep-indigo; }
+
+// Слайды-разделители с цветными фонами
+@each $c in ("#8B7CF6", "#0F766E", "#F97066", "#84CC16", "#4F46E5", "#374151") {
+  .reveal .slides section[data-background-color="#{$c}"] { color: white; }
+  .reveal .slides section[data-background-color="#{$c}"] h1,
+  .reveal .slides section[data-background-color="#{$c}"] h2,
+  .reveal .slides section[data-background-color="#{$c}"] h3 { color: white; }
+}
+
+// Списки
+.reveal ul, .reveal ol { margin-left: 1em; }
+.reveal ul li, .reveal ol li { margin-bottom: 0.35em; }
+
+// Код и вывод
+.reveal pre { margin: 0.4em 0; box-shadow: none; }
+.reveal pre code { line-height: 1.35; padding: 0.6em 0.8em; }
+.reveal div.sourceCode { border-radius: 6px; }
+.reveal .cell-output pre code { background: #fbfbfd; color: #2b2d42; }
+.reveal .cell-output-display { font-size: 0.75em; }
+
+// Таблицы
+.reveal table { border-collapse: collapse; font-size: 0.72em; margin: 0.3em auto; }
+.reveal table th { background-color: $deep-indigo; color: white; padding: 0.35em 0.6em; font-weight: 600; }
+.reveal table td { padding: 0.3em 0.6em; border-bottom: 1px solid #ddd; }
+.reveal table tr:nth-child(even) { background-color: #f8f9fa; }
+
+// Callout
+.reveal .callout { font-size: 0.85em; margin: 0.6em 0; }
+.reveal .callout-title-container { font-weight: 600; }
+
+// Формулы
+.reveal .MathJax { font-size: 1.1em; }
+
+// Служебное
+.reveal .controls, .reveal .progress, .reveal .slide-menu-button { color: $deep-indigo; }
+.reveal .thesis.smaller { font-size: 0.78em; }
+.reveal .footer { font-size: 0.55em; color: #777; }
+.reveal .slide-number { font-size: 0.55em; color: #777; }
+
+.center { text-align: center; }
+.smaller { font-size: 0.8em; }
+.tiny { font-size: 0.65em; }
+.muted { color: #6b7280; }
+.key { color: $deep-indigo; font-weight: 600; }
+.bad { color: #dc2626; font-weight: 600; }
+.good { color: $deep-teal; font-weight: 600; }
+
+// Карточка-тезис
+.thesis {
+  border-left: 5px solid $deep-indigo;
+  background: #f3f2ff;
+  padding: 0.6em 0.9em;
+  margin: 0.6em 0;
+  font-size: 0.95em;
+}
+
+// Колонки
+.columns { display: flex; gap: 1em; }
+.column { flex: 1; }

@@ -1,0 +1,115 @@
+/*-- scss:defaults --*/
+$body-bg: #0F1522;
+$body-color: #D7DCE6;
+$link-color: #F5B841;
+$presentation-font-size-root: 30px;
+$presentation-heading-font: "Manrope", sans-serif;
+$presentation-heading-color: #FFFFFF;
+$presentation-heading-font-weight: 800;
+$presentation-heading-letter-spacing: -0.02em;
+$presentation-heading-text-transform: none;
+$font-family-sans-serif: "Manrope", sans-serif;
+$font-family-monospace: "JetBrains Mono", monospace;
+$code-block-font-size: 0.58em;
+$code-block-bg: #161E2F;
+$code-block-border-color: transparent;
+$code-color: #F5B841;
+$selection-bg: #F5B841;
+
+/*-- scss:rules --*/
+.reveal { font-family: "Manrope", sans-serif; color: #D7DCE6; font-weight: 400; }
+.reveal .slides { text-align: left; }
+.reveal .slides section { padding-top: 0.2em; }
+.reveal p, .reveal li { line-height: 1.42; }
+.reveal strong { color: #FFFFFF; font-weight: 700; }
+
+/* заголовок слайда */
+.reveal h2 {
+  font-family: "Manrope", sans-serif; font-size: 1.45em; color: #FFFFFF;
+  font-weight: 800; letter-spacing: -0.02em; line-height: 1.12;
+  margin: 0 0 0.55em 0; padding-bottom: 0.28em; position: relative;
+  
+}
+.reveal h2::after { content:""; position:absolute; left:0; bottom:0; width:1.6em; height:4px; border-radius:2px; background:linear-gradient(90deg,#F5B841,#38D0C0); }
+.reveal h2 code { font-size: 0.85em; background: none; color: #F5B841; }
+.reveal h3 { font-family: "Manrope", sans-serif; color: #FFFFFF; font-size: 1.05em; }
+
+/* списки */
+.reveal ul, .reveal ol { margin-left: 1.05em; }
+.reveal ul li, .reveal ol li { margin-bottom: 0.42em; }
+.reveal ul li::marker { color: #F5B841; }
+.reveal ol li::marker { color: #F5B841; font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 0.85em; }
+
+/* код */
+.reveal div.sourceCode, .reveal div.sourceCode pre, .reveal pre.sourceCode { background-color: #161E2F !important; }
+.reveal div.sourceCode { border-radius: 8px; background: #161E2F; border: 1px solid #222D44; margin: 0.45em 0; }
+.reveal pre { box-shadow: none; margin: 0.45em 0; }
+.reveal pre code { font-family: "JetBrains Mono", monospace; line-height: 1.45; padding: 0.7em 0.95em; max-height: none; }
+.reveal code { font-family: "JetBrains Mono", monospace; }
+.reveal p code, .reveal li code { background: #1C2539; color: #F5B841; padding: 0.05em 0.3em; border-radius: 4px; font-size: 0.86em; }
+.reveal .cell-output pre, .reveal .cell-output-stdout pre { background: transparent !important; }
+.reveal .cell-output pre code, .reveal .cell-output-stdout pre code {
+  background: #121A29; color: #B9C2D3; border-left: 3px solid #38D0C0; border-radius: 0 8px 8px 0;
+}
+.reveal .cell-output-display { font-size: 0.74em; }
+.reveal div.code-copy-outer-scaffold .code-copy-button { opacity: .5; }
+
+/* таблицы */
+.reveal table { border-collapse: collapse; font-size: 0.7em; margin: 0.4em auto; font-variant-numeric: tabular-nums; }
+.reveal table th { background: #1A2336; color: #FFFFFF; font-weight: 700; padding: 0.45em 0.75em;
+  border-bottom: 2px solid #F5B841; text-align: left; font-family: "Manrope", sans-serif; }
+.reveal table td { padding: 0.38em 0.75em; border-bottom: 1px solid #253049; }
+.reveal table tr:nth-child(even) td { background: #131B2A; }
+.reveal table tbody tr:last-child td { border-bottom: 2px solid #F5B841; }
+
+/* тезис */
+.thesis, .reveal .thesis {
+  background: #172033; color: #E6EAF2; border-left: 5px solid #F5B841;
+  padding: 0.7em 1em; margin: 0.7em 0; font-size: 0.92em; border-radius: 0 8px 8px 0; 
+}
+.reveal .thesis.smaller { font-size: 0.78em; }
+.reveal .thesis strong { color: #F5B841; }
+.reveal .thesis .katex { color: inherit; }
+
+/* callout */
+.reveal .callout { border-left-color: #38D0C0 !important; background: #172033 !important; font-size: 0.82em; }
+
+/* формулы */
+.reveal .katex { font-size: 1.05em; color: #FFFFFF; }
+
+/* титульный слайд */
+.reveal .slides section.quarto-title-block { text-align: left; padding-top: 2.2em; }
+.reveal .slides section.quarto-title-block::before { content: "КАУЗАЛЬНЫЙ АНАЛИЗ В R · RLMS-HSE"; display: block; text-align: left; font-family: "JetBrains Mono", monospace;
+  font-size: 0.48em; letter-spacing: 0.22em; color: #F5B841; margin-bottom: 1.6em; font-weight: 600; }
+.reveal .slides section.quarto-title-block .title { font-family: "Manrope", sans-serif; font-size: 2.2em; line-height: 1.05; color: #FFFFFF;
+  font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35em; }
+.reveal .slides section.quarto-title-block .subtitle { font-family: "Manrope", sans-serif; font-size: 0.95em; color: #38D0C0; font-style: normal; font-weight: 500; }
+.reveal .slides section.quarto-title-block .quarto-title-authors { justify-content: flex-start !important; margin-top: 2.4em; text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author-name { text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author-name { font-weight: 700; color: #D7DCE6; font-size: 0.8em; }
+.reveal .slides section.quarto-title-block .quarto-title-affiliation { color: #7D879B; font-size: 0.62em; margin: 0.2em 0 0 0; text-align: left; }
+.reveal .slides section.quarto-title-block .title, .reveal .slides section.quarto-title-block .subtitle { text-align: left; }
+.reveal .slides section.quarto-title-block .quarto-title-author { padding-left: 0; }
+.reveal .slides section.quarto-title-block .title { background: linear-gradient(90deg,#FFFFFF 40%,#F5B841); -webkit-background-clip:text; background-clip:text; color: transparent; }
+
+/* разделители частей */
+.reveal .slides { counter-reset: part; }
+.reveal .slides section.level1 { counter-increment: part; }
+.reveal .slides section.level1 h1 { font-family: "Manrope", sans-serif; font-size: 3.6em; font-weight: 800;
+  letter-spacing: -0.02em; color: #FFFFFF; text-align: left; line-height: 1; text-transform: none; }
+.reveal .slides section.level1 h1::before { content: counter(part, decimal-leading-zero); display: block;
+  font-family: "JetBrains Mono", monospace; font-size: 0.24em; letter-spacing: 0.2em; color: #F5B841; margin-bottom: 0.9em; font-weight: 600; }
+.reveal .slides section.level1 h1::after { content: ""; display: block; width: 2.2em; height: 6px; background: #38D0C0; margin-top: 0.45em; }
+
+/* служебное */
+.reveal .footer { font-family: "JetBrains Mono", monospace; font-size: 0.4em; color: #7D879B; letter-spacing: 0.06em; }
+.reveal .slide-number { font-family: "JetBrains Mono", monospace; font-size: 0.45em; color: #7D879B; background: transparent !important; }
+.reveal .progress { color: #F5B841; height: 4px; }
+.reveal .controls { color: #F5B841; }
+.center { text-align: center; }
+.smaller { font-size: 0.8em; }
+.tiny { font-size: 0.65em; }
+.muted { color: #7D879B; }
+.columns { display: flex; gap: 1em; }
+.column { flex: 1; }
+.reveal .sourceCode .kw, .reveal .sourceCode .fu { color: #F5B841; } .reveal .sourceCode .st { color: #9BE28E; } .reveal .sourceCode .co { color: #6C7891; } .reveal .sourceCode .dv, .reveal .sourceCode .fl { color: #FF8A7A; } .reveal .sourceCode .at { color: #38D0C0; } .reveal div.sourceCode pre code { color: #D7DCE6; }
