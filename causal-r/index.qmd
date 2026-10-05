@@ -26,203 +26,51 @@ css: index.css
 
 ### Блок 0. Данные и язык причинности
 
-::: {.lec-grid}
-::: {.lec-card}
-[00]{.lec-num}
-
-[RLMS-HSE: устройство данных](lectures/00-rlms-data.html){.lec-title}
-
-Сборка учебной панели
-
-[haven]{.lec-chip} [tidyverse]{.lec-chip} [survey/srvyr]{.lec-chip}
-:::
-::: {.lec-card}
-[01]{.lec-num}
-
-[Почему «регрессия с контролями» — не ответ](lectures/01-potential-outcomes.html){.lec-title}
-
-Зарплаты по образованию: агрегат vs по регионам/полу
-
-[tidyverse]{.lec-chip}
-:::
-::: {.lec-card}
-[02]{.lec-num}
-
-[Эксперимент как эталон](lectures/02-experiments.html){.lec-title}
-
-Плацебо-эксперимент внутри RLMS
-
-[ri2]{.lec-chip} [estimatr]{.lec-chip} [tidyverse]{.lec-chip}
-:::
-::: {.lec-card}
-[03]{.lec-num}
-
-[DAG: язык причинных графов](lectures/03-dags.html){.lec-title}
-
-Граф «образование → зарплата»
-
-[dagitty]{.lec-chip} [ggdag]{.lec-chip}
-:::
+::: {.lec-list}
+[00]{.lec-n} [RLMS-HSE: устройство данных](lectures/00-rlms-data.html)\
+[01]{.lec-n} [Почему «регрессия с контролями» — не ответ](lectures/01-potential-outcomes.html)\
+[02]{.lec-n} [Эксперимент как эталон](lectures/02-experiments.html)\
+[03]{.lec-n} [DAG: язык причинных графов](lectures/03-dags.html)
 :::
 
 ### Блок 1. Отбор по наблюдаемым
 
-::: {.lec-grid}
-::: {.lec-card}
-[04]{.lec-num}
-
-[Регрессия как каузальный инструмент](lectures/04-regression.html){.lec-title}
-
-Уравнение Минцера на RLMS
-
-[fixest]{.lec-chip} [marginaleffects]{.lec-chip} [modelsummary]{.lec-chip}
-:::
-::: {.lec-card}
-[05]{.lec-num}
-
-[Мэтчинг](lectures/05-matching.html){.lec-title}
-
-Профобучение → зарплата (RLMS 2019)
-
-[MatchIt]{.lec-chip} [cobalt]{.lec-chip} [marginaleffects]{.lec-chip}
-:::
-::: {.lec-card}
-[06]{.lec-num}
-
-[Взвешивание и дважды робастные оценки](lectures/06-weighting-dr.html){.lec-title}
-
-Тот же вопрос, что в лекции 5
-
-[WeightIt]{.lec-chip} [cobalt]{.lec-chip} [marginaleffects]{.lec-chip}
-:::
+::: {.lec-list}
+[04]{.lec-n} [Регрессия как каузальный инструмент](lectures/04-regression.html)\
+[05]{.lec-n} [Мэтчинг](lectures/05-matching.html)\
+[06]{.lec-n} [Взвешивание и дважды робастные оценки](lectures/06-weighting-dr.html)
 :::
 
 ### Блок 2. Панель RLMS
 
-::: {.lec-grid}
-::: {.lec-card}
-[07]{.lec-num}
-
-[Фиксированные эффекты](lectures/07-fixed-effects.html){.lec-title}
-
-Отдача от образования в панели; курение → здоровье
-
-[fixest]{.lec-chip}
-:::
-::: {.lec-card}
-[08]{.lec-num}
-
-[Event study по индивидуальным событиям](lectures/08-event-study.html){.lec-title}
-
-Child penalty на RLMS
-
-[fixest]{.lec-chip} [ggplot2]{.lec-chip}
-:::
-::: {.lec-card}
-[09]{.lec-num}
-
-[Разность разностей: 2×2 и многопериодная](lectures/09-did.html){.lec-title}
-
-Пенсионная реформа 2019 (2×2); материнский капитал — почему DiD не проходит
-
-[fixest]{.lec-chip} [modelsummary]{.lec-chip}
-:::
-::: {.lec-card}
-[10]{.lec-num}
-
-[DiD с разновременным включением](lectures/10-did-staggered.html){.lec-title}
-
-Пенсионная реформа 2019 по когортам; симуляция смещения TWFE
-
-[did]{.lec-chip} [didimputation]{.lec-chip} [fixest]{.lec-chip} [bacondecomp]{.lec-chip} [panelView]{.lec-chip}
-:::
+::: {.lec-list}
+[07]{.lec-n} [Фиксированные эффекты](lectures/07-fixed-effects.html)\
+[08]{.lec-n} [Event study по индивидуальным событиям](lectures/08-event-study.html)\
+[09]{.lec-n} [Разность разностей: 2×2 и многопериодная](lectures/09-did.html)\
+[10]{.lec-n} [DiD с разновременным включением](lectures/10-did-staggered.html)
 :::
 
 ### Блок 3. Естественные эксперименты и отбор по ненаблюдаемым
 
-::: {.lec-grid}
-::: {.lec-card}
-[11]{.lec-num}
-
-[Регрессия разрывов](lectures/11-rdd.html){.lec-title}
-
-Порог пенсионного возраста 55/60 → пенсия, занятость, часы
-
-[rdrobust]{.lec-chip} [rddensity]{.lec-chip}
-:::
-::: {.lec-card}
-[12]{.lec-num}
-
-[Инструментальные переменные](lectures/12-iv.html){.lec-title}
-
-Пол первых двух детей (Ангрист–Эванс) → третий ребёнок → занятость матерей; нечёткая RD как IV
-
-[fixest]{.lec-chip} [ivreg]{.lec-chip} [ivmodel]{.lec-chip}
-:::
-::: {.lec-card}
-[13]{.lec-num}
-
-[Отбор в выборку: модели Хекмана](lectures/13-heckman.html){.lec-title}
-
-Зарплаты женщин: симуляция, Mroz (1987) и RLMS — когда поправка работает и когда ломается
-
-[sampleSelection]{.lec-chip}
-:::
-::: {.lec-card}
-[14]{.lec-num}
-
-[Отбор по ненаблюдаемым: метод Альтонджи–Элдера–Табера](lectures/14-altonji.html){.lec-title}
-
-Нервные расстройства → занятость (RLMS 2018) по логике Chatterji, Alegría, Takeuchi; двумерный пробит с заданным ρ
-
-[pbivnorm]{.lec-chip} [numDeriv]{.lec-chip}
-:::
+::: {.lec-list}
+[11]{.lec-n} [Регрессия разрывов](lectures/11-rdd.html)\
+[12]{.lec-n} [Инструментальные переменные](lectures/12-iv.html)\
+[13]{.lec-n} [Отбор в выборку: модели Хекмана](lectures/13-heckman.html)\
+[14]{.lec-n} [Отбор по ненаблюдаемым: метод Альтонджи–Элдера–Табера](lectures/14-altonji.html)
 :::
 
 ### Блок 4. Механизмы и гетерогенность
 
-::: {.lec-grid}
-::: {.lec-card}
-[15]{.lec-num}
-
-[Медиация и механизмы](lectures/15-mediation.html){.lec-title}
-
-Диплом → профессиональная позиция → зарплата (RLMS 2016, Big Five как контроли); добросовестность → образование → зарплата
-
-[mediation]{.lec-chip} [ggdag]{.lec-chip}
-:::
-::: {.lec-card}
-[16]{.lec-num}
-
-[Гетерогенные эффекты и causal forests](lectures/16-causal-forests.html){.lec-title}
-
-Гетерогенность отдачи от образования: калибровка, RATE, policy tree на отложенной половине
-
-[grf]{.lec-chip} [policytree]{.lec-chip}
-:::
+::: {.lec-list}
+[15]{.lec-n} [Медиация и механизмы](lectures/15-mediation.html)\
+[16]{.lec-n} [Гетерогенные эффекты и causal forests](lectures/16-causal-forests.html)
 :::
 
 ### Блок 5. Честный отчёт и проект
 
-::: {.lec-grid}
-::: {.lec-card}
-[17]{.lec-num}
-
-[Чувствительность и робастность](lectures/17-sensitivity.html){.lec-title}
-
-Отдача от образования: RV, границы Остера и Розенбаума, кривая спецификаций, плацебо-исход; E-value для курения
-
-[sensemakr]{.lec-chip} [robomit]{.lec-chip} [EValue]{.lec-chip} [rbounds]{.lec-chip} [specr]{.lec-chip}
-:::
-::: {.lec-card}
-[18]{.lec-num}
-
-[Воркшоп: от вопроса до вывода](lectures/18-project-workshop.html){.lec-title}
-
-Карта дизайнов, шаблон отчёта, темы на RLMS, сквозной пример «брачная премия», рубрика
-
-[fixest]{.lec-chip}
-:::
+::: {.lec-list}
+[17]{.lec-n} [Чувствительность и робастность](lectures/17-sensitivity.html)\
+[18]{.lec-n} [Воркшоп: от вопроса до вывода](lectures/18-project-workshop.html)
 :::
 
 ### Защиты проектов

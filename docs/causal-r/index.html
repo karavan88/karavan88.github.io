@@ -198,146 +198,51 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="программа">Программа</h2>
 <section id="блок-0.-данные-и-язык-причинности" class="level3">
 <h3 class="anchored" data-anchor-id="блок-0.-данные-и-язык-причинности">Блок 0. Данные и язык причинности</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">00</span></p>
-<p><a href="lectures/00-rlms-data.html" class="lec-title">RLMS-HSE: устройство данных</a></p>
-<p>Сборка учебной панели</p>
-<p><span class="lec-chip">haven</span> <span class="lec-chip">tidyverse</span> <span class="lec-chip">survey/srvyr</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">01</span></p>
-<p><a href="lectures/01-potential-outcomes.html" class="lec-title">Почему «регрессия с контролями» — не ответ</a></p>
-<p>Зарплаты по образованию: агрегат vs по регионам/полу</p>
-<p><span class="lec-chip">tidyverse</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">02</span></p>
-<p><a href="lectures/02-experiments.html" class="lec-title">Эксперимент как эталон</a></p>
-<p>Плацебо-эксперимент внутри RLMS</p>
-<p><span class="lec-chip">ri2</span> <span class="lec-chip">estimatr</span> <span class="lec-chip">tidyverse</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">03</span></p>
-<p><a href="lectures/03-dags.html" class="lec-title">DAG: язык причинных графов</a></p>
-<p>Граф «образование → зарплата»</p>
-<p><span class="lec-chip">dagitty</span> <span class="lec-chip">ggdag</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">00</span> <a href="lectures/00-rlms-data.html">RLMS-HSE: устройство данных</a><br>
+<span class="lec-n">01</span> <a href="lectures/01-potential-outcomes.html">Почему «регрессия с контролями» — не ответ</a><br>
+<span class="lec-n">02</span> <a href="lectures/02-experiments.html">Эксперимент как эталон</a><br>
+<span class="lec-n">03</span> <a href="lectures/03-dags.html">DAG: язык причинных графов</a></p>
 </div>
 </section>
 <section id="блок-1.-отбор-по-наблюдаемым" class="level3">
 <h3 class="anchored" data-anchor-id="блок-1.-отбор-по-наблюдаемым">Блок 1. Отбор по наблюдаемым</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">04</span></p>
-<p><a href="lectures/04-regression.html" class="lec-title">Регрессия как каузальный инструмент</a></p>
-<p>Уравнение Минцера на RLMS</p>
-<p><span class="lec-chip">fixest</span> <span class="lec-chip">marginaleffects</span> <span class="lec-chip">modelsummary</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">05</span></p>
-<p><a href="lectures/05-matching.html" class="lec-title">Мэтчинг</a></p>
-<p>Профобучение → зарплата (RLMS 2019)</p>
-<p><span class="lec-chip">MatchIt</span> <span class="lec-chip">cobalt</span> <span class="lec-chip">marginaleffects</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">06</span></p>
-<p><a href="lectures/06-weighting-dr.html" class="lec-title">Взвешивание и дважды робастные оценки</a></p>
-<p>Тот же вопрос, что в лекции 5</p>
-<p><span class="lec-chip">WeightIt</span> <span class="lec-chip">cobalt</span> <span class="lec-chip">marginaleffects</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">04</span> <a href="lectures/04-regression.html">Регрессия как каузальный инструмент</a><br>
+<span class="lec-n">05</span> <a href="lectures/05-matching.html">Мэтчинг</a><br>
+<span class="lec-n">06</span> <a href="lectures/06-weighting-dr.html">Взвешивание и дважды робастные оценки</a></p>
 </div>
 </section>
 <section id="блок-2.-панель-rlms" class="level3">
 <h3 class="anchored" data-anchor-id="блок-2.-панель-rlms">Блок 2. Панель RLMS</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">07</span></p>
-<p><a href="lectures/07-fixed-effects.html" class="lec-title">Фиксированные эффекты</a></p>
-<p>Отдача от образования в панели; курение → здоровье</p>
-<p><span class="lec-chip">fixest</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">08</span></p>
-<p><a href="lectures/08-event-study.html" class="lec-title">Event study по индивидуальным событиям</a></p>
-<p>Child penalty на RLMS</p>
-<p><span class="lec-chip">fixest</span> <span class="lec-chip">ggplot2</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">09</span></p>
-<p><a href="lectures/09-did.html" class="lec-title">Разность разностей: 2×2 и многопериодная</a></p>
-<p>Пенсионная реформа 2019 (2×2); материнский капитал — почему DiD не проходит</p>
-<p><span class="lec-chip">fixest</span> <span class="lec-chip">modelsummary</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">10</span></p>
-<p><a href="lectures/10-did-staggered.html" class="lec-title">DiD с разновременным включением</a></p>
-<p>Пенсионная реформа 2019 по когортам; симуляция смещения TWFE</p>
-<p><span class="lec-chip">did</span> <span class="lec-chip">didimputation</span> <span class="lec-chip">fixest</span> <span class="lec-chip">bacondecomp</span> <span class="lec-chip">panelView</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">07</span> <a href="lectures/07-fixed-effects.html">Фиксированные эффекты</a><br>
+<span class="lec-n">08</span> <a href="lectures/08-event-study.html">Event study по индивидуальным событиям</a><br>
+<span class="lec-n">09</span> <a href="lectures/09-did.html">Разность разностей: 2×2 и многопериодная</a><br>
+<span class="lec-n">10</span> <a href="lectures/10-did-staggered.html">DiD с разновременным включением</a></p>
 </div>
 </section>
 <section id="блок-3.-естественные-эксперименты-и-отбор-по-ненаблюдаемым" class="level3">
 <h3 class="anchored" data-anchor-id="блок-3.-естественные-эксперименты-и-отбор-по-ненаблюдаемым">Блок 3. Естественные эксперименты и отбор по ненаблюдаемым</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">11</span></p>
-<p><a href="lectures/11-rdd.html" class="lec-title">Регрессия разрывов</a></p>
-<p>Порог пенсионного возраста 55/60 → пенсия, занятость, часы</p>
-<p><span class="lec-chip">rdrobust</span> <span class="lec-chip">rddensity</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">12</span></p>
-<p><a href="lectures/12-iv.html" class="lec-title">Инструментальные переменные</a></p>
-<p>Пол первых двух детей (Ангрист–Эванс) → третий ребёнок → занятость матерей; нечёткая RD как IV</p>
-<p><span class="lec-chip">fixest</span> <span class="lec-chip">ivreg</span> <span class="lec-chip">ivmodel</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">13</span></p>
-<p><a href="lectures/13-heckman.html" class="lec-title">Отбор в выборку: модели Хекмана</a></p>
-<p>Зарплаты женщин: симуляция, Mroz (1987) и RLMS — когда поправка работает и когда ломается</p>
-<p><span class="lec-chip">sampleSelection</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">14</span></p>
-<p><a href="lectures/14-altonji.html" class="lec-title">Отбор по ненаблюдаемым: метод Альтонджи–Элдера–Табера</a></p>
-<p>Нервные расстройства → занятость (RLMS 2018) по логике Chatterji, Alegría, Takeuchi; двумерный пробит с заданным ρ</p>
-<p><span class="lec-chip">pbivnorm</span> <span class="lec-chip">numDeriv</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">11</span> <a href="lectures/11-rdd.html">Регрессия разрывов</a><br>
+<span class="lec-n">12</span> <a href="lectures/12-iv.html">Инструментальные переменные</a><br>
+<span class="lec-n">13</span> <a href="lectures/13-heckman.html">Отбор в выборку: модели Хекмана</a><br>
+<span class="lec-n">14</span> <a href="lectures/14-altonji.html">Отбор по ненаблюдаемым: метод Альтонджи–Элдера–Табера</a></p>
 </div>
 </section>
 <section id="блок-4.-механизмы-и-гетерогенность" class="level3">
 <h3 class="anchored" data-anchor-id="блок-4.-механизмы-и-гетерогенность">Блок 4. Механизмы и гетерогенность</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">15</span></p>
-<p><a href="lectures/15-mediation.html" class="lec-title">Медиация и механизмы</a></p>
-<p>Диплом → профессиональная позиция → зарплата (RLMS 2016, Big Five как контроли); добросовестность → образование → зарплата</p>
-<p><span class="lec-chip">mediation</span> <span class="lec-chip">ggdag</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">16</span></p>
-<p><a href="lectures/16-causal-forests.html" class="lec-title">Гетерогенные эффекты и causal forests</a></p>
-<p>Гетерогенность отдачи от образования: калибровка, RATE, policy tree на отложенной половине</p>
-<p><span class="lec-chip">grf</span> <span class="lec-chip">policytree</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">15</span> <a href="lectures/15-mediation.html">Медиация и механизмы</a><br>
+<span class="lec-n">16</span> <a href="lectures/16-causal-forests.html">Гетерогенные эффекты и causal forests</a></p>
 </div>
 </section>
 <section id="блок-5.-честный-отчёт-и-проект" class="level3">
 <h3 class="anchored" data-anchor-id="блок-5.-честный-отчёт-и-проект">Блок 5. Честный отчёт и проект</h3>
-<div class="lec-grid">
-<div class="lec-card">
-<p><span class="lec-num">17</span></p>
-<p><a href="lectures/17-sensitivity.html" class="lec-title">Чувствительность и робастность</a></p>
-<p>Отдача от образования: RV, границы Остера и Розенбаума, кривая спецификаций, плацебо-исход; E-value для курения</p>
-<p><span class="lec-chip">sensemakr</span> <span class="lec-chip">robomit</span> <span class="lec-chip">EValue</span> <span class="lec-chip">rbounds</span> <span class="lec-chip">specr</span></p>
-</div>
-<div class="lec-card">
-<p><span class="lec-num">18</span></p>
-<p><a href="lectures/18-project-workshop.html" class="lec-title">Воркшоп: от вопроса до вывода</a></p>
-<p>Карта дизайнов, шаблон отчёта, темы на RLMS, сквозной пример «брачная премия», рубрика</p>
-<p><span class="lec-chip">fixest</span></p>
-</div>
+<div class="lec-list">
+<p><span class="lec-n">17</span> <a href="lectures/17-sensitivity.html">Чувствительность и робастность</a><br>
+<span class="lec-n">18</span> <a href="lectures/18-project-workshop.html">Воркшоп: от вопроса до вывода</a></p>
 </div>
 </section>
 <section id="защиты-проектов" class="level3">
