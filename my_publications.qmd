@@ -1,93 +1,138 @@
 ---
-title: "My Publications"
+title: "Publications"
 toc: true
 ---
 
-### Research Reports
+Also on [Google Scholar](https://scholar.google.com/citations?user=j3I-2sMAAAAJ&hl=en), [ORCID](https://orcid.org/0000-0002-0328-637X) and [ResearchGate](https://www.researchgate.net/profile/Garen-Avanesian).
 
-1.  [Progress on Children's Wellbeing: Centering Child Rights in the 2030 Agenda](https://data.unicef.org/resources/sdg-report-2023/), UNICEF, September 2023
-2.  [Bridging the Gender Digital Divide: Challenges and an Urgent Call for Action for Equitable Digital Skills Development](https://data.unicef.org/resources/ictgenderdivide/), UNICEF, May 2023
-3.  [Are Children Really Learning? Exploring Foundational Skills in the Midst of a Learning Crisis](https://data.unicef.org/resources/are-children-really-learning-foundational-skills-report/), UNICEF, March 2022
-4.  [Ensuring equal access to education in future crises: Findings of the new Remote Learning Readiness Index](https://data.unicef.org/resources/remote-learning-readiness-index/), UNICEF, October 2021
-5.  [Education disrupted: The second year of the COVID-19 pandemic and school closures](https://data.unicef.org/resources/one-year-of-covid-19-and-school-closures/), UNICEF, September 2021
-6.  [COVID-19 highlights an opportunity for out-of-school children: Lessons from COVID-19 to address out-of-school children](https://www.allinschool.org/media/2496/file/Brief%20on%20Out-Of-School%20Children.pdf), UNICEF Think Piece by Wongani Grace Taulo, Suguru Mizunoya, Garen Avanesian, Frank van Cappelle, Jim Acker, May 2021
-7.  [COVID-19 and School Closures: One year of education disruption](https://data.unicef.org/resources/one-year-of-covid-19-and-school-closures/), UNICEF, March 2021
-8.  [HOW MANY CHILDREN AND YOUNG PEOPLE HAVE INTERNET ACCESS AT HOME? Estimating digital connectivity during the COVID-19 pandemic](https://www.unicef.org/reports/how-many-children-and-young-people-have-internet-access-home-2020), UNICEF and ITU, December 2020
-9.  [COVID-19: ARE CHILDREN ABLE TO CONTINUE LEARNING DURING SCHOOL CLOSURES? A global analysis of the potential reach of remote learning policies](https://data.unicef.org/resources/remote-learning-reachability-factsheet/), UNICEF, August 2020
+## Peer-reviewed journal articles
 
-------------------------------------------------------------------------
+::: {.pub-list}
 
-### Papers in Peer-Reviewed Journals
+1.  [2026]{.pub-year} **Beyond wages: the role of non-cognitive skills in job satisfaction of young workers**\
+    [Avanesian, G., Shipitko, O., Borovskaya, M.]{.pub-authors} [*Journal for Labour Market Research*, 60, 22]{.pub-venue}\
+    [DOI](https://doi.org/10.1186/s12651-026-00441-5){.pub-link} [Open access]{.pub-link}
 
-1.  [The effect of non-cognitive skills on academic performance: does it vary by socio-economic status?](https://doi.org/10.1016/j.ijer.2025.102680)\
-    *Avanesian, G., Rozhkova, K.*\
-    International Journal of Educational Research, 2025.
+2.  [2025]{.pub-year} **The effect of non-cognitive skills on academic performance: does it vary by socio-economic status?**\
+    [Avanesian, G., Rozhkova, K.]{.pub-authors} [*International Journal of Educational Research*]{.pub-venue}\
+    [DOI](https://doi.org/10.1016/j.ijer.2025.102680){.pub-link}
 
-2.  [Do Non-Cognitive Skills Produce Heterogeneous Returns Across Different Wage Levels Amongst Youth Entering the Workforce? A Quantile Mixed Model Approach](https://doi.org/10.3390/economies13050114)\
-    *Avanesian, G.*\
-    Economies, 2025.
+3.  [2025]{.pub-year} **Do non-cognitive skills produce heterogeneous returns across different wage levels amongst youth entering the workforce? A quantile mixed model approach**\
+    [Avanesian, G.]{.pub-authors} [*Economies*, 13(5), 114]{.pub-venue}\
+    [DOI](https://doi.org/10.3390/economies13050114){.pub-link} [Open access]{.pub-link}
 
-3.  [Dissecting the digital divide: A household fixed effects approach to estimating gender gaps in digital skills of youth in low- and middle-income economies](https://doi.org/10.1016/j.heliyon.2024.e33127)\
-    *Avanesian, G., Zaw, H.T., Kelly P., Mizunoya, S.*\
-    Heliyon, 2024
+4.  [2024]{.pub-year} **Dissecting the digital divide: A household fixed effects approach to estimating gender gaps in digital skills of youth in low- and middle-income economies**\
+    [Avanesian, G., Zaw, H.T., Kelly, P., Mizunoya, S.]{.pub-authors} [*Heliyon*, 10(13)]{.pub-venue}\
+    [DOI](https://doi.org/10.1016/j.heliyon.2024.e33127){.pub-link} [Code](https://github.com/karavan88/DigitalSkillsGender){.pub-link}
 
-4.  [How Far Are NEET Youth Falling Behind in Their Non-Cognitive Skills? An Econometric Analysis of Disparities](https://doi.org/10.3390/economies12010025).\
-    *Avanesian G., Borovskaya M., Masych M., Dikaya L., Ryzhova V., Egorova V.\
-    *Economies, 2024
+5.  [2024]{.pub-year} **How far are NEET youth falling behind in their non-cognitive skills? An econometric analysis of disparities**\
+    [Avanesian, G., Borovskaya, M., Masych, M., Dikaya, L., Ryzhova, V., Egorova, V.]{.pub-authors} [*Economies*, 12(1), 25]{.pub-venue}\
+    [DOI](https://doi.org/10.3390/economies12010025){.pub-link} [Code](https://github.com/karavan88/NonCognitiveSkillsNEET){.pub-link}
 
-5.  [How many students could continue learning during COVID-19-caused school closures? Introducing a new reachability indicator for measuring equity of remote learning](https://www.sciencedirect.com/science/article/pii/S0738059321000742)\
-    *Avanesian, G., Mizunoya, S., Amaro, D.\
-    *International Journal of Educational Development, 2021
+6.  [2022]{.pub-year} **UNICEF Remote Learning Readiness Index: A composite indicator to assess resilience of education sector against crises and emergencies**\
+    [Avanesian, G., Mizunoya, S., Delamonica, E.]{.pub-authors} [*Statistical Journal of the IAOS*, 38(4)]{.pub-venue}\
+    [Article](https://content.iospress.com/articles/statistical-journal-of-the-iaos/sji220051){.pub-link}
 
-6.  [UNICEF remote learning readiness index: A composite indicator to assess resilience of education sector against crises and emergencies](https://content.iospress.com/articles/statistical-journal-of-the-iaos/sji220051)\
-    *Avanesian, G., Mizunoya, S., Delamonica, E.\
-    *Statistical Journal of the International Association of Official Statistics
+7.  [2022]{.pub-year} **Can we improve learning outcomes of schoolchildren from the poorest families by investing into their non-cognitive skills? Causal analysis using propensity score matching**\
+    [Avanesian, G., Borovskaya, M., Ryzhova, V., Kirik, V., Egorova, V., Bermous, A.]{.pub-authors} [*Educational Studies Moscow*, 2022(1)]{.pub-venue}\
+    [Article](https://vo.hse.ru/2022--1/575958548.html){.pub-link}
 
-7.  [How Personality Traits Are Related to the Attitudes Toward Forced Remote Learning During COVID-19: Predictive Analysis Using Generalized Additive Modeling](https://www.frontiersin.org/articles/10.3389/feduc.2021.629213/full)\
-    *Dikaya, L.A., Avanesian, G., Dikiy, I.S., Kirik, V.A., Egorova, V.A.\
-    *Frontiers in Education, 2021, 6
+8.  [2022]{.pub-year} **Why are children with disabilities not continuing their education in the system of professional training?**\
+    [Avanesian, G., Astoyants, M., Tarasenko, L., Ryzhova, V., Dikaya, L., Borovskaya, M.]{.pub-authors} [*Journal of Social Policy Studies*, 20(4)]{.pub-venue}\
+    [DOI](https://doi.org/10.17323/727-0634-2022-20-4-625-644){.pub-link}
 
-8.  [Economic Inequality In The Access To Remote Learning Assets Amongst Youth In BRICS Countries: What Can We Learn From Pre-Covid-19 Data](https://ej.hse.ru/2021-25-3/530048375.html)\
-    *Avanesian, G., Borovskaya, M., Mishra, S., Masych, M., Fedosova, T., Egorova, V.\
-    *HSE Economic Journal, 2021, 25(3)
+9.  [2022]{.pub-year} **Socio-economic factors behind inequality in the access to education amongst people with disabilities: An econometric analysis**\
+    [Avanesian, G., Borovskaya, M., Astoyants, M., Tarasenko, L.]{.pub-authors} [*Terra Economicus*, 20(4)]{.pub-venue}\
+    [DOI](https://doi.org/10.18522/2073-6606-2022-20-4-87-98){.pub-link}
 
-9.  [Bullying in the Russian Secondary School: Predictive Analysis of Victimization](#0)\
-    *Avanesian, G., Dikaya, L., Bermous, A., Kirik, V., Egorova, V., Abkadyrova, I.\
-    *Frontiers in Psychology, 2021, 12
+10.  [2021]{.pub-year} **How many students could continue learning during COVID-19-caused school closures? Introducing a new reachability indicator for measuring equity of remote learning**\
+    [Avanesian, G., Mizunoya, S., Amaro, D.]{.pub-authors} [*International Journal of Educational Development*, 84]{.pub-venue}\
+    [DOI](https://doi.org/10.1016/j.ijedudev.2021.102421){.pub-link}
 
-10. [Can We Improve Learning Outcomes of Schoolchildren from the Poorest Families by Investing into Their Non-Cognitive Skills? Causal Analysis Using Propensity Score Matching](https://vo.hse.ru/2022--1/575958548.html)\
-    *Avanesian, G., Borovskaya, M., Ryzhova V., Kirik, V., Egorova, V., Bermous, A.\
-    *Educational Studies Moscow, 2022
+10. [2021]{.pub-year} **How personality traits are related to the attitudes toward forced remote learning during COVID-19: Predictive analysis using generalized additive modeling**\
+    [Dikaya, L.A., Avanesian, G., Dikiy, I.S., Kirik, V.A., Egorova, V.A.]{.pub-authors} [*Frontiers in Education*, 6]{.pub-venue}\
+    [DOI](https://doi.org/10.3389/feduc.2021.629213){.pub-link}
 
-11. [Education Policies During the COVID-19 Pandemic: Scope, Efficiency and Gaps](https://www.elgaronline.com/edcollchap/book/9781800375062/book-part-9781800375062-11.xml)\
-    *Avanesian, G., Mizunoya, S., Mishra, S., Wang, Y.* in Postligione, G., Johnstone, C., & Teter, W. *Elgar Handbook of Educational Policy.* Elgar Publishing.
+11. [2021]{.pub-year} **Bullying in the Russian secondary school: Predictive analysis of victimization**\
+    [Avanesian, G., Dikaya, L., Bermous, A., Kochkin, S., Kirik, V., Egorova, V., Abkadyrova, I.]{.pub-authors} [*Frontiers in Psychology*, 12]{.pub-venue}\
+    [DOI](https://doi.org/10.3389/fpsyg.2021.644653){.pub-link}
 
-12. [Why are children with disabilities not continuing their education in the system of professional training?](https://doi.org/10.17323/727-0634-2022-20-4-625-644)\
-    *Avanesian, G., Astoyants, M., Tarasenko, L.*, *Ryzhova V., Dikaya, L., , Borovskaya, M..\
-    *Social Policy Studies Journal, 2022
+12. [2021]{.pub-year} **Economic inequality in the access to remote learning assets amongst youth in BRICS countries: What can we learn from pre-COVID-19 data**\
+    [Avanesian, G., Borovskaya, M., Mishra, S., Masych, M., Fedosova, T., Egorova, V.]{.pub-authors} [*HSE Economic Journal*, 25(3)]{.pub-venue}\
+    [Article](https://ej.hse.ru/2021-25-3/530048375.html){.pub-link}
 
-13. [Socio-economic factors behind inequality in the access to education amongst people with disabilities: An econometric analysis](https://doi.org/10.18522/2073-6606-2022-20-4-87-98)\
-    *Avanesian, G., Borovskaya, M., Astoyants, M., Tarasenko, L.*\
-    Terra Economicus, 2022
+:::
 
-------------------------------------------------------------------------
+## Working papers and work in progress
 
-### Education Facts & Figures
+::: {.pub-list}
 
-Below listed visualization-based country-specific data reports that are used by governments and other national stakeholders for the purposes of education sector analysis and planning.
+1.  **Where do non-cognitive skills come from? A within-family analysis of parental inputs, social origin, and sibling personality**\
+    [Avanesian, G., Rozhkova, K.]{.pub-authors} [RLMS-HSE, within-family design]{.pub-venue}\
+    [Slides (HTML)](within-family-slides.html){.pub-link}
 
-1.  [MICS-EAGLE Turkmenistan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2022/02/Turkmenistan-MICS-EAGLE-Factsheet-2021-EN.pdf)
+2.  **Non-cognitive skills and higher education completion: longitudinal evidence from RLMS-HSE, 2016–2024**\
+    [Rozhkova, K., Avanesian, G.]{.pub-authors} [Presented at HSE and SFedU, 2026]{.pub-venue}\
+    [Slides (PDF, in Russian)](ncs-higher-ed-slides.pdf){.pub-link} [Results (HTML)](ncs-higher-ed.html){.pub-link}
 
-2.  [MICS-EAGLE Kyrgyzstan Education Fact Sheets – 2021](https://data.unicef.org/wp-content/uploads/2021/08/Kyrgyzstan-Education-Fact-Sheets.pdf)
+:::
 
-3.  [MICS-EAGLE Belarus Education Fact Sheets - 2019](https://data.unicef.org/wp-content/uploads/2022/06/MICS-EAGLE-Factsheet-Belarus.pdf?client_id=393077493.1758722051&session_id=285696147)
+## Book chapters
 
-4.  [MICS-EAGLE Fiji Education Fact Sheets - 2019](https://data.unicef.org/wp-content/uploads/2025/05/FINAL_Fiji_Factsheet_9May2025.pdf?client_id=393077493.1758722051&session_id=285696147)
+::: {.pub-list}
 
-------------------------------------------------------------------------
+1.  [2023]{.pub-year} **Education policies during the COVID-19 pandemic: Scope, efficiency and gaps**\
+    [Avanesian, G., Mizunoya, S., Mishra, S., Wang, Y.]{.pub-authors} [In Postiglione, G., Johnstone, C., & Teter, W. (Eds.), *Handbook of Education Policy*. Edward Elgar.]{.pub-venue}\
+    [Chapter](https://www.elgaronline.com/edcollchap/book/9781800375062/book-part-9781800375062-11.xml){.pub-link}
 
-### Blogs
+:::
 
-1.  [Which children have internet access at home? Insights from household survey data](https://blogs.unicef.org/evidence-for-action/where-do-children-have-internet-access-at-home-insights-from-household-survey-data/)\
-    by Yixin Wang, Garen Avanesian, Akito Kamei, Sakshi Mishra, Suguru Mizunoya, 21 May 2021
-2.  [How are sport for development organizations keeping children healthy during COVID-19?](https://blogs.unicef.org/evidence-for-action/how-are-sport-for-development-organizations-keeping-children-healthy-during-covid-19/) by Artur Borkowski, Chiara Pasquini, Andaleeb Alam, Karen Avanesyan, Thomas Dreesen and Bassem Nasir, 5 June 2020
+## Research reports (UNICEF)
+
+::: {.pub-list}
+
+1.  [2023]{.pub-year} [**Progress on Children's Wellbeing: Centering Child Rights in the 2030 Agenda**](https://data.unicef.org/resources/sdg-report-2023/)\
+    [UNICEF, September 2023]{.pub-venue}
+2.  [2023]{.pub-year} [**Bridging the Gender Digital Divide: Challenges and an Urgent Call for Action for Equitable Digital Skills Development**](https://data.unicef.org/resources/ictgenderdivide/)\
+    [UNICEF, May 2023]{.pub-venue}
+3.  [2022]{.pub-year} [**Are Children Really Learning? Exploring Foundational Skills in the Midst of a Learning Crisis**](https://data.unicef.org/resources/are-children-really-learning-foundational-skills-report/)\
+    [UNICEF, March 2022]{.pub-venue}
+4.  [2021]{.pub-year} [**Ensuring Equal Access to Education in Future Crises: Findings of the New Remote Learning Readiness Index**](https://data.unicef.org/resources/remote-learning-readiness-index/)\
+    [UNICEF, October 2021]{.pub-venue}
+5.  [2021]{.pub-year} [**Education Disrupted: The Second Year of the COVID-19 Pandemic and School Closures**](https://data.unicef.org/resources/one-year-of-covid-19-and-school-closures/)\
+    [UNICEF, September 2021]{.pub-venue}
+6.  [2021]{.pub-year} [**COVID-19 Highlights an Opportunity for Out-of-School Children: Lessons from COVID-19 to Address Out-of-School Children**](https://www.allinschool.org/media/2496/file/Brief%20on%20Out-Of-School%20Children.pdf)\
+    [UNICEF think piece, with W.G. Taulo, S. Mizunoya, F. van Cappelle and J. Acker, May 2021]{.pub-venue}
+7.  [2021]{.pub-year} [**COVID-19 and School Closures: One Year of Education Disruption**](https://data.unicef.org/resources/one-year-of-covid-19-and-school-closures/)\
+    [UNICEF, March 2021]{.pub-venue}
+8.  [2020]{.pub-year} [**How Many Children and Young People Have Internet Access at Home? Estimating Digital Connectivity During the COVID-19 Pandemic**](https://www.unicef.org/reports/how-many-children-and-young-people-have-internet-access-home-2020)\
+    [UNICEF and ITU, December 2020]{.pub-venue}
+9.  [2020]{.pub-year} [**COVID-19: Are Children Able to Continue Learning During School Closures? A Global Analysis of the Potential Reach of Remote Learning Policies**](https://data.unicef.org/resources/remote-learning-reachability-factsheet/)\
+    [UNICEF, August 2020]{.pub-venue}
+
+:::
+
+## Education fact sheets
+
+Visualization-based country reports used by governments and national stakeholders for education sector analysis and planning (MICS-EAGLE initiative).
+
+::: {.pub-list}
+
+1.  [2026]{.pub-year} [**Nigeria Education Fact Sheets**](https://data.unicef.org/wp-content/uploads/2026/04/Nigeria-Education-Fact-Sheets.pdf)
+2.  [2025]{.pub-year} [**Fiji Education Fact Sheets**](https://data.unicef.org/wp-content/uploads/2025/05/FINAL_Fiji_Factsheet_9May2025.pdf)
+3.  [2021]{.pub-year} [**Turkmenistan Education Fact Sheets**](https://data.unicef.org/wp-content/uploads/2022/02/Turkmenistan-MICS-EAGLE-Factsheet-2021-EN.pdf)
+4.  [2021]{.pub-year} [**Kyrgyzstan Education Fact Sheets**](https://data.unicef.org/wp-content/uploads/2021/08/Kyrgyzstan-Education-Fact-Sheets.pdf)
+5.  [2019]{.pub-year} [**Belarus Education Fact Sheets**](https://data.unicef.org/wp-content/uploads/2022/06/MICS-EAGLE-Factsheet-Belarus.pdf)
+
+:::
+
+## Blog posts
+
+::: {.pub-list}
+
+1.  [2021]{.pub-year} [**Which children have internet access at home? Insights from household survey data**](https://blogs.unicef.org/evidence-for-action/where-do-children-have-internet-access-at-home-insights-from-household-survey-data/)\
+    [With Y. Wang, A. Kamei, S. Mishra and S. Mizunoya. UNICEF Evidence for Action, 21 May 2021]{.pub-venue}
+2.  [2020]{.pub-year} [**How are sport for development organizations keeping children healthy during COVID-19?**](https://blogs.unicef.org/evidence-for-action/how-are-sport-for-development-organizations-keeping-children-healthy-during-covid-19/)\
+    [With A. Borkowski, C. Pasquini, A. Alam, T. Dreesen and B. Nasir. UNICEF Evidence for Action, 5 June 2020]{.pub-venue}
+
+:::

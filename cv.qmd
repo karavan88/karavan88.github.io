@@ -1,13 +1,6 @@
 ---
 title: "Curriculum Vitae"
-format:
-  html:
-    theme: cyborg
-    css: 
-      - styles.css
-      - custom.css
-    toc: true
-editor: visual
+toc: true
 ---
 
 ```{=html}

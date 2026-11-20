@@ -1,0 +1,5 @@
+.lec-list { margin: 0.3rem 0 1.4rem; line-height: 2.1; font-size: 1.05rem; }
+.lec-list p { margin: 0; }
+.lec-n { display: inline-block; min-width: 2.2em; font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 700; color: #7fb3ee; }
+.lec-list a { color: #fff; text-decoration: none; border-bottom: 1px solid rgba(127,179,238,.35); }
+.lec-list a:hover { color: #9cc3f2; border-bottom-color: #9cc3f2; }

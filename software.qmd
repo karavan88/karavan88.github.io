@@ -1,0 +1,41 @@
+---
+title: "Software"
+description: "Open-source packages I contribute to and replication code for my research."
+toc: true
+---
+
+## unicefData
+
+[unicefData](https://github.com/unicef-drp/unicefData) is an open data and analytics toolkit led by UNICEF's Office of the Chief Statistician. It gives R, Python and Stata users a consistent interface to the UNICEF Data Warehouse over the SDMX API: automatic pagination, caching, country name lookups, metadata vintages, and full coverage of the child-related SDG indicators.
+
+**Role:** contributor, with [João Pedro Azevedo](https://jpazvd.github.io/) (lead author and maintainer), Lucas Rodrigues and Yang Liu.
+
+| Language | Registry | Install |
+|---|---|---|
+| R | [CRAN: unicefData](https://cran.r-project.org/package=unicefData) | `install.packages("unicefData")` |
+| Python | [PyPI: unicefdata](https://pypi.org/project/unicefdata/) | `pip install unicefdata` |
+| Stata | [SSC: unicefdata](https://ideas.repec.org/c/boc/bocode/s459598.html) | `ssc install unicefdata` |
+
+Source code, issues and documentation: [github.com/unicef-drp/unicefData](https://github.com/unicef-drp/unicefData).
+
+## Research code and replication materials
+
+Public repositories with the code behind my papers and working projects. Microdata (RLMS-HSE, PIAAC, MICS) is not redistributed; each repository documents how to obtain it.
+
+::: {.software-table}
+
+| Repository | Language | What it does |
+|---|---|---|
+| [wages-ncs-rlms](https://github.com/karavan88/wages-ncs-rlms) | R | Returns to non-cognitive skills across the wage distribution: occupational sorting, supervision and trait-specific pathways (RLMS-HSE 2017–2025). |
+| [happiness-premium-rlms](https://github.com/karavan88/happiness-premium-rlms) | R | Beyond the happiness premium: personality, affect and labor market outcomes (RLMS-HSE 2017–2025). |
+| [LM-NonCognSkills-PIAAC](https://github.com/karavan88/LM-NonCognSkills-PIAAC) | R | Causal mediation study of the returns to non-cognitive skills in PIAAC Cycle 2. |
+| [NCSJobSatisfPIAAC](https://github.com/karavan88/NCSJobSatisfPIAAC) | R | Are non-cognitive skills rewarded with job satisfaction net of pay? PIAAC Cycle 2, 23 countries. |
+| [EduProdFunctionPISA](https://github.com/karavan88/EduProdFunctionPISA) | R | Education production functions from cross-sectional PISA data with mixed-effects models. |
+| [DigitalSkillsGender](https://github.com/karavan88/DigitalSkillsGender) | R | Replication code for the household fixed-effects analysis of gender gaps in digital skills (Heliyon, 2024). |
+| [MICS-FLS-Data-Harmonization](https://github.com/karavan88/MICS-FLS-Data-Harmonization) | R | Harmonization of foundational learning skills variables across MICS surveys. |
+| [PredictSDG4Scenarios](https://github.com/karavan88/PredictSDG4Scenarios) | R | Scenario projections of country performance on SDG 4 education indicators. |
+| [NonCognitiveSkillsNEET](https://github.com/karavan88/NonCognitiveSkillsNEET) | R | Analysis behind "How far are NEET youth falling behind in their non-cognitive skills?" (Economies, 2024). |
+
+:::
+
+All repositories are on [GitHub](https://github.com/karavan88).

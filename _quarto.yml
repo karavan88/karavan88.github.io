@@ -1,27 +1,38 @@
 project:
   type: website
   output-dir: docs
+  render:
+    - "*.qmd"
+    - "causal-r/index.qmd"
+    - "causal-r/lectures/*.qmd"
+    - "!outdated/"
+    - "!Claude outputs/"
+    - "!tutorials.qmd"
   resources:
     - avanesian_slides.html
     - avanesian_slides.pdf
+    - avanesian_resume.pdf
+    - ncs-higher-ed.html
+    - ncs-higher-ed-slides.pdf
+    - within-family-slides.html
     - pialand-deck.html
 
 website:
   title: "Garen Avanesian"
+  site-url: https://karavan88.github.io
+  search: true
   navbar:
     left:
       - text: Home
         href: index.qmd
-      - text: Research
-        href: research.qmd 
-      - text: Talks
-        href: talks.qmd
       - text: Publications
         href: my_publications.qmd
-      - text: Stat Tutorials
-        href: tutorials.qmd  
+      - text: Software
+        href: software.qmd
       - text: Teaching
         href: causal-r/index.qmd
+      - text: Talks
+        href: talks.qmd
       - text: CV
         href: cv.qmd
       - text: Media
@@ -29,20 +40,36 @@ website:
     right:
       - icon: github
         href: https://github.com/karavan88
+        aria-label: GitHub
       - icon: linkedin
         href: https://www.linkedin.com/in/karavan88/
-  
+        aria-label: LinkedIn
+      - icon: google
+        href: https://scholar.google.com/citations?user=j3I-2sMAAAAJ&hl=en
+        aria-label: Google Scholar
+      - text: ORCID
+        href: https://orcid.org/0000-0002-0328-637X
+        aria-label: ORCID
+  page-footer:
+    left: "© 2026 Garen Avanesian"
+    center: "Built with [Quarto](https://quarto.org)"
+    right:
+      - icon: envelope
+        href: mailto:karavan0788@gmail.com
+      - icon: github
+        href: https://github.com/karavan88
+      - icon: linkedin
+        href: https://www.linkedin.com/in/karavan88/
 
 format:
   html:
     theme: cyborg
-    css: 
+    css:
       - styles.css
       - custom.css
-    include-in-header: |
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    include-in-header:
+      - text: |
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     toc: false
 
 editor: visual
-
-

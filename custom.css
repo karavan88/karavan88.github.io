@@ -1,13 +1,108 @@
+/* Navbar: orange with dark text (Cyborg theme override) */
 .navbar {
-    background-color: #f80   /* #f80  #6610f2  #2a9fd6; Adjust the color to match the blue from the Cyborg theme */
+    background-color: #f80;
+}
+.navbar .navbar-nav .nav-link,
+.navbar .navbar-nav .nav-link .bi,
+.navbar .navbar-nav .nav-link .fa-brands,
+.navbar-brand,
+.navbar .quarto-navbar-tools .quarto-navigation-tool {
+    color: #111 !important;
+}
+.navbar .dropdown-menu {
+    background-color: #1c1c1c;
+}
+.navbar .dropdown-menu .dropdown-item {
+    color: #ddd;
+}
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #f80;
+    color: #111;
 }
 
-/* Targeting the text on the navbar */
-.navbar .navbar-nav .nav-link {
-    color: black !important;
+/* Featured work cards (Home) */
+.featured {
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.card-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.card-item:hover {
+    border-color: #f80;
+    transform: translateY(-2px);
+}
+.card-item h4 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    margin: 0.4rem 0 0.5rem;
+}
+.card-item h4 a {
+    color: #fff;
+    text-decoration: none;
+}
+.card-item h4 a:hover {
+    color: #f80;
+}
+.card-item p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #bbb;
+}
+.tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #f80;
+    border: 1px solid #f80;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
 }
 
-/* If you have a brand or title on the navbar */
-.navbar-brand {
-    color: black !important;
+/* Publications */
+.pub-year {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #111;
+    background: #f80;
+    border-radius: 4px;
+    padding: 0.05rem 0.45rem;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+}
+.pub-venue {
+    color: #bbb;
+    font-style: italic;
+}
+.pub-authors {
+    color: #ddd;
+}
+.pub-link {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: #f80;
+    border: 1px solid rgba(255, 136, 0, 0.6);
+    border-radius: 999px;
+    padding: 0.05rem 0.6rem;
+    margin: 0.3rem 0.3rem 0 0;
+    text-decoration: none;
+}
+.pub-link:hover {
+    background: #f80;
+    color: #111;
+}
+ol.pub-list > li {
+    margin-bottom: 1rem;
+}
+
+/* Software */
+.software-table td:first-child {
+    white-space: nowrap;
 }

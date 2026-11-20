@@ -2,6 +2,7 @@
 title: "Garen (Karén) Avanesian"
 image: my_image.jpg
 about: 
+  id: about-block
   template: trestles
   image-width: 24em
   links:
@@ -14,6 +15,9 @@ about:
     - text: GitHub
       icon: github
       href: https://github.com/karavan88
+    - text: Google Scholar
+      icon: google
+      href: https://scholar.google.com/citations?user=j3I-2sMAAAAJ&hl=en
     - text: ORCID
       icon: orcid
       href: https://orcid.org/0000-0002-0328-637X
@@ -23,10 +27,66 @@ about:
 toc: false
 ---
 
-Hello! I’m a Data Scientist at the Data & Analytics division of the United Nations Children’s Fund (UNICEF), where I build automated data pipelines, engineer reproducible workflows, and produce robust estimates that help countries track their progress toward child-related Sustainable Development Goals. My work sits at the intersection of data engineering and applied economic research — bringing together complex data systems to make evidence transparent and actionable.
+::: {#about-block}
 
-Beyond my work at UNICEF, my academic portfolio focuses on the human capital research, particularly how socio-emotional skills shape young people’s transitions from school to work. I study how these skills interact with education, labor market outcomes, and broader socio-economic inequalities, with a special focus on youth in developing and transition economies.
+Hello! I'm a Data Scientist at the Data & Analytics division of the United Nations Children's Fund (UNICEF), where I build automated data pipelines, engineer reproducible workflows, and produce robust estimates that help countries track their progress toward child-related Sustainable Development Goals. My work sits at the intersection of data engineering and applied economic research — bringing together complex data systems to make evidence transparent and actionable.
+
+Beyond my work at UNICEF, my academic portfolio focuses on human capital research, particularly how socio-emotional skills shape young people's transitions from school to work. I study how these skills interact with education, labor market outcomes, and broader socio-economic inequalities, with a special focus on youth in developing and transition economies.
 
 I strongly believe that doing statistical analysis should go beyond numbers and data points; it's about understanding the stories these numbers tell and the lives they touch.
 
-Welcome to my space.
+:::
+
+## Featured work
+
+::: {.grid .featured}
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Paper]{.tag}
+
+#### [The effect of non-cognitive skills on academic performance: does it vary by socio-economic status?](https://doi.org/10.1016/j.ijer.2025.102680)
+
+With K. Rozhkova. *International Journal of Educational Research*, 2025.
+:::
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Report]{.tag}
+
+#### [Progress on Children's Wellbeing: Centering Child Rights in the 2030 Agenda](https://data.unicef.org/resources/sdg-report-2023/)
+
+UNICEF, 2023. Global SDG progress report for children; co-led the technical team and the statistical analysis.
+:::
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Paper]{.tag}
+
+#### [Beyond wages: the role of non-cognitive skills in job satisfaction of young workers](https://doi.org/10.1186/s12651-026-00441-5)
+
+With O. Shipitko and M. Borovskaya. *Journal for Labour Market Research*, 2026.
+:::
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Report]{.tag}
+
+#### [Are Children Really Learning? Exploring foundational skills in the midst of a learning crisis](https://data.unicef.org/resources/are-children-really-learning-foundational-skills-report/)
+
+UNICEF, 2022. Global analysis of foundational learning skills from MICS household surveys.
+:::
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Software]{.tag}
+
+#### [unicefData](software.qmd)
+
+Trilingual R / Python / Stata client for the UNICEF Data Warehouse (SDMX API). Contributor; led by J.P. Azevedo. On CRAN, PyPI and SSC.
+:::
+
+::: {.g-col-12 .g-col-md-6 .card-item}
+[Course]{.tag}
+
+#### [Каузальный анализ в R на данных RLMS-HSE](causal-r/index.qmd)
+
+A graduate course on causal inference with observational data: matching, IPW, DiD, RD, IV, causal forests, all on RLMS-HSE.
+:::
+
+:::

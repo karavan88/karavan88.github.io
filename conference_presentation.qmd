@@ -22,6 +22,7 @@ format:
     smaller: false
     scrollable: false
     embed-resources: true
+    include-after-body: _back-link.html
 lang: ru-RU
 bibliography: references_sorted.bib
 ---

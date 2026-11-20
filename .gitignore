@@ -53,3 +53,11 @@ rsconnect/
 # данные RLMS никогда не попадают в репозиторий
 causal-r/data/*
 !causal-r/data/.gitkeep
+
+# Claude working files and Quarto freeze cache
+Claude outputs/
+_freeze/
+.claude/
+
+# Quarto intermediate figure dirs (regenerated on render)
+causal-r/lectures/*_files/

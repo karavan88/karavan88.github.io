@@ -1,18 +1,34 @@
 ---
 title: "Talks & Presentations"
-format:
-  html:
-    theme: cyborg
-    css: 
-      - styles.css
-      - custom.css
-    toc: false
-editor: visual
 ---
 
 
 
 ## Academic Presentations
+
+### Where do non-cognitive skills come from? A within-family analysis of parental inputs, social origin, and sibling personality
+
+**Authors:** Garen Avanesian, Ksenia Rozhkova  
+**Year:** 2026  
+**Language:** English
+
+Within-family evidence from RLMS-HSE on how parental inputs and social origin shape the Big Five traits of siblings.
+
+**Links:** [View Slides](within-family-slides.html){target="_blank"}
+
+---
+
+### Влияние некогнитивных навыков на получение высшего образования: что говорят панельные данные?
+
+**Authors:** Ксения Рожкова (НИУ ВШЭ), Карен Аванесян (ЮФУ)  
+**Year:** 2026  
+**Language:** Russian
+
+Panel evidence from RLMS-HSE on whether adolescent non-cognitive skills predict entry into and completion of higher education.
+
+**Links:** [PDF](ncs-higher-ed-slides.pdf){target="_blank"}
+
+---
 
 ### Влияние некогнитивных навыков на характеристики занятости молодежи
 *Защита кандидатской диссертации*
@@ -46,20 +62,3 @@ A comprehensive academic presentation exploring the theoretical foundations, mea
 - Future research directions in the field
 
 **Links:** [View Presentation](conference_presentation.html){target="_blank"} | [Source Code](conference_presentation.qmd){target="_blank"}
-
----
-
-## Conference Talks
-
-*More presentations coming soon!*
-
-Stay tuned for updates on upcoming conference presentations and talks on data science, education analytics, and child welfare research.
-
----
-
-## Invited Lectures
-
-*Guest lectures and workshops*
-
-Information about invited lectures at universities and organizations will be posted here.
-
