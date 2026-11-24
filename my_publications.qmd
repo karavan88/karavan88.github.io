@@ -69,7 +69,7 @@ Also on [Google Scholar](https://scholar.google.com/citations?user=j3I-2sMAAAAJ&
 
 1.  **Where do non-cognitive skills come from? A within-family analysis of parental inputs, social origin, and sibling personality**\
     [Avanesian, G., Rozhkova, K.]{.pub-authors} [RLMS-HSE, within-family design]{.pub-venue}\
-    [Slides (HTML)](within-family-slides.html){.pub-link}
+    [Working paper (HTML)](within-family-paper.html){.pub-link} [Slides (HTML)](within-family-slides.html){.pub-link}
 
 2.  **Non-cognitive skills and higher education completion: longitudinal evidence from RLMS-HSE, 2016–2024**\
     [Rozhkova, K., Avanesian, G.]{.pub-authors} [Presented at HSE and SFedU, 2026]{.pub-venue}\
