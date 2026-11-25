@@ -78,7 +78,7 @@ UNICEF, 2022. Global analysis of foundational learning skills from MICS househol
 
 #### [unicefData](software.qmd)
 
-Trilingual R / Python / Stata client for the UNICEF Data Warehouse (SDMX API). Contributor; led by J.P. Azevedo. On CRAN, PyPI and SSC.
+Trilingual R / Python / Stata client for the UNICEF Data Warehouse. Also see [unequal](software.qmd), my R package for inequality measurement and decomposition.
 :::
 
 ::: {.g-col-12 .g-col-md-6 .card-item}

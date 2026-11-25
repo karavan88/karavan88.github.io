@@ -18,6 +18,14 @@ toc: true
 
 Source code, issues and documentation: [github.com/unicef-drp/unicefData](https://github.com/unicef-drp/unicefData).
 
+## unequal (R package)
+
+**unequal** measures inequality and decomposes it by population subgroup, income source, regression terms and over time, with every estimator tied to the equation it implements and competing methods offered side by side. It covers the Gini family and generalized entropy indices, Lorenz and concentration curves, Lorenz dominance tests, Kuznets curves, tax progressivity and redistribution, mobility, poverty (FGT, Watts, Sen, growth and redistribution decompositions), relative deprivation, inequality of opportunity, concentration indices for health outcomes, estimation from grouped data, and inference by bootstrap, jackknife and linearisation with complex survey designs.
+
+**Role:** author and maintainer. Development version, not yet on CRAN.
+
+[Guide (PDF)](unequal-guide.pdf){.pub-link} *Inequality analysis with the unequal package: a guide for economists and sociologists*, 40+ pages with worked examples on a household survey.
+
 ## Research code and replication materials
 
 Public repositories with the code behind my papers and working projects. Microdata (RLMS-HSE, PIAAC, MICS) is not redistributed; each repository documents how to obtain it.

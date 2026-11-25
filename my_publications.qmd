@@ -3,7 +3,7 @@ title: "Publications"
 toc: true
 ---
 
-Also on [Google Scholar](https://scholar.google.com/citations?user=j3I-2sMAAAAJ&hl=en), [ORCID](https://orcid.org/0000-0002-0328-637X) and [ResearchGate](https://www.researchgate.net/profile/Garen-Avanesian).
+Also on [Google Scholar](https://scholar.google.com/citations?user=j3I-2sMAAAAJ&hl=en), [ORCID](https://orcid.org/0000-0002-0328-637X) and [ResearchGate](https://www.researchgate.net/profile/Garen-Avanesian). Working papers and work in progress are on the [Research](research.qmd) page.
 
 ## Peer-reviewed journal articles
 
@@ -60,20 +60,6 @@ Also on [Google Scholar](https://scholar.google.com/citations?user=j3I-2sMAAAAJ&
 12. [2021]{.pub-year} **Economic inequality in the access to remote learning assets amongst youth in BRICS countries: What can we learn from pre-COVID-19 data**\
     [Avanesian, G., Borovskaya, M., Mishra, S., Masych, M., Fedosova, T., Egorova, V.]{.pub-authors} [*HSE Economic Journal*, 25(3)]{.pub-venue}\
     [Article](https://ej.hse.ru/2021-25-3/530048375.html){.pub-link}
-
-:::
-
-## Working papers and work in progress
-
-::: {.pub-list}
-
-1.  **Where do non-cognitive skills come from? A within-family analysis of parental inputs, social origin, and sibling personality**\
-    [Avanesian, G., Rozhkova, K.]{.pub-authors} [RLMS-HSE, within-family design]{.pub-venue}\
-    [Working paper (HTML)](within-family-paper.html){.pub-link} [Slides (HTML)](within-family-slides.html){.pub-link}
-
-2.  **Non-cognitive skills and higher education completion: longitudinal evidence from RLMS-HSE, 2016–2024**\
-    [Rozhkova, K., Avanesian, G.]{.pub-authors} [Presented at HSE and SFedU, 2026]{.pub-venue}\
-    [Slides (PDF, in Russian)](ncs-higher-ed-slides.pdf){.pub-link} [Results (HTML)](ncs-higher-ed.html){.pub-link}
 
 :::
 

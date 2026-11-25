@@ -15,6 +15,7 @@ project:
     - ncs-higher-ed.html
     - ncs-higher-ed-slides.pdf
     - within-family-slides.html
+    - unequal-guide.pdf
     - within-family-paper.html
     - pialand-deck.html
 
@@ -26,6 +27,8 @@ website:
     left:
       - text: Home
         href: index.qmd
+      - text: Research
+        href: research.qmd
       - text: Publications
         href: my_publications.qmd
       - text: Software

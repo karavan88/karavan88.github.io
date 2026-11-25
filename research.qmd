@@ -1,0 +1,43 @@
+---
+title: "Research"
+description: "Working papers and work in progress."
+toc: true
+---
+
+Current projects on non-cognitive skills, education and labor market outcomes. Published work is on the [Publications](my_publications.qmd) page; code is on the [Software](software.qmd) page.
+
+## Working papers
+
+::: {.pub-list}
+
+1.  **Where do non-cognitive skills come from? A within-family analysis of parental inputs, social origin, and sibling personality**\
+    [Avanesian, G., Rozhkova, K.]{.pub-authors} [RLMS-HSE, within-family design]{.pub-venue}\
+    [Working paper (HTML)](within-family-paper.html){.pub-link} [Slides (HTML)](within-family-slides.html){.pub-link}
+
+:::
+
+## Work in progress
+
+::: {.pub-list}
+
+1.  **Non-cognitive skills and higher education completion: longitudinal evidence from RLMS-HSE, 2016–2024**\
+    [Rozhkova, K., Avanesian, G.]{.pub-authors} [Presented at HSE and SFedU, 2026]{.pub-venue}\
+    [Slides (PDF, in Russian)](ncs-higher-ed-slides.pdf){.pub-link} [Results (HTML)](ncs-higher-ed.html){.pub-link}
+
+2.  **Returns to non-cognitive skills across the wage distribution: occupational sorting, supervision and trait-specific pathways**\
+    [Avanesian, G.]{.pub-authors} [RLMS-HSE 2017–2025]{.pub-venue}\
+    [Code](https://github.com/karavan88/wages-ncs-rlms){.pub-link}
+
+3.  **Beyond the happiness premium: personality, affect and labor market outcomes**\
+    [Avanesian, G.]{.pub-authors} [RLMS-HSE 2017–2025]{.pub-venue}\
+    [Code](https://github.com/karavan88/happiness-premium-rlms){.pub-link}
+
+4.  **Returns to non-cognitive skills in PIAAC Cycle 2: a causal mediation study**\
+    [Avanesian, G.]{.pub-authors} [PIAAC Cycle 2]{.pub-venue}\
+    [Code](https://github.com/karavan88/LM-NonCognSkills-PIAAC){.pub-link}
+
+5.  **Are non-cognitive skills rewarded with job satisfaction net of pay?**\
+    [Avanesian, G.]{.pub-authors} [PIAAC Cycle 2, 23 countries]{.pub-venue}\
+    [Code](https://github.com/karavan88/NCSJobSatisfPIAAC){.pub-link}
+
+:::
